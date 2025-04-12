@@ -1,5 +1,4 @@
 program main
-	use fynth
 	implicit none
-	call say_hello()
+	print *, "This is a stub"
 end program main
