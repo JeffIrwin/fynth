@@ -17,7 +17,16 @@ module fynth__io
 
 	double precision, parameter :: &
 		A_440 = 440.d0, &
-		C4  = A_440 * 2.d0 ** (3.d0 / 12.d0) / 2.d0  ! Middle C
+		C4  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 1.d0), &  ! Middle C
+		C3  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 2.d0), &  ! one octave down from middle C
+		C2  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 3.d0), &
+		C1  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 4.d0), &
+		C0  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 5.d0), &  ! ~ 16.3 Hz, not audible to humans
+		C5  = A_440 * 2.d0 ** (3.d0 / 12.d0 + 0.d0), &  ! one octave up from middle C
+		C6  = A_440 * 2.d0 ** (3.d0 / 12.d0 + 1.d0), &
+		C7  = A_440 * 2.d0 ** (3.d0 / 12.d0 + 2.d0), &
+		C8  = A_440 * 2.d0 ** (3.d0 / 12.d0 + 3.d0), &
+		C9  = A_440 * 2.d0 ** (3.d0 / 12.d0 + 4.d0)     ! C8 is already very high
 
 	! TODO: move note frequencies to fynth.f90
 	double precision, parameter :: &
@@ -40,6 +49,30 @@ module fynth__io
 		BF4 = C4 * 2.d0 ** (10.d0 / 12.d0), &
 		B4  = C4 * 2.d0 ** (11.d0 / 12.d0), &
 		BS4 = C4 * 2.d0 ** (12.d0 / 12.d0)
+
+	double precision, parameter :: &
+		CS3 = C3 * 2.d0 ** ( 1.d0 / 12.d0), &
+		DF3 = C3 * 2.d0 ** ( 1.d0 / 12.d0), &
+		D3  = C3 * 2.d0 ** ( 2.d0 / 12.d0), &
+		DS3 = C3 * 2.d0 ** ( 3.d0 / 12.d0), &
+		EF3 = C3 * 2.d0 ** ( 3.d0 / 12.d0), &
+		E3  = C3 * 2.d0 ** ( 4.d0 / 12.d0), &
+		FF3 = C3 * 2.d0 ** ( 4.d0 / 12.d0), &
+		ES3 = C3 * 2.d0 ** ( 5.d0 / 12.d0), &
+		F3  = C3 * 2.d0 ** ( 5.d0 / 12.d0), &
+		FS3 = C3 * 2.d0 ** ( 6.d0 / 12.d0), &
+		GF3 = C3 * 2.d0 ** ( 6.d0 / 12.d0), &
+		G3  = C3 * 2.d0 ** ( 7.d0 / 12.d0), &
+		GS3 = C3 * 2.d0 ** ( 8.d0 / 12.d0), &
+		AF3 = C3 * 2.d0 ** ( 8.d0 / 12.d0), &
+		A3  = C3 * 2.d0 ** ( 9.d0 / 12.d0), &
+		AS3 = C3 * 2.d0 ** (10.d0 / 12.d0), &
+		BF3 = C3 * 2.d0 ** (10.d0 / 12.d0), &
+		B3  = C3 * 2.d0 ** (11.d0 / 12.d0), &
+		BS3 = C3 * 2.d0 ** (12.d0 / 12.d0)
+
+	! TODO: other octaves.  Obviously this is WET, but I like having direct note
+	! names instead of having to index into an array of frequencies
 
 	character(len = *), parameter :: &
 		RIFF_ = "RIFF", &
@@ -145,6 +178,9 @@ subroutine write_wav(filename, wave_f64, sample_rate)
 	! TODO: this is the only method that belongs in io.f90.  Move others to test
 	! or run (fynth --licc)
 
+	! TODO: maybe wave_f64 and sample_rate should be encapsulated in a struct.
+	! Could later add multiple tracks, stereo, etc.
+
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: wave_f64(:)
 	integer(kind = 4), intent(in) :: sample_rate
@@ -234,9 +270,14 @@ subroutine write_wav_licc(filename)
 
 	print *, "A_440 = ", A_440
 	print *, "C4    = ", C4
+	print *, "C0    = ", C0
 
 	! The licc
-	notes = [D4, E4, F4, G4, E4, C4, D4]
+
+	!notes = [D4, E4, F4, G4, E4, C4, D4]
+	notes = [D3, E3, F3, G3, E3, C3, D3]
+	!notes = [D4, E4, F4, G4, E4, C4, D4] * 0.5d0  ! another way to lower by an octave
+
 	duras = [en, en, en, en, qn, en, qn]
 
 	wave = new_vec_f64()
