@@ -15,6 +15,10 @@ fpm run
 ```
 <!-- fpm test -- does nothing yet -->
 
+With `fpm run`, fynth will write `.wav` audio file(s) in the current directory.
+I will probably change this soon to make `fpm test` write sample files, while
+`fpm run` should take some kind of user input.
+
 # Disambiguation
 
 There is an unrelated although not dissimilar project also named fynth:  https://github.com/folkertvanheusden/fynth
