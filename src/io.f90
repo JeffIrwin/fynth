@@ -22,9 +22,12 @@ module fynth__io
 		DATA_ = "data"
 
 	double precision, parameter :: &
-		MIDDLE_C  = 256.d0, &  ! TODO: rename C4 (for extension to other octaves)
-		MIDDLE_CS = MIDDLE_C * 2.d0 ** (1.d0 / 12.d0), &
-		MIDDLE_D  = MIDDLE_C * 2.d0 ** (2.d0 / 12.d0)
+		C4  = 256.d0, &                       ! Middle C
+		CS4 = C4 * 2.d0 ** (1.d0 / 12.d0), &  ! C sharp
+		DF4 = C4 * 2.d0 ** (1.d0 / 12.d0), &  ! D flat (enharmonic)
+		D4  = C4 * 2.d0 ** (2.d0 / 12.d0), &
+		E4  = C4 * 2.d0 ** (4.d0 / 12.d0), &
+		G4  = C4 * 2.d0 ** (7.d0 / 12.d0)
 
 	type wav_header
 	
@@ -78,13 +81,13 @@ subroutine write_wav_test(filename)
 
 	do i = 1, buffer_size
 		if (i < buffer_size / 4) then
-			buffer(i) = int(sin(2 * PI * MIDDLE_C  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * C4  * i / wavh%srate) * 32000, 2)
 		else if (i < buffer_size / 2) then
-			buffer(i) = int(sin(2 * PI * MIDDLE_D  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * D4  * i / wavh%srate) * 32000, 2)
 		else if (i < buffer_size * 3 / 4) then
-			buffer(i) = int(sin(2 * PI * MIDDLE_CS * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * E4 * i / wavh%srate) * 32000, 2)
 		else
-			buffer(i) = int(sin(2 * PI * MIDDLE_D  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * G4  * i / wavh%srate) * 32000, 2)
 		end if
 	end do
 
