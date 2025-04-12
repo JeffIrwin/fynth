@@ -1,6 +1,7 @@
 
 module fynth__io
 
+	use fynth__utils
 	implicit none
 
 	! This is based on the following:
@@ -20,15 +21,10 @@ module fynth__io
 		FMT__ = "fmt ", &  ! case-sensitive
 		DATA_ = "data"
 
-	double precision, parameter :: PI = 4.d0 * atan(1.d0)
-
 	double precision, parameter :: &
 		MIDDLE_C  = 256.d0, &  ! TODO: rename C4 (for extension to other octaves)
 		MIDDLE_CS = MIDDLE_C * 2.d0 ** (1.d0 / 12.d0), &
 		MIDDLE_D  = MIDDLE_C * 2.d0 ** (2.d0 / 12.d0)
-
-	integer, parameter :: &
-		BITS_PER_BYTE = 8
 
 	type wav_header
 	
@@ -48,19 +44,6 @@ module fynth__io
 
 	end type wav_header
 
-	!********
-
-	! TODO: make utils.f90
-
-	character, parameter :: NULL_CHAR = char(0)
-
-	!! External C fns
-	!integer, external :: &
-	!	del_file, &
-	!	make_dir
-
-	!********
-
 contains
 
 !===============================================================================
@@ -68,15 +51,6 @@ contains
 subroutine write_wav_test(filename)
 
 	implicit none
-
-	!procedure(integer) :: del_file
-	!integer, external :: del_file
-
-	interface
-	  integer function del_file(filename)
-	    character(len = *), intent(in) :: filename
-	  end function del_file
-	end interface
 
 	character(len = *), intent(in) :: filename
 
@@ -123,7 +97,7 @@ subroutine write_wav_test(filename)
 	print *, "bytes_per_samp = ", wavh%bytes_per_samp
 
 	! Remove old file first, or junk will be left over at end
-	io = del_file(filename//NULL_CHAR)
+	io = rm_file(filename)
 	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
 
 	! Holy fucking bingle.  Today I learned you can just write a whole struct to
@@ -133,6 +107,7 @@ subroutine write_wav_test(filename)
 	write(fid) buffer
 
 	close(fid)
+	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_wav_test
 

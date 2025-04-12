@@ -4,9 +4,9 @@
 // c.f. ribbit/src/utils.c
 
 #ifdef _WIN32
-	#define del_file_ DEL_FILE
+	#define rm_file_c_ RM_FILE_C
 #endif
-int del_file_(char* filename)
+int rm_file_c_(char* filename)
 {
 	//printf("filename = \"%s\"\n", filename);
 	return remove(filename);
