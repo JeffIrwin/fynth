@@ -13,8 +13,6 @@ module fynth__io
 	!     https://www.youtube.com/watch?v=8nOi-0kBv2Y
 	!     https://docs.fileformat.com/audio/wav/
 
-	! TODO: 32-bit floating point waves?
-
 	double precision, parameter :: &
 		A_440 = 440.d0, &
 		C4  = A_440 * 2.d0 ** (3.d0 / 12.d0 - 1.d0), &  ! Middle C
@@ -77,7 +75,7 @@ module fynth__io
 	character(len = *), parameter :: &
 		RIFF_ = "RIFF", &
 		WAVE_ = "WAVE", &
-		FMT__ = "fmt ", &  ! case-sensitive
+		FMT__ = "fmt ", &  ! case and whitespace sensitive
 		DATA_ = "data"
 
 	type wav_header_t
@@ -172,8 +170,6 @@ subroutine write_wav_test(filename)
 end subroutine write_wav_test
 
 !===============================================================================
-
-! TODO: add a read_wav() fn
 
 subroutine write_wav(filename, wave_f64, sample_rate)
 
