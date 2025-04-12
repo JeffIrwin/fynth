@@ -144,11 +144,10 @@ subroutine write_wav_licc(filename)
 
 	!********
 
-	double precision :: duration_seconds
 	double precision :: bpm, quarter_note, eigth_note, en, qn
-	double precision, allocatable :: notes(:), duras(:)!, wave(:)
+	double precision, allocatable :: notes(:), duras(:)
 
-	integer :: ii, it, itl, fid, io, buffer_size, header_length
+	integer :: ii, it, itl, fid, io, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 	integer(kind = 4) :: srate
 
@@ -159,14 +158,11 @@ subroutine write_wav_licc(filename)
 
 	! TODO: arg.  Should default much higher (44.1 kHz or twice that?)
 	srate = 8000
+	!srate = 44100
 
 	wavh%srate = srate
-	duration_seconds = 10.d0
-	buffer_size = int(wavh%srate * duration_seconds)
 
-	!allocate(wave(buffer_size))  ! TODO: dynamic vec
 	wave = new_vec_f64()
-	!wave = 0
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
 	print *, "header_length = ", header_length
@@ -193,9 +189,6 @@ subroutine write_wav_licc(filename)
 	notes = [D4, E4, F4, G4, E4, C4, D4]
 	duras = [en, en, en, en, qn, en, qn]
 
-	! TODO: push to an intermediate buffer vec, use double internally, then
-	! bounce down to int only for wav export.  Get max volume of double and use
-	! that to set max int output
 	it = 1  ! time iterator
 	do ii = 1, size(notes)
 		do itl = 1, int(duras(ii) * srate)
@@ -203,16 +196,14 @@ subroutine write_wav_licc(filename)
 			it = it + 1
 		end do
 	end do
-	!wave = wave(1: it-1)  ! trim
-	wave%v = wave%v(1: wave%len_)  ! TODO: trim method
+	call wave%trim()
 
 	print *, "wave infty-norm = ", maxval(abs(wave%v))
 
 	buffer = int(wave%v * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave%v)), 2)
 	!print *, "buff infty-norm = ", maxval(abs(buffer))
-	buffer_size = size(buffer)
 
-	wavh%dlength = buffer_size * wavh%bytes_per_samp
+	wavh%dlength = size(buffer) * wavh%bytes_per_samp
 	wavh%flength = wavh%dlength + header_length
 
 	print *, "dlength        = ", wavh%dlength

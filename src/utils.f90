@@ -20,7 +20,9 @@ module fynth__utils
 		double precision, allocatable :: v(:)
 		integer :: len_, cap
 		contains
-			procedure :: push     => push_vec_f64
+			procedure :: &
+				push => push_vec_f64, &
+				trim => trim_vec_f64
 	end type vec_f64_t
 
 	!********
@@ -86,6 +88,13 @@ subroutine push_vec_f64(vector, val)
 	vector%v( vector%len_ ) = val
 
 end subroutine push_vec_f64
+
+!===============================================================================
+
+subroutine trim_vec_f64(vector)
+	class(vec_f64_t) :: vector
+	vector%v = vector%v(1: vector%len_)
+end subroutine trim_vec_f64
 
 !===============================================================================
 
