@@ -22,12 +22,26 @@ module fynth__io
 		DATA_ = "data"
 
 	double precision, parameter :: &
-		C4  = 256.d0, &                       ! Middle C
-		CS4 = C4 * 2.d0 ** (1.d0 / 12.d0), &  ! C sharp
-		DF4 = C4 * 2.d0 ** (1.d0 / 12.d0), &  ! D flat (enharmonic)
-		D4  = C4 * 2.d0 ** (2.d0 / 12.d0), &
-		E4  = C4 * 2.d0 ** (4.d0 / 12.d0), &
-		G4  = C4 * 2.d0 ** (7.d0 / 12.d0)
+		C4  = 256.d0, &                        ! Middle C. TODO: this frequency is wrong
+		CS4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! C sharp
+		DF4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! D flat (enharmonic)
+		D4  = C4 * 2.d0 ** ( 2.d0 / 12.d0), &
+		DS4 = C4 * 2.d0 ** ( 3.d0 / 12.d0), &
+		EF4 = C4 * 2.d0 ** ( 3.d0 / 12.d0), &
+		E4  = C4 * 2.d0 ** ( 4.d0 / 12.d0), &
+		FF4 = C4 * 2.d0 ** ( 4.d0 / 12.d0), &
+		ES4 = C4 * 2.d0 ** ( 5.d0 / 12.d0), &
+		F4  = C4 * 2.d0 ** ( 5.d0 / 12.d0), &
+		FS4 = C4 * 2.d0 ** ( 6.d0 / 12.d0), &
+		GF4 = C4 * 2.d0 ** ( 6.d0 / 12.d0), &
+		G4  = C4 * 2.d0 ** ( 7.d0 / 12.d0), &
+		GS4 = C4 * 2.d0 ** ( 8.d0 / 12.d0), &
+		AF4 = C4 * 2.d0 ** ( 8.d0 / 12.d0), &
+		A4  = C4 * 2.d0 ** ( 9.d0 / 12.d0), &
+		AS4 = C4 * 2.d0 ** (10.d0 / 12.d0), &
+		BF4 = C4 * 2.d0 ** (10.d0 / 12.d0), &
+		B4  = C4 * 2.d0 ** (11.d0 / 12.d0), &
+		BS4 = C4 * 2.d0 ** (12.d0 / 12.d0)
 
 	type wav_header
 	
