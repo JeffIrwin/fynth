@@ -44,7 +44,7 @@ module fynth__io
 		FMT__ = "fmt ", &  ! case-sensitive
 		DATA_ = "data"
 
-	type wav_header
+	type wav_header_t
 	
 		character(len = 4) :: riff = RIFF_
 		integer(kind = 4)  :: flength         ! file length in bytes
@@ -60,7 +60,7 @@ module fynth__io
 		character(len = 4) :: data = DATA_
 		integer(kind = 4)  :: dlength         ! data length in bytes (flength - 44 (header length))
 
-	end type wav_header
+	end type wav_header_t
 
 contains
 
@@ -79,7 +79,7 @@ subroutine write_wav_test(filename)
 	integer :: i, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 
-	type(wav_header) :: wavh
+	type(wav_header_t) :: wavh
 
 	!********
 
@@ -146,13 +146,14 @@ subroutine write_wav_licc(filename)
 
 	double precision :: duration_seconds
 	double precision :: bpm, quarter_note, eigth_note, en, qn
-	double precision, allocatable :: notes(:), duras(:), wave(:)
+	double precision, allocatable :: notes(:), duras(:)!, wave(:)
 
 	integer :: ii, it, itl, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 	integer(kind = 4) :: srate
 
-	type(wav_header) :: wavh
+	type(vec_f64_t) :: wave
+	type(wav_header_t) :: wavh
 
 	!********
 
@@ -163,7 +164,8 @@ subroutine write_wav_licc(filename)
 	duration_seconds = 10.d0
 	buffer_size = int(wavh%srate * duration_seconds)
 
-	allocate(wave(buffer_size))  ! TODO: dynamic vec
+	!allocate(wave(buffer_size))  ! TODO: dynamic vec
+	wave = new_vec_f64()
 	!wave = 0
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
@@ -197,16 +199,16 @@ subroutine write_wav_licc(filename)
 	it = 1  ! time iterator
 	do ii = 1, size(notes)
 		do itl = 1, int(duras(ii) * srate)
-			!buffer(it) = int(sin(2 * PI * notes(ii) * itl / srate) * 32000, 2)
-			wave(it) = sin(2 * PI * notes(ii) * itl / srate)
+			call wave%push( sin(2 * PI * notes(ii) * itl / srate) )
 			it = it + 1
 		end do
 	end do
-	wave = wave(1: it-1)  ! trim
+	!wave = wave(1: it-1)  ! trim
+	wave%v = wave%v(1: wave%len_)  ! TODO: trim method
 
-	print *, "wave infty-norm = ", maxval(abs(wave))
+	print *, "wave infty-norm = ", maxval(abs(wave%v))
 
-	buffer = int(wave * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave)), 2)
+	buffer = int(wave%v * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave%v)), 2)
 	!print *, "buff infty-norm = ", maxval(abs(buffer))
 	buffer_size = size(buffer)
 
@@ -217,6 +219,8 @@ subroutine write_wav_licc(filename)
 	print *, "flength        = ", wavh%flength
 	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
 	print *, "bytes_per_samp = ", wavh%bytes_per_samp
+
+	! TODO: separate playing notes from file writing
 
 	! Remove old file first, or junk will be left over at end
 	io = rm_file(filename)
