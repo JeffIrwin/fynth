@@ -2,5 +2,5 @@
 /scratch/
 
 /*.wav
-/*.mod
+#/*.mod
 

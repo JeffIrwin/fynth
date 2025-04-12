@@ -71,11 +71,15 @@ subroutine write_wav_test(filename)
 
 	character(len = *), intent(in) :: filename
 
+	!********
+
 	integer :: i, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 	double precision :: duration_seconds
 
 	type(wav_header) :: wavh
+
+	!********
 
 	wavh%srate = 8000
 	duration_seconds = 10.d0
@@ -127,6 +131,99 @@ subroutine write_wav_test(filename)
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_wav_test
+
+!===============================================================================
+
+subroutine write_wav_licc(filename)
+
+	implicit none
+
+	character(len = *), intent(in) :: filename
+
+	!********
+
+	integer :: ii, it, itl, fid, io, buffer_size, header_length
+	integer(kind = 2), allocatable :: buffer(:)
+	integer(kind = 4) :: srate
+	double precision :: duration_seconds
+
+	double precision :: bpm, quarter_note, eigth_note
+	integer :: quarter_samples, eigth_samples
+
+	double precision, allocatable :: notes(:)
+
+	type(wav_header) :: wavh
+
+	!********
+
+	! TODO: arg.  Should default much higher (44.1 kHz or twice that?)
+	srate = 8000
+
+	wavh%srate = srate
+	duration_seconds = 10.d0
+	buffer_size = int(wavh%srate * duration_seconds)
+
+	allocate(buffer(buffer_size))
+	buffer = 0
+
+	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
+	print *, "header_length = ", header_length
+
+	wavh%chunk_size = 16
+	wavh%format_tag = 1
+	wavh%num_chans = 1
+	wavh%bits_per_samp = 16
+	wavh%bytes_per_sec = wavh%srate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
+	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
+
+	! The licc
+	notes = [D4, E4, F4, G4, E4, C4, D4]
+
+	! Beats per minute
+	bpm = 120.d0
+
+	! Durations in seconds
+	quarter_note = 60.d0 / bpm
+	eigth_note = quarter_note / 2.d0
+
+	! Durations in samples
+	quarter_samples = int(quarter_note * srate)
+	eigth_samples   = int(eigth_note   * srate)
+
+	! TODO: push to an intermediate buffer vec, use double internally, then
+	! bounce down to int only for wav export.  Get max volume of double and use
+	! that to set max int output
+
+	it = 1  ! time iterator
+	do ii = 1, size(notes)
+		do itl = 1, eigth_samples
+			buffer(it) = int(sin(2 * PI * notes(ii) * itl / srate) * 32000, 2)
+			it = it + 1
+		end  do
+	end do
+
+	wavh%dlength = buffer_size * wavh%bytes_per_samp
+	wavh%flength = wavh%dlength + header_length
+
+	print *, "dlength        = ", wavh%dlength
+	print *, "flength        = ", wavh%flength
+	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
+	print *, "bytes_per_samp = ", wavh%bytes_per_samp
+
+	! Remove old file first, or junk will be left over at end
+	io = rm_file(filename)
+	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
+
+	! Holy fucking bingle.  Today I learned you can just write a whole struct to
+	! a binary file all at once
+	write(fid) wavh
+
+	write(fid) buffer
+
+	close(fid)
+	write(*,*) "Finished writing file """, filename, """"
+
+end subroutine write_wav_licc
 
 !===============================================================================
 
