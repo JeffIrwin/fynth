@@ -4,7 +4,7 @@ module fynth__io
 	use fynth__utils
 	implicit none
 
-	! This is based on the following:
+	! This wav writer is based on the following:
 	!
 	!     https://gist.github.com/BjoernSchilberg/c5deafaa5b3d477f60543ef59fad0a00
 	!
@@ -15,12 +15,7 @@ module fynth__io
 
 	! TODO: 32-bit floating point waves?
 
-	character(len = *), parameter :: &
-		RIFF_ = "RIFF", &
-		WAVE_ = "WAVE", &
-		FMT__ = "fmt ", &  ! case-sensitive
-		DATA_ = "data"
-
+	! TODO: move note frequencies to fynth.f90
 	double precision, parameter :: &
 		C4  = 256.d0, &                        ! Middle C. TODO: this frequency is wrong
 		CS4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! C sharp
@@ -42,6 +37,12 @@ module fynth__io
 		BF4 = C4 * 2.d0 ** (10.d0 / 12.d0), &
 		B4  = C4 * 2.d0 ** (11.d0 / 12.d0), &
 		BS4 = C4 * 2.d0 ** (12.d0 / 12.d0)
+
+	character(len = *), parameter :: &
+		RIFF_ = "RIFF", &
+		WAVE_ = "WAVE", &
+		FMT__ = "fmt ", &  ! case-sensitive
+		DATA_ = "data"
 
 	type wav_header
 	
