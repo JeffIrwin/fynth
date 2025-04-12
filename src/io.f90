@@ -147,10 +147,9 @@ subroutine write_wav_licc(filename)
 	integer(kind = 4) :: srate
 	double precision :: duration_seconds
 
-	double precision :: bpm, quarter_note, eigth_note
-	integer :: quarter_samples, eigth_samples
+	double precision :: bpm, quarter_note, eigth_note, en, qn
 
-	double precision, allocatable :: notes(:)
+	double precision, allocatable :: notes(:), duras(:)
 
 	type(wav_header) :: wavh
 
@@ -176,9 +175,6 @@ subroutine write_wav_licc(filename)
 	wavh%bytes_per_sec = wavh%srate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
-	! The licc
-	notes = [D4, E4, F4, G4, E4, C4, D4]
-
 	! Beats per minute
 	bpm = 120.d0
 
@@ -186,20 +182,23 @@ subroutine write_wav_licc(filename)
 	quarter_note = 60.d0 / bpm
 	eigth_note = quarter_note / 2.d0
 
-	! Durations in samples
-	quarter_samples = int(quarter_note * srate)
-	eigth_samples   = int(eigth_note   * srate)
+	! Aliases
+	qn = quarter_note
+	en = eigth_note
+
+	! The licc
+	notes = [D4, E4, F4, G4, E4, C4, D4]
+	duras = [en, en, en, en, qn, en, qn]
 
 	! TODO: push to an intermediate buffer vec, use double internally, then
 	! bounce down to int only for wav export.  Get max volume of double and use
 	! that to set max int output
-
 	it = 1  ! time iterator
 	do ii = 1, size(notes)
-		do itl = 1, eigth_samples
+		do itl = 1, int(duras(ii) * srate)
 			buffer(it) = int(sin(2 * PI * notes(ii) * itl / srate) * 32000, 2)
 			it = it + 1
-		end  do
+		end do
 	end do
 
 	wavh%dlength = buffer_size * wavh%bytes_per_samp
