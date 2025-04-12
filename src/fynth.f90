@@ -1,5 +1,8 @@
 
 module fynth
+
+	use fynth__io
+
 	implicit none
 
 contains
