@@ -84,7 +84,7 @@ subroutine write_wav_test(filename)
 	!********
 
 	wavh%srate = 8000
-	duration_seconds = 10.d0
+	duration_seconds = 3.d0
 	buffer_size = int(wavh%srate * duration_seconds)
 
 	allocate(buffer(buffer_size))
@@ -164,7 +164,7 @@ subroutine write_wav_licc(filename)
 	buffer_size = int(wavh%srate * duration_seconds)
 
 	allocate(wave(buffer_size))  ! TODO: dynamic vec
-	wave = 0
+	!wave = 0
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
 	print *, "header_length = ", header_length
@@ -202,10 +202,13 @@ subroutine write_wav_licc(filename)
 			it = it + 1
 		end do
 	end do
+	wave = wave(1: it-1)  ! trim
 
 	print *, "wave infty-norm = ", maxval(abs(wave))
+
 	buffer = int(wave * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave)), 2)
-	print *, "buff infty-norm = ", maxval(abs(buffer))
+	!print *, "buff infty-norm = ", maxval(abs(buffer))
+	buffer_size = size(buffer)
 
 	wavh%dlength = buffer_size * wavh%bytes_per_samp
 	wavh%flength = wavh%dlength + header_length
