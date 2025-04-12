@@ -1,5 +1,5 @@
 
-![](https://github.com/JeffIrwin/fynth/workflows/CI/badge.svg)
+![](https://github.com/JeffIrwin/fynth/workflows/ci/badge.svg)
 
 # fynth: a fortran synthesizer
 
@@ -8,7 +8,7 @@ written as _f_.  [Typesetting](https://github.com/JeffIrwin/cali) is hard ok!
 
 # Build and run
 
-Use [fpm](), the fortran package manager, with commands such as these:
+Use [fpm](https://fpm.fortran-lang.org/), the fortran package manager, with commands such as these:
 ```bash
 fpm build
 fpm run
@@ -16,4 +16,6 @@ fpm run
 <!-- fpm test -- does nothing yet -->
 
 # Disambiguation
+
+There is an unrelated although not dissimilar project also named fynth:  https://github.com/folkertvanheusden/fynth
 
