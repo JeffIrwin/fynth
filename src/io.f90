@@ -74,9 +74,10 @@ subroutine write_wav_test(filename)
 
 	!********
 
+	double precision :: duration_seconds
+
 	integer :: i, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
-	double precision :: duration_seconds
 
 	type(wav_header) :: wavh
 
@@ -143,14 +144,13 @@ subroutine write_wav_licc(filename)
 
 	!********
 
+	double precision :: duration_seconds
+	double precision :: bpm, quarter_note, eigth_note, en, qn
+	double precision, allocatable :: notes(:), duras(:), wave(:)
+
 	integer :: ii, it, itl, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 	integer(kind = 4) :: srate
-	double precision :: duration_seconds
-
-	double precision :: bpm, quarter_note, eigth_note, en, qn
-
-	double precision, allocatable :: notes(:), duras(:)
 
 	type(wav_header) :: wavh
 
@@ -163,8 +163,8 @@ subroutine write_wav_licc(filename)
 	duration_seconds = 10.d0
 	buffer_size = int(wavh%srate * duration_seconds)
 
-	allocate(buffer(buffer_size))
-	buffer = 0
+	allocate(wave(buffer_size))  ! TODO: dynamic vec
+	wave = 0
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
 	print *, "header_length = ", header_length
@@ -197,10 +197,15 @@ subroutine write_wav_licc(filename)
 	it = 1  ! time iterator
 	do ii = 1, size(notes)
 		do itl = 1, int(duras(ii) * srate)
-			buffer(it) = int(sin(2 * PI * notes(ii) * itl / srate) * 32000, 2)
+			!buffer(it) = int(sin(2 * PI * notes(ii) * itl / srate) * 32000, 2)
+			wave(it) = sin(2 * PI * notes(ii) * itl / srate)
 			it = it + 1
 		end do
 	end do
+
+	print *, "wave infty-norm = ", maxval(abs(wave))
+	buffer = int(wave * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave)), 2)
+	print *, "buff infty-norm = ", maxval(abs(buffer))
 
 	wavh%dlength = buffer_size * wavh%bytes_per_samp
 	wavh%flength = wavh%dlength + header_length
