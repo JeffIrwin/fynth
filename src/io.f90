@@ -173,6 +173,8 @@ end subroutine write_wav_test
 
 !===============================================================================
 
+! TODO: add a read_wav() fn
+
 subroutine write_wav(filename, wave_f64, sample_rate)
 
 	! TODO: this is the only method that belongs in io.f90.  Move others to test
@@ -187,6 +189,7 @@ subroutine write_wav(filename, wave_f64, sample_rate)
 
 	!********
 
+	double precision :: max_wave
 	integer :: fid, io, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 
@@ -200,13 +203,18 @@ subroutine write_wav(filename, wave_f64, sample_rate)
 	wavh%chunk_size = 16
 	wavh%format_tag = 1
 	wavh%num_chans = 1
-	wavh%bits_per_samp = 16
+	wavh%bits_per_samp = 16  ! TODO: tie this magic number to the type of `buffer`
 	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
-	print *, "wave infty-norm = ", maxval(abs(wave_f64))
+	max_wave = maxval(abs(wave_f64))
+	print *, "wave infty-norm = ", max_wave
 
-	buffer = int(wave_f64 * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave_f64)), 2)
+	! TODO: warn if RMS norm is much less than max norm, i.e. if some kind of
+	! wierd spike resulted in massively reducing the volume of the rest of the
+	! wave track
+
+	buffer = int(wave_f64 * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 	!print *, "buff infty-norm = ", maxval(abs(buffer))
 
 	wavh%dlength = size(buffer) * wavh%bytes_per_samp
@@ -291,7 +299,7 @@ subroutine write_wav_licc(filename)
 	end do
 	call wave%trim()
 
-	print *, "wave infty-norm = ", maxval(abs(wave%v))
+	!print *, "wave infty-norm = ", maxval(abs(wave%v))
 
 	call write_wav(filename, wave%v, sample_rate)
 
