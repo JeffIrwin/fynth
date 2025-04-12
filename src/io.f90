@@ -53,8 +53,8 @@ module fynth__io
 		integer(kind = 4)  :: chunk_size      ! size of FMT chunk in bytes (usually 16)
 		integer(kind = 2)  :: format_tag      ! 1 = PCM, 257 = Mu-Law, 258 = A-Law, 259 = ADPCM
 		integer(kind = 2)  :: num_chans       ! 1 = mono, 2 = stereo
-		integer(kind = 4)  :: srate           ! sampling rate in samples per second
-		integer(kind = 4)  :: bytes_per_sec   ! bytes per second = srate * bytes_per_samp
+		integer(kind = 4)  :: sample_rate     ! sampling rate in samples per second
+		integer(kind = 4)  :: bytes_per_sec   ! bytes per second = sample_rate * bytes_per_samp
 		integer(kind = 2)  :: bytes_per_samp  ! 2 = 16-bit mono, 4 = 16-bit stereo
 		integer(kind = 2)  :: bits_per_samp   ! number of bits per sample
 		character(len = 4) :: data = DATA_
@@ -68,7 +68,8 @@ contains
 
 subroutine write_wav_test(filename)
 
-	implicit none
+	! This is a simple and direct example of writing a wav file, using a
+	! static-size integer wave `buffer` array which is written immediately
 
 	character(len = *), intent(in) :: filename
 
@@ -83,9 +84,9 @@ subroutine write_wav_test(filename)
 
 	!********
 
-	wavh%srate = 8000
+	wavh%sample_rate = 8000
 	duration_seconds = 3.d0
-	buffer_size = int(wavh%srate * duration_seconds)
+	buffer_size = int(wavh%sample_rate * duration_seconds)
 
 	allocate(buffer(buffer_size))
 
@@ -96,18 +97,18 @@ subroutine write_wav_test(filename)
 	wavh%format_tag = 1
 	wavh%num_chans = 1
 	wavh%bits_per_samp = 16
-	wavh%bytes_per_sec = wavh%srate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
+	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
 	do i = 1, buffer_size
 		if (i < buffer_size / 4) then
-			buffer(i) = int(sin(2 * PI * C4  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * C4 * i / wavh%sample_rate) * 32000, 2)
 		else if (i < buffer_size / 2) then
-			buffer(i) = int(sin(2 * PI * D4  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * D4 * i / wavh%sample_rate) * 32000, 2)
 		else if (i < buffer_size * 3 / 4) then
-			buffer(i) = int(sin(2 * PI * E4 * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * E4 * i / wavh%sample_rate) * 32000, 2)
 		else
-			buffer(i) = int(sin(2 * PI * G4  * i / wavh%srate) * 32000, 2)
+			buffer(i) = int(sin(2 * PI * G4 * i / wavh%sample_rate) * 32000, 2)
 		end if
 	end do
 
@@ -136,33 +137,23 @@ end subroutine write_wav_test
 
 !===============================================================================
 
-subroutine write_wav_licc(filename)
+subroutine write_wav(filename, wave_f64, sample_rate)
 
-	implicit none
+	! TODO: this is the only method that belongs in io.f90.  Move others to test
+	! or run (fynth --licc)
 
 	character(len = *), intent(in) :: filename
+	double precision, intent(in) :: wave_f64(:)
+	integer(kind = 4), intent(in) :: sample_rate
 
 	!********
 
-	double precision :: bpm, quarter_note, eigth_note, en, qn
-	double precision, allocatable :: notes(:), duras(:)
-
-	integer :: ii, it, itl, fid, io, header_length
+	integer :: fid, io, header_length
 	integer(kind = 2), allocatable :: buffer(:)
-	integer(kind = 4) :: srate
 
-	type(vec_f64_t) :: wave
 	type(wav_header_t) :: wavh
 
-	!********
-
-	! TODO: arg.  Should default much higher (44.1 kHz or twice that?)
-	srate = 8000
-	!srate = 44100
-
-	wavh%srate = srate
-
-	wave = new_vec_f64()
+	wavh%sample_rate = sample_rate
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
 	print *, "header_length = ", header_length
@@ -171,8 +162,61 @@ subroutine write_wav_licc(filename)
 	wavh%format_tag = 1
 	wavh%num_chans = 1
 	wavh%bits_per_samp = 16
-	wavh%bytes_per_sec = wavh%srate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
+	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
+
+	print *, "wave infty-norm = ", maxval(abs(wave_f64))
+
+	buffer = int(wave_f64 * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave_f64)), 2)
+	!print *, "buff infty-norm = ", maxval(abs(buffer))
+
+	wavh%dlength = size(buffer) * wavh%bytes_per_samp
+	wavh%flength = wavh%dlength + header_length
+
+	print *, "dlength        = ", wavh%dlength
+	print *, "flength        = ", wavh%flength
+	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
+	print *, "bytes_per_samp = ", wavh%bytes_per_samp
+
+	! Remove old file first, or junk will be left over at end
+	io = rm_file(filename)
+	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
+
+	! Holy fucking bingle.  Today I learned you can just write a whole struct to
+	! a binary file all at once
+	write(fid) wavh
+
+	write(fid) buffer
+
+	close(fid)
+	write(*,*) "Finished writing file """, filename, """"
+
+end subroutine write_wav
+
+!===============================================================================
+
+subroutine write_wav_licc(filename)
+
+	! This is a more flexible example that plays some notes from an array by
+	! pushing their waveforms to a dynamic double `wave` vector
+
+	character(len = *), intent(in) :: filename
+
+	!********
+
+	double precision :: bpm, quarter_note, eigth_note, en, qn
+	double precision, allocatable :: notes(:), duras(:)
+
+	integer :: ii, it
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	! TODO: should default much higher (44.1 kHz or twice that?)
+	sample_rate = 8000
+	!sample_rate = 44100
 
 	! Beats per minute
 	bpm = 120.d0
@@ -189,42 +233,20 @@ subroutine write_wav_licc(filename)
 	notes = [D4, E4, F4, G4, E4, C4, D4]
 	duras = [en, en, en, en, qn, en, qn]
 
-	it = 1  ! time iterator
+	wave = new_vec_f64()
 	do ii = 1, size(notes)
-		do itl = 1, int(duras(ii) * srate)
-			call wave%push( sin(2 * PI * notes(ii) * itl / srate) )
-			it = it + 1
+
+		! Play frequency `notes(ii)` for duration `duras(ii)`
+		do it = 1, int(duras(ii) * sample_rate)
+			call wave%push( sin(2 * PI * notes(ii) * it / sample_rate) )
 		end do
+
 	end do
 	call wave%trim()
 
 	print *, "wave infty-norm = ", maxval(abs(wave%v))
 
-	buffer = int(wave%v * (2 ** (wavh%bits_per_samp - 1) - 1) / maxval(abs(wave%v)), 2)
-	!print *, "buff infty-norm = ", maxval(abs(buffer))
-
-	wavh%dlength = size(buffer) * wavh%bytes_per_samp
-	wavh%flength = wavh%dlength + header_length
-
-	print *, "dlength        = ", wavh%dlength
-	print *, "flength        = ", wavh%flength
-	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
-	print *, "bytes_per_samp = ", wavh%bytes_per_samp
-
-	! TODO: separate playing notes from file writing
-
-	! Remove old file first, or junk will be left over at end
-	io = rm_file(filename)
-	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
-
-	! Holy fucking bingle.  Today I learned you can just write a whole struct to
-	! a binary file all at once
-	write(fid) wavh
-
-	write(fid) buffer
-
-	close(fid)
-	write(*,*) "Finished writing file """, filename, """"
+	call write_wav(filename, wave%v, sample_rate)
 
 end subroutine write_wav_licc
 
