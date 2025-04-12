@@ -15,14 +15,17 @@ module fynth__io
 
 	! TODO: 32-bit floating point waves?
 
+	double precision, parameter :: &
+		A_440 = 440.d0, &
+		C4  = A_440 * 2.d0 ** (3.d0 / 12.d0) / 2.d0  ! Middle C
+
 	! TODO: move note frequencies to fynth.f90
 	double precision, parameter :: &
-		C4  = 256.d0, &                        ! Middle C. TODO: this frequency is wrong
-		CS4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! C sharp
+		CS4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! C sharp (just above middle C)
 		DF4 = C4 * 2.d0 ** ( 1.d0 / 12.d0), &  ! D flat (enharmonic)
 		D4  = C4 * 2.d0 ** ( 2.d0 / 12.d0), &
 		DS4 = C4 * 2.d0 ** ( 3.d0 / 12.d0), &
-		EF4 = C4 * 2.d0 ** ( 3.d0 / 12.d0), &
+		EF4 = C4 * 2.d0 ** ( 3.d0 / 12.d0), &  ! white key enharmonics are included
 		E4  = C4 * 2.d0 ** ( 4.d0 / 12.d0), &
 		FF4 = C4 * 2.d0 ** ( 4.d0 / 12.d0), &
 		ES4 = C4 * 2.d0 ** ( 5.d0 / 12.d0), &
@@ -228,6 +231,9 @@ subroutine write_wav_licc(filename)
 	! Aliases
 	qn = quarter_note
 	en = eigth_note
+
+	print *, "A_440 = ", A_440
+	print *, "C4    = ", C4
 
 	! The licc
 	notes = [D4, E4, F4, G4, E4, C4, D4]
