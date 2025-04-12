@@ -5,7 +5,7 @@ program main
 	implicit none
 
 	call say_hello()
-	call write_wav_test()
+	call write_wav_test("test.wav")
 
 end program main
 

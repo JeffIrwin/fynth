@@ -48,14 +48,39 @@ module fynth__io
 
 	end type wav_header
 
+	!********
+
+	! TODO: make utils.f90
+
+	character, parameter :: NULL_CHAR = char(0)
+
+	!! External C fns
+	!integer, external :: &
+	!	del_file, &
+	!	make_dir
+
+	!********
+
 contains
 
-!program main
-subroutine write_wav_test()
+!===============================================================================
+
+subroutine write_wav_test(filename)
 
 	implicit none
 
-	integer :: i, fid, buffer_size, header_length
+	!procedure(integer) :: del_file
+	!integer, external :: del_file
+
+	interface
+	  integer function del_file(filename)
+	    character(len = *), intent(in) :: filename
+	  end function del_file
+	end interface
+
+	character(len = *), intent(in) :: filename
+
+	integer :: i, fid, io, buffer_size, header_length
 	integer(kind = 2), allocatable :: buffer(:)
 	double precision :: duration_seconds
 
@@ -97,8 +122,9 @@ subroutine write_wav_test()
 	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
 	print *, "bytes_per_samp = ", wavh%bytes_per_samp
 
-	! TODO: remove old file first, or junk will be left over at end
-	open(file = "fort.wav", newunit = fid, form = "unformatted", access = "stream")
+	! Remove old file first, or junk will be left over at end
+	io = del_file(filename//NULL_CHAR)
+	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
 
 	! Holy fucking bingle.  Today I learned you can just write a whole struct to
 	! a binary file all at once
@@ -109,6 +135,8 @@ subroutine write_wav_test()
 	close(fid)
 
 end subroutine write_wav_test
+
+!===============================================================================
 
 end module fynth__io
 
