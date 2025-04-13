@@ -291,6 +291,7 @@ subroutine write_wav_square(filename, freq, len)
 
 	!********
 
+	double precision :: f, t
 	double precision, allocatable :: notes(:), duras(:)
 
 	integer :: ii, it
@@ -309,11 +310,10 @@ subroutine write_wav_square(filename, freq, len)
 	do ii = 1, size(notes)
 
 		! Play frequency `notes(ii)` for duration `duras(ii)`
+		f = notes(ii)
 		do it = 1, int(duras(ii) * sample_rate)
-			call wave%push( &
-				2.d0 * (2 * &
-				floor(notes(ii) * it / sample_rate) - &
-				floor(2 * notes(ii) * it / sample_rate)) + 1)
+			t = 1.d0 * it / sample_rate
+			call wave%push( 2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1 )
 		end do
 
 	end do
