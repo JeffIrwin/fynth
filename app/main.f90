@@ -10,6 +10,8 @@ module fynth__app
 
 	type args_t
 
+		! File arguments can be input or output files, depending on other
+		! arguments
 		character(len = :), allocatable :: file1
 
 		double precision :: sine_freq, sine_len
@@ -72,7 +74,7 @@ function read_args() result(args)
 
 	! This argument parser is based on http://docopt.org/
 	!
-	! c.f. github.com/jeffirwin/cali and syntran
+	! c.f. github.com/jeffirwin/cali, syntran, ribbit, etc.
 
 	type(args_t) :: args
 
@@ -99,15 +101,6 @@ function read_args() result(args)
 
 		case ("-h", "--help", "-help")
 			args%help    = .true.
-
-		!case ("--fmax-errors")
-		!	call get_next_arg(i, str)
-		!	read(str, *, iostat = io) args%maxerr
-		!	if (io /= exit_success) then
-		!		write(*,*) ERROR_STR//"--fmax-errors "//str &
-		!			//" is not a valid integer"
-		!		error = .true.
-		!	end if
 
 		case ("--version")
 			args%version = .true.
@@ -254,6 +247,7 @@ program main
 
 	call write_wav_test("test.wav")
 	call write_wav_licc("licc.wav")
+
 	call fynth_exit(EXIT_SUCCESS)
 
 end program main

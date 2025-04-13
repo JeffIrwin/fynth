@@ -41,7 +41,7 @@ module fynth__utils
 			color_reset           = esc//"[0m"
 
 	character(len = *), parameter :: &
-		ERROR_STR = fg_bold_bright_red   //"Error"  //fg_bold//": "//color_reset, &
+		ERROR_STR = fg_bold_bright_red//"Error"  //fg_bold//": "//color_reset, &
 		WARN_STR  = fg_yellow//"Warning"//fg_bold//": "//color_reset
 
 	!********
@@ -154,7 +154,6 @@ function to_str_i64(int_) result(str)
 end function to_str_i64
 
 !===============================================================================
-
 
 end module fynth__utils
 
