@@ -7,19 +7,32 @@ Project _fynth_ is pronounced as _synth_, because the lowercase letter _S_ is
 written as _f_.  [Typesetting](https://github.com/JeffIrwin/cali) is hard ok!
 
 ![](doc/fynth.png)
+<img src="https://github.com/JeffIrwin/fynth/doc/fynth.png" alt="fynth logo" width="200" height="200">
 
 # Build and run
 
 Use [fpm](https://fpm.fortran-lang.org/), the fortran package manager, with commands such as these:
 ```bash
 fpm build
-fpm run
+fpm run -- sine.wav --sine 300 1
+fpm install
 ```
 <!-- fpm test -- does nothing yet -->
 
-With `fpm run`, fynth will write `.wav` audio file(s) in the current directory.
-I will probably change this soon to make `fpm test` write sample files, while
-`fpm run` should take some kind of user input.
+With `fpm install`, the `fynth` binary is installed to the default fpm path,
+usually `~/.local/bin`.
+
+## Examples
+
+Write a file `sine.wav` with a sine wave at 300 Hz for 1 s:
+```bash
+fynth sine.wav --sine 300 1
+```
+
+Write a file `square.wav` with a square wave at 300 Hz for 1 s:
+```bash
+fynth square.wav --square 300 1
+```
 
 # Disambiguation
 
