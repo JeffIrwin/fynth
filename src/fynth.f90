@@ -1,14 +1,17 @@
 
 module fynth
 
+	use fynth__audio
 	use fynth__io
+	use fynth__notes
 	use fynth__utils
+
+	use numa, only: fft
 
 	implicit none
 
 	! TODO:
 	!
-	! - make an `audio_t` type that contains double vec and sample rate
 	! - parse args -- input file, output file, --licc sample, -y to quietly
 	!   overwrite, fft option, filtering
 	!   * see ribbit/src/main.f90 for template
@@ -54,6 +57,7 @@ subroutine write_wav_sine(filename, freq, len)
 
 	!********
 
+	double precision :: f, t
 	double precision, allocatable :: notes(:), duras(:)
 
 	integer :: ii, it
@@ -72,14 +76,16 @@ subroutine write_wav_sine(filename, freq, len)
 	do ii = 1, size(notes)
 
 		! Play frequency `notes(ii)` for duration `duras(ii)`
+		f = notes(ii)
 		do it = 1, int(duras(ii) * sample_rate)
-			call wave%push( sin(2 * PI * notes(ii) * it / sample_rate) )
+			t = 1.d0 * it / sample_rate
+			call wave%push( sin(2.d0 * PI * f * t) )
 		end do
 
 	end do
 	call wave%trim()
 
-	call write_wav(filename, wave%v, sample_rate)
+	call write_wav(filename, audio_t(wave%v, sample_rate))
 
 end subroutine write_wav_sine
 
@@ -123,7 +129,7 @@ subroutine write_wav_square(filename, freq, len)
 	end do
 	call wave%trim()
 
-	call write_wav(filename, wave%v, sample_rate)
+	call write_wav(filename, audio_t(wave%v, sample_rate))
 
 end subroutine write_wav_square
 
@@ -140,7 +146,7 @@ subroutine write_wav_licc(filename)
 
 	double complex, allocatable :: xx(:)
 
-	double precision :: bpm, quarter_note, eigth_note, en, qn
+	double precision :: bpm, quarter_note, eigth_note, en, qn, f, t
 	double precision, allocatable :: notes(:), duras(:)
 
 	integer :: ii, it
@@ -181,8 +187,11 @@ subroutine write_wav_licc(filename)
 	do ii = 1, size(notes)
 
 		! Play frequency `notes(ii)` for duration `duras(ii)`
+		f = notes(ii)
 		do it = 1, int(duras(ii) * sample_rate)
-			call wave%push( sin(2 * PI * notes(ii) * it / sample_rate) )
+			t = 1.d0 * it / sample_rate
+			call wave%push( sin(2.d0 * PI * f * t) )
+			!call wave%push( 2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1 )  ! square wave
 		end do
 
 	end do
@@ -190,15 +199,13 @@ subroutine write_wav_licc(filename)
 
 	!print *, "wave infty-norm = ", maxval(abs(wave%v))
 
-	call write_wav(filename, wave%v, sample_rate)
+	call write_wav(filename, audio_t(wave%v, sample_rate))
 
-	!xx = fft(wave%v)
-	!xx = fft(complex(wave%v, zeroes(size(wave%v))))
 	xx = fft(cmplx(wave%v, kind = 8))
 	print *, "xx = "
 	print "(2es16.6)", xx(1: 10)
 
-	!call write_wav("fft.wav", dble(xx), sample_rate)
+	!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
 
 end subroutine write_wav_licc
 

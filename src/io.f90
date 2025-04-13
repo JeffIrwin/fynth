@@ -1,9 +1,10 @@
 
 module fynth__io
 
+	use fynth__audio
 	use fynth__notes
 	use fynth__utils
-	use numa, only: fft
+	!use numa, only: fft
 
 	implicit none
 
@@ -44,14 +45,10 @@ contains
 
 !===============================================================================
 
-subroutine write_wav(filename, wave_f64, sample_rate)
-
-	! TODO: maybe wave_f64 and sample_rate should be encapsulated in a struct.
-	! Could later add multiple tracks, stereo, etc.
+subroutine write_wav(filename, audio)
 
 	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: wave_f64(:)
-	integer(kind = 4), intent(in) :: sample_rate
+	type(audio_t), intent(in) :: audio
 
 	!********
 
@@ -61,7 +58,7 @@ subroutine write_wav(filename, wave_f64, sample_rate)
 
 	type(wav_header_t) :: wavh
 
-	wavh%sample_rate = sample_rate
+	wavh%sample_rate = audio%sample_rate
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
 	print *, "header_length = ", header_length
@@ -73,14 +70,14 @@ subroutine write_wav(filename, wave_f64, sample_rate)
 	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
-	max_wave = maxval(abs(wave_f64))
+	max_wave = maxval(abs(audio%channel))
 	print *, "wave infty-norm = ", max_wave
 
 	! TODO: warn if RMS norm is much less than max norm, i.e. if some kind of
 	! wierd spike resulted in massively reducing the volume of the rest of the
 	! wave track
 
-	buffer = int(wave_f64 * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+	buffer = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 	!print *, "buff infty-norm = ", maxval(abs(buffer))
 
 	wavh%dlength = size(buffer) * wavh%bytes_per_samp
