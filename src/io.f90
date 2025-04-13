@@ -2,7 +2,7 @@
 module fynth__io
 
 	use fynth__utils
-	use numerical_analysis_m, only: fft
+	use numa, only: fft
 
 	implicit none
 
@@ -312,18 +312,6 @@ subroutine write_wav_licc(filename)
 	!call write_wav("fft.wav", dble(xx), sample_rate)
 
 end subroutine write_wav_licc
-
-!===============================================================================
-
-!function zeroes(n)
-!
-!	integer, intent(in) :: n
-!	double precision, allocatable :: zeroes(:)
-!
-!	allocate(zeroes(n))
-!	zeroes = 0
-!
-!end function zeroes
 
 !===============================================================================
 

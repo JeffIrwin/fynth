@@ -7,12 +7,42 @@ module fynth__utils
 
 	! Constants
 
-	character, parameter :: NULL_CHAR = char(0)
-
 	double precision, parameter :: PI = 4.d0 * atan(1.d0)
 
 	integer, parameter :: &
 		BITS_PER_BYTE = 8
+
+	integer, parameter :: &
+		EXIT_FAILURE = -1, &
+		EXIT_SUCCESS = 0
+
+	character, parameter :: &
+			NULL_CHAR       = char( 0), &
+			TAB             = char( 9), &
+			LINE_FEED       = char(10), &
+			VERT_TAB        = char(11), &
+			CARRIAGE_RETURN = char(13), &
+			ESC             = char(27)
+
+	! TODO: make these variables, with colors disabled if output_unit is not tty
+	! and an option to --force-color
+	character(len = *), parameter :: &
+			fg_bold               = esc//"[;1m", &
+			fg_yellow             = esc//"[33m", &
+			fg_bright_red         = esc//"[91m", &
+			fg_bold_bright_red    = esc//"[91;1m", &
+			fg_bold_bright_yellow = esc//"[93;1m", &
+			fg_bright_green       = esc//"[92m", &
+			fg_bright_yellow      = esc//"[93m", &
+			fg_bright_blue        = esc//"[94m", &
+			fg_bright_magenta     = esc//"[95m", &
+			fg_bright_cyan        = esc//"[96m", &
+			fg_bright_white       = esc//"[97m", &
+			color_reset           = esc//"[0m"
+
+	character(len = *), parameter :: &
+		ERROR_STR = fg_bold_bright_red   //"Error"  //fg_bold//": "//color_reset, &
+		WARN_STR  = fg_yellow//"Warning"//fg_bold//": "//color_reset
 
 	!********
 
@@ -24,6 +54,13 @@ module fynth__utils
 				push => push_vec_f64, &
 				trim => trim_vec_f64
 	end type vec_f64_t
+
+	!********
+
+	interface to_str
+		procedure :: to_str_i32
+		procedure :: to_str_i64
+	end interface to_str
 
 	!********
 
@@ -97,6 +134,27 @@ subroutine trim_vec_f64(vector)
 end subroutine trim_vec_f64
 
 !===============================================================================
+
+function to_str_i32(int_) result(str)
+	integer(kind = 4), intent(in) :: int_
+	character(len = :), allocatable :: str
+	character :: buffer*16
+	write(buffer, "(i0)") int_
+	str = trim(buffer)
+end function to_str_i32
+
+!===============================================================================
+
+function to_str_i64(int_) result(str)
+	integer(kind = 8), intent(in) :: int_
+	character(len = :), allocatable :: str
+	character :: buffer*16
+	write(buffer, "(i0)") int_
+	str = trim(buffer)
+end function to_str_i64
+
+!===============================================================================
+
 
 end module fynth__utils
 

@@ -3,7 +3,6 @@ module fynth
 
 	use fynth__io
 	use fynth__utils
-	!use numerical_analysis_m
 
 	implicit none
 
@@ -35,7 +34,28 @@ module fynth
 	!   with the human-writeable part might be hard, at least if i want to do
 	!   more than just one voice/track
 
+	integer, parameter :: &
+		FYNTH_MAJOR = 0, &
+		FYNTH_MINOR = 1, &
+		FYNTH_PATCH = 0
+
 contains
+
+!===============================================================================
+
+subroutine panic(msg)
+	character(len = *), intent(in) :: msg
+	write(*,*) ERROR_STR//msg
+	call fynth_exit(EXIT_FAILURE)
+end subroutine panic
+
+!===============================================================================
+
+subroutine fynth_exit(exit_code)
+	integer, intent(in) :: exit_code
+	if (exit_code == EXIT_SUCCESS) write(*,*) fg_bright_green//"finished fynth"//color_reset
+	call exit(exit_code)
+end subroutine fynth_exit
 
 end module fynth
 
