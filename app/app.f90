@@ -12,13 +12,14 @@ module fynth__app
 
 		! File arguments can be input or output files, depending on other
 		! arguments
-		character(len = :), allocatable :: file1
+		character(len = :), allocatable :: file1, file2
 
 		double precision :: sine_freq, sine_len
 		double precision :: square_freq, square_len
 
 		logical :: &
 			has_file1 = .false., &
+			has_file2 = .false., &
 			version   = .false., &
 			sine      = .false., &
 			square    = .false., &
@@ -152,9 +153,9 @@ function read_args() result(args)
 				args%has_file1 = .true.
 				args%file1 = argv
 
-			!else if (ipos == 2) then
-			!	args%lout_file = .true.
-			!	args%out_file  = argv
+			else if (ipos == 2) then
+				args%has_file2 = .true.
+				args%file2 = argv
 
 			else
 				write(*,*) ERROR_STR//"bad argument `"//argv//"`"

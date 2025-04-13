@@ -12,10 +12,10 @@ module fynth
 
 	! TODO:
 	!
+	! - add read_wav() fn
 	! - parse args -- input file, output file, --licc sample, -y to quietly
 	!   overwrite, fft option, filtering
 	!   * see ribbit/src/main.f90 for template
-	! - add read_wav() fn
 	! - convert input wav to output csv for plotting in gnuplot
 	! - extend for stereo, 8-bit, float formats
 	!   * i have a few wav samples in my music folder if test read data is
@@ -279,22 +279,6 @@ subroutine write_wav_test(filename)
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_wav_test
-
-!===============================================================================
-
-subroutine panic(msg)
-	character(len = *), intent(in) :: msg
-	write(*,*) ERROR_STR//msg
-	call fynth_exit(EXIT_FAILURE)
-end subroutine panic
-
-!===============================================================================
-
-subroutine fynth_exit(exit_code)
-	integer, intent(in) :: exit_code
-	if (exit_code == EXIT_SUCCESS) write(*,*) fg_bright_green//"finished fynth"//color_reset
-	call exit(exit_code)
-end subroutine fynth_exit
 
 !===============================================================================
 

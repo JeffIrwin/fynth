@@ -45,6 +45,62 @@ contains
 
 !===============================================================================
 
+function read_wav(filename) result(audio)
+
+	character(len = *), intent(in) :: filename
+	type(audio_t) :: audio
+
+	!********
+
+	integer :: io, fid
+	integer :: buffer_size
+	integer(kind = 2), allocatable :: buffer16(:)
+
+	type(wav_header_t) :: wavh
+
+	!********
+
+	write(*,*) "Reading wav file """, filename, """"
+	open(file = filename, newunit = fid, form = "unformatted", &
+		access = "stream", status = "old", iostat = io)
+	if (io /= 0) call panic("cannot open file """//filename//"""")
+
+	read(fid, iostat = io) wavh
+	if (io /= 0) call panic("cannot read wav header from file """//filename//"""")
+	print *, "wavh = ", wavh
+
+	if (wavh%num_chans /= 1) then
+		call panic("only mono is supported.  num_chans = """ &
+			//to_str(wavh%num_chans)//"""")
+	end if
+
+	if (wavh%bits_per_samp /= 16) then
+		call panic("only 16-bit wav is supported.  bits_per_samp = """ &
+			//to_str(wavh%bits_per_samp)//"""")
+	end if
+
+	audio%sample_rate = wavh%sample_rate
+
+	!wavh%dlength = size(buffer) * wavh%bytes_per_samp
+	print *, "dlength = ", wavh%dlength
+	buffer_size = wavh%dlength / wavh%bytes_per_samp
+	print *, "buffer_size = ", buffer_size
+
+	allocate(buffer16(buffer_size))
+	read(fid, iostat = io) buffer16
+	if (io /= 0) call panic("cannot read wav data from file """//filename//"""")
+	print *, "buffer16 = ", buffer16(1: 10)
+
+	!buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+	audio%channel = buffer16 / (2.d0 ** (wavh%bits_per_samp - 1) - 1.d0)
+	print *, "audio%channel = ", audio%channel(1: 10)
+
+	close(fid)
+
+end function read_wav
+
+!===============================================================================
+
 subroutine write_wav(filename, audio)
 
 	character(len = *), intent(in) :: filename
@@ -54,7 +110,7 @@ subroutine write_wav(filename, audio)
 
 	double precision :: max_wave
 	integer :: fid, io, header_length
-	integer(kind = 2), allocatable :: buffer(:)
+	integer(kind = 2), allocatable :: buffer16(:)
 
 	type(wav_header_t) :: wavh
 
@@ -66,7 +122,7 @@ subroutine write_wav(filename, audio)
 	wavh%chunk_size = 16
 	wavh%format_tag = 1
 	wavh%num_chans = 1
-	wavh%bits_per_samp = 16  ! TODO: tie this magic number to the type of `buffer`
+	wavh%bits_per_samp = 16  ! TODO: tie this magic number to the type of `buffer16`
 	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
@@ -77,10 +133,10 @@ subroutine write_wav(filename, audio)
 	! wierd spike resulted in massively reducing the volume of the rest of the
 	! wave track
 
-	buffer = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
-	!print *, "buff infty-norm = ", maxval(abs(buffer))
+	buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+	!print *, "buff infty-norm = ", maxval(abs(buffer16))
 
-	wavh%dlength = size(buffer) * wavh%bytes_per_samp
+	wavh%dlength = size(buffer16) * wavh%bytes_per_samp
 	wavh%flength = wavh%dlength + header_length
 
 	print *, "dlength        = ", wavh%dlength
@@ -96,7 +152,7 @@ subroutine write_wav(filename, audio)
 	! a binary file all at once
 	write(fid) wavh
 
-	write(fid) buffer
+	write(fid) buffer16
 
 	close(fid)
 	write(*,*) "Finished writing file """, filename, """"

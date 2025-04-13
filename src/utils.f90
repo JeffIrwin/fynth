@@ -58,6 +58,7 @@ module fynth__utils
 	!********
 
 	interface to_str
+		procedure :: to_str_i16
 		procedure :: to_str_i32
 		procedure :: to_str_i64
 	end interface to_str
@@ -135,6 +136,16 @@ end subroutine trim_vec_f64
 
 !===============================================================================
 
+function to_str_i16(int_) result(str)
+	integer(kind = 2), intent(in) :: int_
+	character(len = :), allocatable :: str
+	character :: buffer*8
+	write(buffer, "(i0)") int_
+	str = trim(buffer)
+end function to_str_i16
+
+!********
+
 function to_str_i32(int_) result(str)
 	integer(kind = 4), intent(in) :: int_
 	character(len = :), allocatable :: str
@@ -143,15 +154,31 @@ function to_str_i32(int_) result(str)
 	str = trim(buffer)
 end function to_str_i32
 
-!===============================================================================
+!********
 
 function to_str_i64(int_) result(str)
 	integer(kind = 8), intent(in) :: int_
 	character(len = :), allocatable :: str
-	character :: buffer*16
+	character :: buffer*24
 	write(buffer, "(i0)") int_
 	str = trim(buffer)
 end function to_str_i64
+
+!===============================================================================
+
+subroutine panic(msg)
+	character(len = *), intent(in) :: msg
+	write(*,*) ERROR_STR//msg
+	call fynth_exit(EXIT_FAILURE)
+end subroutine panic
+
+!===============================================================================
+
+subroutine fynth_exit(exit_code)
+	integer, intent(in) :: exit_code
+	if (exit_code == EXIT_SUCCESS) write(*,*) fg_bright_green//"finished fynth"//color_reset
+	call exit(exit_code)
+end subroutine fynth_exit
 
 !===============================================================================
 

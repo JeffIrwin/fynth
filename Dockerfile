@@ -23,11 +23,19 @@ RUN echo "BRANCH = $BRANCH"
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
-RUN fpm run --profile debug -- --help
 RUN fpm run --profile debug -- --version
-
+RUN fpm run --profile debug -- --help
 RUN fpm run --profile debug
+
+RUN fpm build --profile release
 RUN fpm run --profile release
+
+RUN fpm install --prefix /workdir/ --profile release
+ENV PATH="$PATH:/workdir/bin/"
+
+RUN fynth
+RUN fynth sin.wav --sine   300 1
+RUN fynth squ.wav --square 300 1
 
 #RUN fpm test --profile debug
 #RUN fpm test --profile release
