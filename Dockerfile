@@ -20,6 +20,7 @@ RUN fpm --version
 ARG BRANCH="main"
 RUN echo "BRANCH = $BRANCH"
 
+#RUN echo 4  # bust cache
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
@@ -36,6 +37,7 @@ ENV PATH="$PATH:/workdir/bin/"
 RUN fynth
 RUN fynth sin.wav --sine   300 1
 RUN fynth squ.wav --square 300 1
+RUN fynth noi.wav --noise      1
 
 #RUN fpm test --profile debug
 #RUN fpm test --profile release

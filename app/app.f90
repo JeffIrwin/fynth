@@ -16,12 +16,14 @@ module fynth__app
 
 		double precision :: sine_freq, sine_len
 		double precision :: square_freq, square_len
+		double precision :: noise_len
 
 		logical :: &
 			has_file1 = .false., &
 			has_file2 = .false., &
 			sine      = .false., &
 			square    = .false., &
+			noise     = .false., &
 			licc      = .false., &
 			version   = .false., &
 			help      = .false.
@@ -148,6 +150,18 @@ function read_args() result(args)
 				error = .true.
 			end if
 
+		case ("--noi", "--noise")
+			args%noise = .true.
+
+			! Noise has a length but no frequency
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%noise_len
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" length """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
 		case default
 
 			! Positional arg
@@ -185,6 +199,11 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%noise .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --noise"
+		error = .true.
+	end if
+
 	if (args%licc .and. .not. args%has_file1) then
 		write(*,*) ERROR_STR//"output file arg not defined for --licc"
 		error = .true.
@@ -211,7 +230,9 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
+		!write(*,*) "	fynth <in.wav> <out.wav> [--tbd]"  ! TODO
 		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
+		write(*,*) "	fynth <out.wav> --noise <length>"
 		write(*,*) "	fynth <out.wav> --licc"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset

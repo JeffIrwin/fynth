@@ -143,6 +143,49 @@ end subroutine write_wav_square
 
 !===============================================================================
 
+subroutine write_wav_noise(filename, len)
+
+	! This is a more flexible example that plays some notes from an array by
+	! pushing their waveforms to a dynamic double `wave` vector
+
+	character(len = *), intent(in) :: filename
+	double precision, intent(in) :: len
+
+	!********
+
+	double precision :: t, r
+
+	integer :: i, it, nrng
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	sample_rate = 44100
+
+	!allocate(r(l))
+	call random_seed(size = nrng)
+	call random_seed(put = [(0, i = 1, nrng)])
+	!call random_number(r)
+
+	wave = new_vec_f64()
+
+	do it = 1, int(len * sample_rate)
+		t = 1.d0 * it / sample_rate
+		call random_number(r)  ! in [0, 1)
+		!call wave%push(r)
+		call wave%push(2.d0 * r - 1.d0)
+	end do
+
+	call wave%trim()
+
+	call write_wav(filename, audio_t(wave%v, sample_rate))
+
+end subroutine write_wav_noise
+
+!===============================================================================
+
 subroutine write_wav_licc(filename)
 
 	! This is a more flexible example that plays some notes from an array by
@@ -152,7 +195,7 @@ subroutine write_wav_licc(filename)
 
 	!********
 
-	double complex, allocatable :: xx(:)
+	!double complex, allocatable :: xx(:)
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, f, t
 	double precision, allocatable :: notes(:), duras(:)

@@ -27,6 +27,11 @@ program main
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
+	if (args%noise) then
+		call write_wav_noise(args%file1, args%noise_len)
+		call fynth_exit(EXIT_SUCCESS)
+	end if
+
 	if (args%licc) then
 		call write_wav_licc(args%file1)
 		call fynth_exit(EXIT_SUCCESS)
@@ -49,7 +54,7 @@ program main
 	! With no args, just write the licc by default.  This may change
 	write(*,*) WARN_STR//"no command arguments given"
 	write(*,*) "         Writing the licc by default"
-	write(*,*) "         To see other options, try:  fynth --help"
+	write(*,*) "         To see options, run:  fynth --help"
 	write(*,*)
 	call write_wav_licc("licc-sample.wav")
 
