@@ -281,6 +281,50 @@ end subroutine write_wav_sine
 
 !===============================================================================
 
+subroutine write_wav_square(filename, freq, len)
+
+	! This is a more flexible example that plays some notes from an array by
+	! pushing their waveforms to a dynamic double `wave` vector
+
+	character(len = *), intent(in) :: filename
+	double precision, intent(in) :: freq, len
+
+	!********
+
+	double precision, allocatable :: notes(:), duras(:)
+
+	integer :: ii, it
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	sample_rate = 44100
+
+	notes = [freq]
+	duras = [len]
+
+	wave = new_vec_f64()
+	do ii = 1, size(notes)
+
+		! Play frequency `notes(ii)` for duration `duras(ii)`
+		do it = 1, int(duras(ii) * sample_rate)
+			call wave%push( &
+				2.d0 * (2 * &
+				floor(notes(ii) * it / sample_rate) - &
+				floor(2 * notes(ii) * it / sample_rate)) + 1)
+		end do
+
+	end do
+	call wave%trim()
+
+	call write_wav(filename, wave%v, sample_rate)
+
+end subroutine write_wav_square
+
+!===============================================================================
+
 subroutine write_wav_licc(filename)
 
 	! This is a more flexible example that plays some notes from an array by

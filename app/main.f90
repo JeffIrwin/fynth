@@ -13,11 +13,13 @@ module fynth__app
 		character(len = :), allocatable :: file1
 
 		double precision :: sine_freq, sine_len
+		double precision :: square_freq, square_len
 
 		logical :: &
 			has_file1 = .false., &
 			version   = .false., &
 			sine      = .false., &
+			square    = .false., &
 			help      = .false.
 
 	end type args_t
@@ -129,6 +131,25 @@ function read_args() result(args)
 				error = .true.
 			end if
 
+		case ("--squ", "--square")
+			args%square = .true.
+
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%square_freq
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" frequency """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%square_len
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" length """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
 		case default
 
 			! Positional arg
@@ -161,6 +182,11 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%square .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --square"
+		error = .true.
+	end if
+
 	url = "https://github.com/JeffIrwin/fynth"
 
 	version = &
@@ -182,7 +208,7 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
-		write(*,*) "	fynth out-file.wav --sine <frequency> <length>"
+		write(*,*) "	fynth out-file.wav (--sine|--square) <frequency> <length>"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset
 		write(*,*) "	-h --help        Show this help"
@@ -218,6 +244,11 @@ program main
 
 	if (args%sine) then
 		call write_wav_sine(args%file1, args%sine_freq, args%sine_len)
+		call fynth_exit(EXIT_SUCCESS)
+	end if
+
+	if (args%square) then
+		call write_wav_square(args%file1, args%square_freq, args%square_len)
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
