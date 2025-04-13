@@ -23,6 +23,9 @@ RUN echo "BRANCH = $BRANCH"
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
+RUN fpm run --profile debug -- --help
+RUN fpm run --profile debug -- --version
+
 RUN fpm run --profile debug
 RUN fpm run --profile release
 

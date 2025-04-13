@@ -10,12 +10,15 @@ module fynth__app
 
 	type args_t
 
-		!character(len = :), allocatable :: in_file
+		character(len = :), allocatable :: file1
+
+		double precision :: sine_freq, sine_len
 
 		logical :: &
-			!in_file_arg = .false., &
-			version     = .false., &
-			help        = .false.
+			has_file1 = .false., &
+			version   = .false., &
+			sine      = .false., &
+			help      = .false.
 
 	end type args_t
 
@@ -73,9 +76,9 @@ function read_args() result(args)
 
 	!********
 
-	character(len = :), allocatable :: argv, url, version
+	character(len = :), allocatable :: argv, str, url, version
 
-	integer :: i, argc, ipos
+	integer :: i, io, argc, ipos
 
 	logical :: error = .false.
 
@@ -107,15 +110,33 @@ function read_args() result(args)
 		case ("--version")
 			args%version = .true.
 
+		case ("--sin", "--sine")
+			args%sine = .true.
+
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%sine_freq
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" frequency """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%sine_len
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" length """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
 		case default
 
 			! Positional arg
 			ipos = ipos + 1
 
-			if (.false.) then
-			!if (ipos == 1) then
-			!	args%in_file_arg = .true.
-			!	args%in_file = argv
+			if (ipos == 1) then
+				args%has_file1 = .true.
+				args%file1 = argv
 
 			!else if (ipos == 2) then
 			!	args%lout_file = .true.
@@ -135,6 +156,10 @@ function read_args() result(args)
 	!	write(*,*) ERROR_STR//"input file not defined"
 	!	error = .true.
 	!end if
+	if (args%sine .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --sine"
+		error = .true.
+	end if
 
 	url = "https://github.com/JeffIrwin/fynth"
 
@@ -150,12 +175,14 @@ function read_args() result(args)
 		write(*,*)
 	end if
 
+	!if (args%has_file1) print *, "file1 = """, args%file1, """"
+
 	if (error .or. args%help) then
 
 		write(*,*) fg_bold//"Usage:"//color_reset
-		!write(*,*) "	fynth <file.fynth> [-d] [-p]"
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
+		write(*,*) "	fynth out-file.wav --sine <frequency> <length>"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset
 		write(*,*) "	-h --help        Show this help"
@@ -184,8 +211,13 @@ program main
 
 	!********
 
-	args  = read_args()
+	args = read_args()
 	if (args%help .or. args%version) then
+		call fynth_exit(EXIT_SUCCESS)
+	end if
+
+	if (args%sine) then
+		call write_wav_sine(args%file1, args%sine_freq, args%sine_len)
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
