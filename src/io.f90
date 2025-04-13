@@ -70,6 +70,9 @@ function read_wav(filename) result(audio)
 	!print *, "wavh = ", wavh
 	!print *, "dlength = ", wavh%dlength
 
+	! TODO: check RIFF_ and WAVE_ magic strings, format_tag, etc. to guard
+	! against trying to read non-wav files
+
 	if (wavh%num_chans /= 1) then
 		call panic("only mono is supported.  num_chans = """ &
 			//to_str(wavh%num_chans)//"""")
@@ -131,6 +134,7 @@ subroutine write_wav(filename, audio)
 	! wierd spike resulted in massively reducing the volume of the rest of the
 	! wave track
 
+	! TODO: parameterize this magic number
 	buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 	!print *, "buff infty-norm = ", maxval(abs(buffer16))
 
@@ -156,6 +160,40 @@ subroutine write_wav(filename, audio)
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_wav
+
+!===============================================================================
+
+subroutine write_csv_audio(filename, audio)
+
+	character(len = *), intent(in) :: filename
+	type(audio_t), intent(in) :: audio
+
+	!********
+
+	integer :: i, fid, io
+
+	!wavh%sample_rate = audio%sample_rate
+	!wavh%num_chans = 1
+
+	!max_wave = maxval(abs(audio%channel))
+
+	!buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+
+	! Remove old file first, or junk will be left over at end
+	io = rm_file(filename)
+	open(file = filename, newunit = fid)
+
+	write(fid, "(a)") "# time (s), channel amplitude"
+
+	! TODO: single write with implicit loop
+	do i = 1, size(audio%channel)
+		write(fid, "(2es16.6)") 1.d0 * (i-1) / audio%sample_rate, audio%channel(i)
+	end do
+
+	close(fid)
+	write(*,*) "Finished writing file """, filename, """"
+
+end subroutine write_csv_audio
 
 !===============================================================================
 

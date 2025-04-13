@@ -182,5 +182,34 @@ end subroutine fynth_exit
 
 !===============================================================================
 
+function get_file_extension(filename) result(extension)
+
+	! Include "." and double extensions if present (including whole basename for
+	! dotfiles).  May be empty string
+
+	character(len = *), intent(in)  :: filename
+	character(len = :), allocatable :: extension
+	!********
+	integer :: beg_, end_, i
+
+	beg_ = 1
+	end_ = len(filename)
+
+	!print *, 'len = ', end_
+
+	i = scan(filename, '/\', .true.)
+	if (i /= 0) beg_ = i + 1
+
+	i = scan(filename(beg_:), '.')
+	if (i /= 0) end_ = beg_ + i - 2
+
+	extension = filename(end_ + 1:)
+	!print *, 'beg_, end_ = ', beg_, end_
+	!print *, 'extension = ', extension
+
+end function get_file_extension
+
+!===============================================================================
+
 end module fynth__utils
 

@@ -209,6 +209,8 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	! TODO: warn if file2 is given with args that don't use it?
+
 	url = "https://github.com/JeffIrwin/fynth"
 
 	version = &
@@ -230,7 +232,8 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
-		!write(*,*) "	fynth <in.wav> <out.wav> [--tbd]"  ! TODO
+		write(*,*) "	fynth <in.wav> <out.csv>"
+		!write(*,*) "	fynth <in.wav> <out.wav> [--tbd]"  ! TODO: wav to wav with filters
 		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
 		write(*,*) "	fynth <out.wav> --noise <length>"
 		write(*,*) "	fynth <out.wav> --licc"

@@ -7,6 +7,8 @@ program main
 
 	implicit none
 
+	character(len = :), allocatable :: ext
+
 	type(args_t)  :: args
 	type(audio_t) :: audio
 
@@ -41,8 +43,16 @@ program main
 		audio = read_wav(args%file1)
 
 		if (args%has_file2) then
-			! TODO: switch case on out file extension -- wav or csv
-			call write_wav(args%file2, audio)
+			! Refactor out of main?
+			ext = get_file_extension(args%file2)
+			select case (ext)
+			case (".wav", ".WAV")
+				call write_wav(args%file2, audio)
+			case (".csv", ".CSV")
+				call write_csv_audio(args%file2, audio)
+			case default
+				call panic("Cannot write file type for extension """//ext//"""")
+			end select
 		end if
 
 		call fynth_exit(EXIT_SUCCESS)

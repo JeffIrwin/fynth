@@ -34,6 +34,11 @@ Write a file `square.wav` with a square wave at 300 Hz for 1 s:
 fynth square.wav --square 300 1
 ```
 
+Write a file `noise.wav` with random white noise for 1 s:
+```bash
+fynth noise.wav --noise 1
+```
+
 # Disambiguation
 
 There is an unrelated although not dissimilar project also named fynth:  https://github.com/folkertvanheusden/fynth

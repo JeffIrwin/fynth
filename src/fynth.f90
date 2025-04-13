@@ -57,9 +57,6 @@ contains
 
 subroutine write_wav_sine(filename, freq, len)
 
-	! This is a more flexible example that plays some notes from an array by
-	! pushing their waveforms to a dynamic double `wave` vector
-
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len
 
@@ -101,9 +98,6 @@ end subroutine write_wav_sine
 
 subroutine write_wav_square(filename, freq, len)
 
-	! This is a more flexible example that plays some notes from an array by
-	! pushing their waveforms to a dynamic double `wave` vector
-
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len
 
@@ -144,9 +138,6 @@ end subroutine write_wav_square
 !===============================================================================
 
 subroutine write_wav_noise(filename, len)
-
-	! This is a more flexible example that plays some notes from an array by
-	! pushing their waveforms to a dynamic double `wave` vector
 
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: len
