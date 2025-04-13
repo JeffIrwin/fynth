@@ -7,7 +7,7 @@ Project _fynth_ is pronounced as _synth_, because the lowercase letter _S_ is
 written as _f_.  [Typesetting](https://github.com/JeffIrwin/cali) is hard ok!
 
 <!-- ![](doc/fynth.png) -->
-<img src="https://raw.githubusercontent.com/JeffIrwin/fynth/refs/heads/main/doc/fynth.png" alt="fynth logo" width="200">
+<img src="https://raw.githubusercontent.com/JeffIrwin/fynth/refs/heads/main/doc/fynth.png" alt="fynth logo" width="50%">
 
 # Build and run
 
