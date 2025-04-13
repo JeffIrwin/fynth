@@ -3,6 +3,7 @@ module fynth
 
 	use fynth__io
 	use fynth__utils
+	!use numerical_analysis_m
 
 	implicit none
 
@@ -27,8 +28,9 @@ module fynth
 	!     + ref describes two parameters -- cutoff frequency theta_c (i
 	!       think?) and resonance R. this matches up with the actual knobs on my
 	!       prophet.  maybe b0 is 1?
-	! - make some tests -- generate sample wav files and compare sha256 to
-	!   expected files
+	! - make some tests
+	!   * generate sample wav files and compare sha256 to expected files
+	!   * round trip read/write
 	! - parse some kind of human-writeable music notation format? doing well
 	!   with the human-writeable part might be hard, at least if i want to do
 	!   more than just one voice/track

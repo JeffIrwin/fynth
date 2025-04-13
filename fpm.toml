@@ -8,12 +8,24 @@ description = "fynth is a synthesizer and audio processor"
 categories = ["synthesizer", "audio", "music"]
 homepage = "https://github.com/jeffirwin/fynth"
 
+[dependencies]
+# TODO: submodule might be better for other build systems (e.g. cmake)
+numerical_analysis.git = "https://github.com/jeffirwin/numerical-analysis"
+numerical_analysis.rev = "af5f534"
+
+#[dependencies]
+#stdlib = "*"
+#
+#[dev-dependencies]
+#test-drive.git = "https://github.com/fortran-lang/test-drive"
+#test-drive.tag = "v0.4.0"
+
 [build]
 auto-executables = true
 auto-tests = true
 auto-examples = true
 #module-naming = false
-module-naming = true
+#module-naming = true  # TODO: module naming for numerical_analysis
 
 [install]
 library = true

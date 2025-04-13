@@ -2,6 +2,8 @@
 module fynth__io
 
 	use fynth__utils
+	use numerical_analysis_m, only: fft
+
 	implicit none
 
 	! This wav writer is based on the following:
@@ -247,6 +249,8 @@ subroutine write_wav_licc(filename)
 
 	!********
 
+	double complex, allocatable :: xx(:)
+
 	double precision :: bpm, quarter_note, eigth_note, en, qn
 	double precision, allocatable :: notes(:), duras(:)
 
@@ -299,7 +303,27 @@ subroutine write_wav_licc(filename)
 
 	call write_wav(filename, wave%v, sample_rate)
 
+	!xx = fft(wave%v)
+	!xx = fft(complex(wave%v, zeroes(size(wave%v))))
+	xx = fft(cmplx(wave%v, kind = 8))
+	print *, "xx = "
+	print "(2es16.6)", xx(1: 10)
+
+	!call write_wav("fft.wav", dble(xx), sample_rate)
+
 end subroutine write_wav_licc
+
+!===============================================================================
+
+!function zeroes(n)
+!
+!	integer, intent(in) :: n
+!	double precision, allocatable :: zeroes(:)
+!
+!	allocate(zeroes(n))
+!	zeroes = 0
+!
+!end function zeroes
 
 !===============================================================================
 
