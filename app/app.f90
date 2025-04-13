@@ -20,9 +20,10 @@ module fynth__app
 		logical :: &
 			has_file1 = .false., &
 			has_file2 = .false., &
-			version   = .false., &
 			sine      = .false., &
 			square    = .false., &
+			licc      = .false., &
+			version   = .false., &
 			help      = .false.
 
 	end type args_t
@@ -106,6 +107,9 @@ function read_args() result(args)
 		case ("--version")
 			args%version = .true.
 
+		case ("--licc")
+			args%licc = .true.
+
 		case ("--sin", "--sine")
 			args%sine = .true.
 
@@ -181,6 +185,11 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%licc .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --licc"
+		error = .true.
+	end if
+
 	url = "https://github.com/JeffIrwin/fynth"
 
 	version = &
@@ -202,7 +211,8 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
-		write(*,*) "	fynth out-file.wav (--sine|--square) <frequency> <length>"
+		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
+		write(*,*) "	fynth <out.wav> --licc"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset
 		write(*,*) "	-h --help        Show this help"

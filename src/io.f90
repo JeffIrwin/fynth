@@ -67,7 +67,8 @@ function read_wav(filename) result(audio)
 
 	read(fid, iostat = io) wavh
 	if (io /= 0) call panic("cannot read wav header from file """//filename//"""")
-	print *, "wavh = ", wavh
+	!print *, "wavh = ", wavh
+	!print *, "dlength = ", wavh%dlength
 
 	if (wavh%num_chans /= 1) then
 		call panic("only mono is supported.  num_chans = """ &
@@ -81,19 +82,16 @@ function read_wav(filename) result(audio)
 
 	audio%sample_rate = wavh%sample_rate
 
-	!wavh%dlength = size(buffer) * wavh%bytes_per_samp
-	print *, "dlength = ", wavh%dlength
 	buffer_size = wavh%dlength / wavh%bytes_per_samp
-	print *, "buffer_size = ", buffer_size
+	!print *, "buffer_size = ", buffer_size
 
 	allocate(buffer16(buffer_size))
 	read(fid, iostat = io) buffer16
 	if (io /= 0) call panic("cannot read wav data from file """//filename//"""")
-	print *, "buffer16 = ", buffer16(1: 10)
+	!print *, "buffer16 = ", buffer16(1: 10)
 
-	!buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 	audio%channel = buffer16 / (2.d0 ** (wavh%bits_per_samp - 1) - 1.d0)
-	print *, "audio%channel = ", audio%channel(1: 10)
+	!print *, "audio%channel = ", audio%channel(1: 10)
 
 	close(fid)
 
@@ -117,7 +115,7 @@ subroutine write_wav(filename, audio)
 	wavh%sample_rate = audio%sample_rate
 
 	header_length = storage_size(wavh) / BITS_PER_BYTE  ! fortran's sizeof()
-	print *, "header_length = ", header_length
+	!print *, "header_length = ", header_length
 
 	wavh%chunk_size = 16
 	wavh%format_tag = 1
@@ -127,7 +125,7 @@ subroutine write_wav(filename, audio)
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
 
 	max_wave = maxval(abs(audio%channel))
-	print *, "wave infty-norm = ", max_wave
+	write(*,*) "Wave infty-norm = ", max_wave
 
 	! TODO: warn if RMS norm is much less than max norm, i.e. if some kind of
 	! wierd spike resulted in massively reducing the volume of the rest of the
@@ -139,10 +137,10 @@ subroutine write_wav(filename, audio)
 	wavh%dlength = size(buffer16) * wavh%bytes_per_samp
 	wavh%flength = wavh%dlength + header_length
 
-	print *, "dlength        = ", wavh%dlength
-	print *, "flength        = ", wavh%flength
-	print *, "bytes_per_sec  = ", wavh%bytes_per_sec
-	print *, "bytes_per_samp = ", wavh%bytes_per_samp
+	!print *, "dlength        = ", wavh%dlength
+	!print *, "flength        = ", wavh%flength
+	!print *, "bytes_per_sec  = ", wavh%bytes_per_sec
+	!print *, "bytes_per_samp = ", wavh%bytes_per_samp
 
 	! Remove old file first, or junk will be left over at end
 	io = rm_file(filename)

@@ -12,10 +12,14 @@ module fynth
 
 	! TODO:
 	!
-	! - add read_wav() fn
-	! - parse args -- input file, output file, --licc sample, -y to quietly
-	!   overwrite, fft option, filtering
-	!   * see ribbit/src/main.f90 for template
+	! - parse more args
+	!   * -y to quietly overwrite a la ffmpeg.  otherwise just panic or prompt?
+	!   * fft option
+	!   * filtering
+	!   * envelopes
+	!   * random/white noise
+	!   * more waveforms
+	!   * concat wavs, crop start/end time, amplify, mix wavs
 	! - convert input wav to output csv for plotting in gnuplot
 	! - extend for stereo, 8-bit, float formats
 	!   * i have a few wav samples in my music folder if test read data is
@@ -23,8 +27,10 @@ module fynth
 	!     it will play (although, windows media player is fault tolerant -- it
 	!     doesn't care e.g. if actual wav data is shorter than dlength from
 	!     header)
-	! - play notes with different wave forms (square, triangle, sawtooth),
-	!   envelopes (ADSR), filtering (e.g. low pass), etc.
+	! - play notes with different wave forms envelopes (ADSR), filtering (e.g.
+	!   low pass), etc.
+	!   * sine and square wave done
+	!   * tbd:  triangle, sawtooth
 	!   * LFO? this is a slippery slope to an entire modular digital synth
 	!   * could generate white noise and plot fft to test filters
 	!   * two-pole filter:  https://www.dsprelated.com/freebooks/filters/Two_Pole.html
@@ -42,6 +48,8 @@ module fynth
 		FYNTH_MAJOR = 0, &
 		FYNTH_MINOR = 1, &
 		FYNTH_PATCH = 0
+
+	character(len = *), parameter :: program_name = "fynth"
 
 contains
 
@@ -171,16 +179,8 @@ subroutine write_wav_licc(filename)
 	qn = quarter_note
 	en = eigth_note
 
-	print *, "A_440 = ", A_440
-	print *, "C4    = ", C4
-	print *, "C0    = ", C0
-
 	! The licc
-
-	!notes = [D4, E4, F4, G4, E4, C4, D4]
 	notes = [D3, E3, F3, G3, E3, C3, D3]
-	!notes = [D4, E4, F4, G4, E4, C4, D4] * 0.5d0  ! another way to lower by an octave
-
 	duras = [en, en, en, en, qn, en, qn]
 
 	wave = new_vec_f64()
@@ -197,15 +197,13 @@ subroutine write_wav_licc(filename)
 	end do
 	call wave%trim()
 
-	!print *, "wave infty-norm = ", maxval(abs(wave%v))
-
 	call write_wav(filename, audio_t(wave%v, sample_rate))
 
-	xx = fft(cmplx(wave%v, kind = 8))
-	print *, "xx = "
-	print "(2es16.6)", xx(1: 10)
-
-	!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
+	!! TODO: add options for fft and csv output
+	!xx = fft(cmplx(wave%v, kind = 8))
+	!print *, "xx = "
+	!print "(2es16.6)", xx(1: 10)
+	!!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
 
 end subroutine write_wav_licc
 

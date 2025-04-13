@@ -176,7 +176,7 @@ end subroutine panic
 
 subroutine fynth_exit(exit_code)
 	integer, intent(in) :: exit_code
-	if (exit_code == EXIT_SUCCESS) write(*,*) fg_bright_green//"finished fynth"//color_reset
+	if (exit_code == EXIT_SUCCESS) write(*,*) fg_bright_green//"Finished fynth"//color_reset
 	call exit(exit_code)
 end subroutine fynth_exit
 

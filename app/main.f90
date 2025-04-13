@@ -27,6 +27,11 @@ program main
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
+	if (args%licc) then
+		call write_wav_licc(args%file1)
+		call fynth_exit(EXIT_SUCCESS)
+	end if
+
 	if (args%has_file1) then
 		audio = read_wav(args%file1)
 
@@ -38,10 +43,15 @@ program main
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
-	! TODO: add --licc arg for licc sample.  Remove write_wav_test() or move to
-	! test.f90
-	call write_wav_test("test.wav")
-	call write_wav_licc("licc.wav")
+	!! TODO: remove write_wav_test() or move to test.f90
+	!call write_wav_test("test.wav")
+
+	! With no args, just write the licc by default.  This may change
+	write(*,*) WARN_STR//"no command arguments given"
+	write(*,*) "         Writing the licc by default"
+	write(*,*) "         To see other options, try:  fynth --help"
+	write(*,*)
+	call write_wav_licc("licc-sample.wav")
 
 	call fynth_exit(EXIT_SUCCESS)
 
