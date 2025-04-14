@@ -10,15 +10,16 @@ module fynth
 
 	! TODO:
 	!
+	! - make some tests
+	!   * generate sample wav files and compare sha256 to expected files
+	!   * round trip read/write
+	! - add some of the generated gnuplot pngs to readme and discuss
 	! - parse more args
 	!   * -y to quietly overwrite a la ffmpeg.  otherwise just panic or prompt?
-	!   * fft option
 	!   * filtering
 	!   * envelopes
-	!   * random/white noise
 	!   * more waveforms
 	!   * concat wavs, crop start/end time, amplify, mix wavs
-	! - convert input wav to output csv for plotting in gnuplot
 	! - extend for stereo, 8-bit, float formats
 	!   * i have a few wav samples in my music folder if test read data is
 	!     needed.  could also save from audacity or just try writing and see if
@@ -35,9 +36,6 @@ module fynth
 	!     + ref describes two parameters -- cutoff frequency theta_c (i
 	!       think?) and resonance R. this matches up with the actual knobs on my
 	!       prophet.  maybe b0 is 1?
-	! - make some tests
-	!   * generate sample wav files and compare sha256 to expected files
-	!   * round trip read/write
 	! - parse some kind of human-writeable music notation format? doing well
 	!   with the human-writeable part might be hard, at least if i want to do
 	!   more than just one voice/track
