@@ -49,7 +49,11 @@ program main
 			case (".wav", ".WAV")
 				call write_wav(args%file2, audio)
 			case (".csv", ".CSV")
-				call write_csv_audio(args%file2, audio)
+				if (args%fft) then
+					call write_csv_fft  (args%file2, audio)
+				else
+					call write_csv_audio(args%file2, audio)
+				end if
 			case default
 				call panic("Cannot write file type for extension """//ext//"""")
 			end select

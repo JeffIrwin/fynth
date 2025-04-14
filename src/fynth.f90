@@ -6,8 +6,6 @@ module fynth
 	use fynth__notes
 	use fynth__utils
 
-	use numa, only: fft
-
 	implicit none
 
 	! TODO:
@@ -233,7 +231,6 @@ subroutine write_wav_licc(filename)
 
 	call write_wav(filename, audio_t(wave%v, sample_rate))
 
-	!! TODO: add options for fft and csv output
 	!xx = fft(cmplx(wave%v, kind = 8))
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)

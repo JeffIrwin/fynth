@@ -4,7 +4,6 @@ module fynth__io
 	use fynth__audio
 	use fynth__notes
 	use fynth__utils
-	!use numa, only: fft
 
 	implicit none
 
@@ -194,6 +193,63 @@ subroutine write_csv_audio(filename, audio)
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_csv_audio
+
+!===============================================================================
+
+subroutine write_csv_fft(filename, audio)
+
+	! Do an FFT and then write it to a csv file
+
+	use numa, only: fft
+
+	character(len = *), intent(in) :: filename
+	type(audio_t), intent(in) :: audio
+
+	!********
+
+	double complex, allocatable :: xx(:)
+
+	double precision :: df
+
+	integer :: i, fid, io
+
+	!xx = fft(cmplx(wave%v, kind = 8))
+	!print *, "xx = "
+	!print "(2es16.6)", xx(1: 10)
+	!!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
+
+	xx = fft(cmplx(audio%channel, kind = 8))
+	print *, "xx = "
+	print "(2es16.6)", xx(1: 10)
+	!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
+
+	! Remove old file first, or junk will be left over at end
+	io = rm_file(filename)
+	open(file = filename, newunit = fid)
+
+	!write(fid, "(a)") "# time (s), channel amplitude"
+	write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
+
+	print *, "sample_rate = ", audio%sample_rate
+
+	!! Frequency resolution
+	!df = fs / ny
+	df = 1.d0 * audio%sample_rate / size(xx)
+	!freqs = df * [(i, i = 0, ny-1)]
+
+	print *, "df = ", df
+
+	! TODO: single write with implicit loop
+	!do i = 1, size(audio%channel)
+	do i = 1, size(xx)
+		!write(fid, "(3es16.6)") 1.d0 * (i-1) / audio%sample_rate, xx(i)%re, xx(i)%im
+		write(fid, "(3es16.6)") df * (i-1), xx(i)%re, xx(i)%im
+	end do
+
+	close(fid)
+	write(*,*) "Finished writing file """, filename, """"
+
+end subroutine write_csv_fft
 
 !===============================================================================
 

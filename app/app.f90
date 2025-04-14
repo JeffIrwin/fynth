@@ -24,6 +24,7 @@ module fynth__app
 			sine      = .false., &
 			square    = .false., &
 			noise     = .false., &
+			fft       = .false., &
 			licc      = .false., &
 			version   = .false., &
 			help      = .false.
@@ -111,6 +112,9 @@ function read_args() result(args)
 
 		case ("--licc")
 			args%licc = .true.
+
+		case ("--fft")
+			args%fft = .true.
 
 		case ("--sin", "--sine")
 			args%sine = .true.
@@ -209,6 +213,15 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%fft .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"input file arg not defined for --fft"
+		error = .true.
+	end if
+	if (args%fft .and. .not. args%has_file2) then
+		write(*,*) ERROR_STR//"output file arg not defined for --fft"
+		error = .true.
+	end if
+
 	! TODO: warn if file2 is given with args that don't use it?
 
 	url = "https://github.com/JeffIrwin/fynth"
@@ -232,7 +245,7 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
-		write(*,*) "	fynth <in.wav> <out.csv>"
+		write(*,*) "	fynth <in.wav> <out.csv> [--fft]"
 		!write(*,*) "	fynth <in.wav> <out.wav> [--tbd]"  ! TODO: wav to wav with filters
 		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
 		write(*,*) "	fynth <out.wav> --noise <length>"
