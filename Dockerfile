@@ -39,6 +39,9 @@ RUN fynth sin.wav --sine   300 1
 RUN fynth squ.wav --square 300 1
 RUN fynth noi.wav --noise      1
 
+RUN ./run-plot.sh
+RUN ./run-fft-plot.sh
+
 #RUN fpm test --profile debug
 #RUN fpm test --profile release
 

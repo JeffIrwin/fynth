@@ -169,27 +169,18 @@ subroutine write_csv_audio(filename, audio)
 
 	!********
 
-	integer :: i, fid, io
+	double precision :: dt
 
-	!wavh%sample_rate = audio%sample_rate
-	!wavh%num_chans = 1
+	integer :: i, fid, nt
 
-	!max_wave = maxval(abs(audio%channel))
+	dt = 1.d0 / audio%sample_rate
+	nt = size(audio%channel)
 
-	!buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
-
-	! Remove old file first, or junk will be left over at end
-	io = rm_file(filename)
 	open(file = filename, newunit = fid)
-
 	write(fid, "(a)") "# time (s), channel amplitude"
-
-	! TODO: single write with implicit loop
-	do i = 1, size(audio%channel)
-		write(fid, "(2es16.6)") 1.d0 * (i-1) / audio%sample_rate, audio%channel(i)
-	end do
-
+	write(fid, "(2es16.6)") [(dt * i, audio%channel(i+1), i = 0, nt-1)]
 	close(fid)
+
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_csv_audio
@@ -211,40 +202,28 @@ subroutine write_csv_fft(filename, audio)
 
 	double precision :: df
 
-	integer :: i, fid, io
-
-	!xx = fft(cmplx(wave%v, kind = 8))
-	!print *, "xx = "
-	!print "(2es16.6)", xx(1: 10)
-	!!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
+	integer :: i, fid, io, nf
 
 	xx = fft(cmplx(audio%channel, kind = 8))
-	print *, "xx = "
-	print "(2es16.6)", xx(1: 10)
-	!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
+	!print *, "xx = "
+	!print "(2es16.6)", xx(1: 10)
 
 	! Remove old file first, or junk will be left over at end
 	io = rm_file(filename)
 	open(file = filename, newunit = fid)
 
-	!write(fid, "(a)") "# time (s), channel amplitude"
 	write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
 
-	print *, "sample_rate = ", audio%sample_rate
-
-	!! Frequency resolution
-	!df = fs / ny
+	! Frequency resolution.  The fft fn only returns raw amplitudes, so we have
+	! to do a little work to get the frequencies that go with those amplitudes.
+	! See also numerical-analysis/src/exercises.f90 which also does this
 	df = 1.d0 * audio%sample_rate / size(xx)
-	!freqs = df * [(i, i = 0, ny-1)]
+	nf = size(xx)
 
-	print *, "df = ", df
+	!print *, "sample_rate = ", audio%sample_rate
+	!print *, "df = ", df
 
-	! TODO: single write with implicit loop
-	!do i = 1, size(audio%channel)
-	do i = 1, size(xx)
-		!write(fid, "(3es16.6)") 1.d0 * (i-1) / audio%sample_rate, xx(i)%re, xx(i)%im
-		write(fid, "(3es16.6)") df * (i-1), xx(i)%re, xx(i)%im
-	end do
+	write(fid, "(3es16.6)") [(df * (i-1), xx(i)%re, xx(i)%im, i = 1, nf)]
 
 	close(fid)
 	write(*,*) "Finished writing file """, filename, """"
