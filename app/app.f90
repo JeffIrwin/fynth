@@ -17,6 +17,7 @@ module fynth__app
 		double precision :: sine_freq, sine_len
 		double precision :: square_freq, square_len
 		double precision :: noise_len
+		double precision :: low_pass_freq
 
 		logical :: &
 			has_file1 = .false., &
@@ -24,6 +25,7 @@ module fynth__app
 			sine      = .false., &
 			square    = .false., &
 			noise     = .false., &
+			low_pass  = .false., &
 			fft       = .false., &
 			licc      = .false., &
 			version   = .false., &
@@ -158,10 +160,24 @@ function read_args() result(args)
 			args%noise = .true.
 
 			! Noise has a length but no frequency
+			!
+			! TODO: make a helper fn to get a real (double) arg, including the
+			! error message
 			call get_next_arg(i, str)
 			read(str, *, iostat = io) args%noise_len
 			if (io /= 0) then
 				write(*,*) ERROR_STR//argv//" length """ &
+					//str//""" is not a valid number"
+				error = .true.
+			end if
+
+		case ("--low", "--low-pass")
+			args%low_pass = .true.
+
+			call get_next_arg(i, str)
+			read(str, *, iostat = io) args%low_pass_freq
+			if (io /= 0) then
+				write(*,*) ERROR_STR//argv//" low pass frequency """ &
 					//str//""" is not a valid number"
 				error = .true.
 			end if
@@ -222,6 +238,15 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%low_pass .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"input file arg not defined for --low-pass"
+		error = .true.
+	end if
+	if (args%low_pass .and. .not. args%has_file2) then
+		write(*,*) ERROR_STR//"output file arg not defined for --low-pass"
+		error = .true.
+	end if
+
 	! TODO: warn if file2 is given with args that don't use it?
 
 	url = "https://github.com/JeffIrwin/fynth"
@@ -245,8 +270,13 @@ function read_args() result(args)
 		write(*,*) fg_bold//"Usage:"//color_reset
 		write(*,*) "	fynth -h | --help"
 		write(*,*) "	fynth --version"
-		write(*,*) "	fynth <in.wav> <out.csv> [--fft]"
-		!write(*,*) "	fynth <in.wav> <out.wav> [--tbd]"  ! TODO: wav to wav with filters
+
+		! This is probably ok as a single line now.  If it gets too long I might
+		! want to break it up (including no-filter echo input to output)
+		write(*,*) "	fynth <in.wav> <out.wav> [--fft] [(--low-pass|--low) <frequency>]"
+		!write(*,*) "	fynth <in.wav> <out.csv> [--fft]"
+		!write(*,*) "	fynth <in.wav> <out.wav> (--low-pass|--low) <frequency>"
+
 		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
 		write(*,*) "	fynth <out.wav> --noise <length>"
 		write(*,*) "	fynth <out.wav> --licc"

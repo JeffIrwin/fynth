@@ -28,14 +28,18 @@ module fynth
 	!     header)
 	! - play notes with different wave forms envelopes (ADSR), filtering (e.g.
 	!   low pass), etc.
-	!   * sine and square wave done
-	!   * tbd:  triangle, sawtooth
+	!   * wave forms:
+	!     + sine and square wave done
+	!     + tbd:  triangle, sawtooth
+	!   * filters:
+	!     + fft-based low-pass filter with hard cutoff done
+	!     + tbd: high-pass, rolling cutoffs (units dB per octave?)
+	!     + two-pole filter:  https://www.dsprelated.com/freebooks/filters/Two_Pole.html
+	!       > ref describes two parameters -- cutoff frequency theta_c (i
+	!         think?) and resonance R. this matches up with the actual knobs on my
+	!         prophet.  maybe b0 is 1?
+	!     + can't find much definitive info on four-pole digital filters
 	!   * LFO? this is a slippery slope to an entire modular digital synth
-	!   * could generate white noise and plot fft to test filters
-	!   * two-pole filter:  https://www.dsprelated.com/freebooks/filters/Two_Pole.html
-	!     + ref describes two parameters -- cutoff frequency theta_c (i
-	!       think?) and resonance R. this matches up with the actual knobs on my
-	!       prophet.  maybe b0 is 1?
 	! - parse some kind of human-writeable music notation format? doing well
 	!   with the human-writeable part might be hard, at least if i want to do
 	!   more than just one voice/track
@@ -306,6 +310,67 @@ subroutine write_wav_test(filename)
 	write(*,*) "Finished writing file """, filename, """"
 
 end subroutine write_wav_test
+
+!===============================================================================
+
+subroutine low_pass_filter(audio, freq)
+
+	! Run an FFT, filter with a hard cutoff frequency `freq`, then do an inverse
+	! FFT and modify the `audio`
+
+	use numa, only: fft, ifft
+
+	type(audio_t), intent(inout) :: audio
+	double precision, intent(in) :: freq
+
+	!********
+
+	double complex, allocatable :: xx(:)
+
+	double precision :: df
+
+	integer :: i, nt, nf, if_cutoff
+
+	write(*,*) "Applying low-pass filter with cutoff frequency " &
+		//to_str(freq)//" Hz"
+
+	nt = size(audio%channel, 1)
+	xx = fft(cmplx(audio%channel, kind = 8))
+
+	!write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
+
+	! Frequency resolution
+	df = 1.d0 * audio%sample_rate / size(xx)
+	nf = size(xx)
+
+	! Imagine your FFT is extremely low-resolution and has frequencies [0, 1, 2]
+	! at indices [1, 2, 3] and your cutoff is 1.5.  This will allow low-pass
+	! frequency 1 Hz at index 2, but filter out frequency 2 Hz at index 3.  So
+	! we do ceiling plus one -- ceiling(1.5) + 1 == 2 + 1 == 3
+	if_cutoff = max(1, min(nf, ceiling(freq / df) + 1))
+	!if_cutoff = nint(freq / df)
+
+	! The upper bound is like this because the FFT is a two-sided FFT, with
+	! negative frequencies in the second half of the array
+	do i = if_cutoff, nf - if_cutoff + 1
+		xx(i) = 0.d0
+	end do
+
+	! Invert the FFT, re-using the same array
+	xx = ifft(xx)
+
+	!print *, "filtered channel = "
+	!print "(2es16.6)", xx(1: 100)
+
+	!audio%channel = xx%re
+	audio%channel = xx(1: nt)%re  ! trim.  TODO: abs? I think %re is correct but complex numbers hurt brain
+
+	!!print *, "sample_rate = ", audio%sample_rate
+	!!print *, "df = ", df
+
+	!write(fid, "(3es16.6)") [(df * (i-1), xx(i)%re, xx(i)%im, i = 1, nf)]
+
+end subroutine low_pass_filter
 
 !===============================================================================
 

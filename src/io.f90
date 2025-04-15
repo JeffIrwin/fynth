@@ -202,21 +202,23 @@ subroutine write_csv_fft(filename, audio)
 
 	double precision :: df
 
-	integer :: i, fid, io, nf
+	integer :: i, fid, nf
 
 	xx = fft(cmplx(audio%channel, kind = 8))
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)
 
-	! Remove old file first, or junk will be left over at end
-	io = rm_file(filename)
+	! TODO: check open, even for writing, e.g. in case of files in dirs that
+	! don't exist
 	open(file = filename, newunit = fid)
 
+	! TODO: also write a magnitude column (using abs).  Update plotting script
 	write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
 
-	! Frequency resolution.  The fft fn only returns raw amplitudes, so we have
-	! to do a little work to get the frequencies that go with those amplitudes.
-	! See also numerical-analysis/src/exercises.f90 which also does this
+	! Get the frequency resolution `df`.  The fft fn only returns raw
+	! amplitudes, so we have to do a little work to get the frequencies that go
+	! with those amplitudes. See also numerical-analysis/src/exercises.f90 which
+	! also does this
 	df = 1.d0 * audio%sample_rate / size(xx)
 	nf = size(xx)
 

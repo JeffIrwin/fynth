@@ -61,6 +61,7 @@ module fynth__utils
 		procedure :: to_str_i16
 		procedure :: to_str_i32
 		procedure :: to_str_i64
+		procedure :: to_str_f64
 	end interface to_str
 
 	!********
@@ -163,6 +164,16 @@ function to_str_i64(int_) result(str)
 	write(buffer, "(i0)") int_
 	str = trim(buffer)
 end function to_str_i64
+
+!********
+
+function to_str_f64(x) result(str)
+	double precision, intent(in) :: x
+	character(len = :), allocatable :: str
+	character :: buffer*24
+	write(buffer, "(es24.13)") x
+	str = trim(adjustl(buffer))
+end function to_str_f64
 
 !===============================================================================
 

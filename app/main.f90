@@ -43,7 +43,13 @@ program main
 		audio = read_wav(args%file1)
 
 		if (args%has_file2) then
-			! Refactor out of main?
+
+			! TODO: refactor out of main
+
+			if (args%low_pass) then
+				call low_pass_filter(audio, args%low_pass_freq)
+			end if
+
 			ext = get_file_extension(args%file2)
 			select case (ext)
 			case (".wav", ".WAV")
@@ -57,6 +63,7 @@ program main
 			case default
 				call panic("Cannot write file type for extension """//ext//"""")
 			end select
+
 		end if
 
 		call fynth_exit(EXIT_SUCCESS)

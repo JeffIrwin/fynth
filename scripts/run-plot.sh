@@ -9,7 +9,7 @@ set -exu
 #********
 
 # Basename for generated data files with various extensions
-base="data-1"
+base="build/data-1"
 
 #fpm run -- "$base".wav --square 30.0 0.1
 fpm run -- "$base".wav --sine 30.0 0.1
