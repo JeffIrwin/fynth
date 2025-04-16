@@ -340,8 +340,6 @@ subroutine low_pass_filter(audio, freq)
 
 		xx = fft(cmplx(audio%channel(ic,:), kind = 8))
 
-		!write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
-
 		! Frequency resolution
 		df = 1.d0 * audio%sample_rate / size(xx)
 		nf = size(xx)

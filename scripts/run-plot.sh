@@ -32,3 +32,5 @@ gnuplot -e '
 	plot "'"$base"'.csv" with linespoints
 '
 
+# TODO: log name of generated png for easier viewing
+
