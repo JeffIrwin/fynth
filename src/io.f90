@@ -22,6 +22,12 @@ module fynth__io
 		FMT__ = "fmt ", &  ! case and whitespace sensitive
 		DATA_ = "data"
 
+	integer, parameter :: &
+		WAV_FMT_PCM = 1, &
+		WAV_FMT_MU_LAW = 257, &
+		WAV_FMT_A_LAW  = 258, &
+		WAV_FMT_ADPCM  = 259
+
 	type wav_header_t
 	
 		character(len = 4) :: riff = RIFF_
@@ -51,9 +57,12 @@ function read_wav(filename) result(audio)
 
 	!********
 
+	integer, parameter :: FSEEK_RELATIVE = 1
+
 	integer :: io, fid
 	integer :: buffer_size
-	integer(kind = 2), allocatable :: buffer16(:)
+	!integer(kind = 2), allocatable :: buffer16(:)
+	integer(kind = 2), allocatable :: buffer16(:,:)
 
 	type(wav_header_t) :: wavh
 
@@ -66,16 +75,35 @@ function read_wav(filename) result(audio)
 
 	read(fid, iostat = io) wavh
 	if (io /= 0) call panic("cannot read wav header from file """//filename//"""")
-	!print *, "wavh = ", wavh
-	!print *, "dlength = ", wavh%dlength
+
+	print *, ""
+	print *, "wavh = ", wavh
+	print *, "dlength = ", wavh%dlength
+	print *, "bytes_per_samp = ", wavh%bytes_per_samp
+	print *, "format_tag = ", wavh%format_tag
 
 	! TODO: check RIFF_ and WAVE_ magic strings, format_tag, etc. to guard
 	! against trying to read non-wav files
-
-	if (wavh%num_chans /= 1) then
-		call panic("only mono is supported.  num_chans = """ &
-			//to_str(wavh%num_chans)//"""")
+	if (wavh%riff /= RIFF_) then
+		call panic("bad wav file.  "//RIFF_//" not found")
 	end if
+	if (wavh%wave /= WAVE_) then
+		call panic("bad wav file.  "//WAVE_//" not found")
+	end if
+	if (wavh%chunk_size /= 16) then
+		! We could probably extend support here, but I'm not sure if it offsets
+		! data to be read after the format_tag
+		call panic("bad wav file.  Only chunk size 16 is supported")
+	end if
+	if (wavh%format_tag /= WAV_FMT_PCM) then
+		call panic("bad wav file.  Only PCM format tag ("//to_str(WAV_FMT_PCM) &
+			//") is supported")
+	end if
+
+	!if (wavh%num_chans /= 1) then
+	!	call panic("only mono is supported.  num_chans = """ &
+	!		//to_str(wavh%num_chans)//"""")
+	!end if
 
 	if (wavh%bits_per_samp /= 16) then
 		call panic("only 16-bit wav is supported.  bits_per_samp = """ &
@@ -84,10 +112,51 @@ function read_wav(filename) result(audio)
 
 	audio%sample_rate = wavh%sample_rate
 
-	buffer_size = wavh%dlength / wavh%bytes_per_samp
-	!print *, "buffer_size = ", buffer_size
+	print *, ""
+	print *, "data = ", wavh%data
+	do while (.true.)
+		if (wavh%data == DATA_) exit
 
-	allocate(buffer16(buffer_size))
+		! TODO: handle LIST data.  Maybe do a select/case here which covers both
+		! "LIST" and (audio) "data"
+
+		write(*,*) WARN_STR//"ignoring "//to_str(wavh%dlength) &
+			//" bytes of """//wavh%data//""" data"
+
+		!print *, "dlength = ", wavh%dlength
+
+		call fseek(fid, wavh%dlength, FSEEK_RELATIVE)
+
+		read(fid, iostat = io) wavh%data
+		if (io /= 0) call panic("cannot read wav chunk from file """//filename//"""")
+
+		read(fid, iostat = io) wavh%dlength
+		if (io /= 0) call panic("cannot read wav chunk from file """//filename//"""")
+
+		print *, "data = ", wavh%data
+		print *, "dlength = ", wavh%dlength
+
+		!exit
+	end do
+	print *, "done loop"
+	print *, ""
+
+	!! Before i figured out i was parsing "LIST" data as audio dlength, i
+	!! thought this was wrong and tried to back-calculate the correct dlength
+	!from the file flength
+	!wavh%dlength = wavh%flength - storage_size(wavh) / BITS_PER_BYTE
+	!print *, "dlength = ", wavh%dlength
+
+	!buffer_size = wavh%dlength / wavh%bytes_per_samp
+	buffer_size = wavh%num_chans * wavh%dlength / wavh%bytes_per_samp
+
+	print *, "buffer_size = ", buffer_size
+
+	!allocate(buffer16(buffer_size))
+	allocate(buffer16(wavh%num_chans, buffer_size / wavh%num_chans))
+
+	print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
+
 	read(fid, iostat = io) buffer16
 	if (io /= 0) call panic("cannot read wav data from file """//filename//"""")
 	!print *, "buffer16 = ", buffer16(1: 10)
@@ -110,7 +179,8 @@ subroutine write_wav(filename, audio)
 
 	double precision :: max_wave
 	integer :: fid, io, header_length
-	integer(kind = 2), allocatable :: buffer16(:)
+	!integer(kind = 2), allocatable :: buffer16(:)
+	integer(kind = 2), allocatable :: buffer16(:,:)
 
 	type(wav_header_t) :: wavh
 
@@ -121,7 +191,10 @@ subroutine write_wav(filename, audio)
 
 	wavh%chunk_size = 16
 	wavh%format_tag = 1
-	wavh%num_chans = 1
+
+	!wavh%num_chans = 1
+	wavh%num_chans = size(audio%channel, 1, kind = 2)
+
 	wavh%bits_per_samp = 16  ! TODO: tie this magic number to the type of `buffer16`
 	wavh%bytes_per_sec = wavh%sample_rate * wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans
 	wavh%bytes_per_samp = int(wavh%bits_per_samp / BITS_PER_BYTE * wavh%num_chans, 2)
@@ -134,10 +207,18 @@ subroutine write_wav(filename, audio)
 	! wave track
 
 	! TODO: parameterize this magic number
+
 	buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+	!buffer16 = int(reshape(audio%channel, [size(audio%channel)]) &
+	!	* (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+
+	print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
+
 	!print *, "buff infty-norm = ", maxval(abs(buffer16))
 
-	wavh%dlength = size(buffer16) * wavh%bytes_per_samp
+	!wavh%dlength = size(buffer16) * wavh%bytes_per_samp
+	wavh%dlength = size(buffer16) * wavh%bytes_per_samp / wavh%num_chans
+
 	wavh%flength = wavh%dlength + header_length
 
 	!print *, "dlength        = ", wavh%dlength
@@ -178,7 +259,7 @@ subroutine write_csv_audio(filename, audio)
 
 	open(file = filename, newunit = fid)
 	write(fid, "(a)") "# time (s), channel amplitude"
-	write(fid, "(2es16.6)") [(dt * i, audio%channel(i+1), i = 0, nt-1)]
+	write(fid, "(2es16.6)") [(dt * i, audio%channel(1, i+1), i = 0, nt-1)]
 	close(fid)
 
 	write(*,*) "Finished writing file """, filename, """"
@@ -204,7 +285,7 @@ subroutine write_csv_fft(filename, audio)
 
 	integer :: i, fid, nf
 
-	xx = fft(cmplx(audio%channel, kind = 8))
+	xx = fft(cmplx(audio%channel(1,:), kind = 8))
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)
 

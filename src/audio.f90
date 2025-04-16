@@ -7,7 +7,7 @@ module fynth__audio
 
 		! Could later add multiple tracks, stereo, etc.
 
-		double precision, allocatable :: channel(:)
+		double precision, allocatable :: channel(:,:)  ! rename track?
 		integer(kind = 4) :: sample_rate
 
 	end type audio_t

@@ -90,7 +90,7 @@ subroutine write_wav_sine(filename, freq, len)
 	end do
 	call wave%trim()
 
-	call write_wav(filename, audio_t(wave%v, sample_rate))
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 end subroutine write_wav_sine
 
@@ -131,7 +131,7 @@ subroutine write_wav_square(filename, freq, len)
 	end do
 	call wave%trim()
 
-	call write_wav(filename, audio_t(wave%v, sample_rate))
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 end subroutine write_wav_square
 
@@ -171,7 +171,7 @@ subroutine write_wav_noise(filename, len)
 
 	call wave%trim()
 
-	call write_wav(filename, audio_t(wave%v, sample_rate))
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 end subroutine write_wav_noise
 
@@ -231,7 +231,7 @@ subroutine write_wav_licc(filename)
 	end do
 	call wave%trim()
 
-	call write_wav(filename, audio_t(wave%v, sample_rate))
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 	!xx = fft(cmplx(wave%v, kind = 8))
 	!print *, "xx = "
@@ -329,46 +329,41 @@ subroutine low_pass_filter(audio, freq)
 
 	double precision :: df
 
-	integer :: i, nt, nf, if_cutoff
+	integer :: i, ic, nt, nf, if_cutoff
 
 	write(*,*) "Applying low-pass filter with cutoff frequency " &
 		//to_str(freq)//" Hz"
 
-	nt = size(audio%channel, 1)
-	xx = fft(cmplx(audio%channel, kind = 8))
+	nt = size(audio%channel, 2)
 
-	!write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
+	do ic = 1, size(audio%channel, 1)
 
-	! Frequency resolution
-	df = 1.d0 * audio%sample_rate / size(xx)
-	nf = size(xx)
+		xx = fft(cmplx(audio%channel(ic,:), kind = 8))
 
-	! Imagine your FFT is extremely low-resolution and has frequencies [0, 1, 2]
-	! at indices [1, 2, 3] and your cutoff is 1.5.  This will allow low-pass
-	! frequency 1 Hz at index 2, but filter out frequency 2 Hz at index 3.  So
-	! we do ceiling plus one -- ceiling(1.5) + 1 == 2 + 1 == 3
-	if_cutoff = max(1, min(nf, ceiling(freq / df) + 1))
-	!if_cutoff = nint(freq / df)
+		!write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"
 
-	! The upper bound is like this because the FFT is a two-sided FFT, with
-	! negative frequencies in the second half of the array
-	do i = if_cutoff, nf - if_cutoff + 1
-		xx(i) = 0.d0
+		! Frequency resolution
+		df = 1.d0 * audio%sample_rate / size(xx)
+		nf = size(xx)
+
+		! Imagine your FFT is extremely low-resolution and has frequencies [0, 1, 2]
+		! at indices [1, 2, 3] and your cutoff is 1.5.  This will allow low-pass
+		! frequency 1 Hz at index 2, but filter out frequency 2 Hz at index 3.  So
+		! we do ceiling plus one -- ceiling(1.5) + 1 == 2 + 1 == 3
+		if_cutoff = max(1, min(nf, ceiling(freq / df) + 1))
+
+		! The upper bound is like this because the FFT is a two-sided FFT, with
+		! negative frequencies in the second half of the array
+		do i = if_cutoff, nf - if_cutoff + 1
+			xx(i) = 0.d0
+		end do
+
+		! Invert the FFT, re-using the same array
+		xx = ifft(xx)
+
+		audio%channel(ic,:) = xx(1: nt)%re  ! trim.  TODO: abs? I think %re is correct but complex numbers hurt brain
+
 	end do
-
-	! Invert the FFT, re-using the same array
-	xx = ifft(xx)
-
-	!print *, "filtered channel = "
-	!print "(2es16.6)", xx(1: 100)
-
-	!audio%channel = xx%re
-	audio%channel = xx(1: nt)%re  ! trim.  TODO: abs? I think %re is correct but complex numbers hurt brain
-
-	!!print *, "sample_rate = ", audio%sample_rate
-	!!print *, "df = ", df
-
-	!write(fid, "(3es16.6)") [(df * (i-1), xx(i)%re, xx(i)%im, i = 1, nf)]
 
 end subroutine low_pass_filter
 
