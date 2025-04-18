@@ -145,9 +145,15 @@ subroutine write_wav_square(filename, freq, len_, env)
 
 		! TODO: unroll loop or optimize branching?
 		if (t < a) then
-			ampl = amp * t / a
+			! TODO: might want to make amp ramp exponentially.  Perception of
+			! volume is not linear!
+
+			!ampl = amp * t / a
+			ampl = lerp(0.d0, amp, t / a)
+
 		else if (t < ad) then
-			ampl = amp + (t - a) / (ad - a) * (env%s * amp - amp)  ! TODO: simplify? lerp fn?
+			!ampl = amp + (t - a) / (ad - a) * (env%s * amp - amp)  ! TODO: simplify? lerp fn?
+			ampl = lerp(amp, env%s * amp, (t - a) / (ad - a))
 		else
 			ampl = env%s * amp
 		end if
@@ -170,7 +176,10 @@ subroutine write_wav_square(filename, freq, len_, env)
 			! Amlitude is based on local time `tl` while waveform is based on `t`
 			t = 1.d0 * (it + nads) / sample_rate
 			tl = 1.d0 * it / sample_rate
-			ampl = env%s * amp * (1.d0 - tl / env%r)
+
+			!ampl = env%s * amp * (1.d0 - tl / env%r)
+			ampl = lerp(env%s, 0.d0, tl / env%r)
+
 			call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
 		end do
 	end if
