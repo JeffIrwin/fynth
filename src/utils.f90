@@ -25,7 +25,7 @@ module fynth__utils
 			ESC             = char(27)
 
 	! TODO: make these variables, with colors disabled if output_unit is not tty
-	! and an option to --force-color
+	! and an option to --force-color.  c.f. syntran
 	character(len = *), parameter :: &
 			fg_bold               = esc//"[;1m", &
 			fg_yellow             = esc//"[33m", &
@@ -228,6 +228,15 @@ double precision function lerp(a, b, x)
 	lerp = a + (b - a) * x
 
 end function lerp
+
+!********
+
+double precision function lerp3(a, b, x)
+	double precision, intent(in) :: a, b, x
+
+	lerp3 = a + (b - a) * x ** 0.333333d0
+
+end function lerp3
 
 !===============================================================================
 
