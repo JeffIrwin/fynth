@@ -12,5 +12,14 @@ module fynth__audio
 
 	end type audio_t
 
+	type env_t
+		! ADSR (attack, decay, sustain, release) envelope
+		!
+		! Attack, decay, and release times are in seconds
+		!
+		! Sustain level is a fraction of the max amplitude, in the range [0.0, 1.0]
+		double precision :: a, d, s, r
+	end type env_t
+
 end module fynth__audio
 

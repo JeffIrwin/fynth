@@ -30,9 +30,14 @@ module fynth__io
 
 	type wav_header_t
 	
+		! TODO: some of these (flength, dlength) should be u32.  Make them kind
+		! 8 in Fortran, read and convert appropriately.  See read_u32() in
+		! cali/src/cali.f90
+
 		character(len = 4) :: riff = RIFF_
 		integer(kind = 4)  :: flength         ! file length in bytes
 		character(len = 4) :: wave = WAVE_
+
 		character(len = 4) :: fmt_ = FMT__
 		integer(kind = 4)  :: chunk_size      ! size of FMT chunk in bytes (usually 16)
 		integer(kind = 2)  :: format_tag      ! 1 = PCM, 257 = Mu-Law, 258 = A-Law, 259 = ADPCM
@@ -41,6 +46,7 @@ module fynth__io
 		integer(kind = 4)  :: bytes_per_sec   ! bytes per second = sample_rate * bytes_per_samp
 		integer(kind = 2)  :: bytes_per_samp  ! 2 = 16-bit mono, 4 = 16-bit stereo
 		integer(kind = 2)  :: bits_per_samp   ! number of bits per sample
+
 		character(len = 4) :: data = DATA_
 		integer(kind = 4)  :: dlength         ! data length in bytes (flength - 44 (header length))
 
@@ -117,6 +123,7 @@ function read_wav(filename) result(audio)
 
 		!print *, "dlength = ", wavh%dlength
 
+		! TODO: fseek is a gnu extension.  Intel needs to use ifport for this
 		call fseek(fid, wavh%dlength, FSEEK_RELATIVE)
 
 		read(fid, iostat = io) wavh%data
@@ -139,7 +146,7 @@ function read_wav(filename) result(audio)
 
 	allocate(buffer16(wavh%num_chans, buffer_size / wavh%num_chans))
 
-	print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
+	!print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
 
 	read(fid, iostat = io) buffer16
 	if (io /= 0) call panic("cannot read wav data from file """//filename//"""")
@@ -190,7 +197,7 @@ subroutine write_wav(filename, audio)
 	! TODO: parameterize this magic number
 	buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 
-	print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
+	!print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
 
 	!print *, "buff infty-norm = ", maxval(abs(buffer16))
 

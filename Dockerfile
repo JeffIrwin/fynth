@@ -22,7 +22,7 @@ RUN fpm --version
 ARG BRANCH="main"
 RUN echo "BRANCH = $BRANCH"
 
-#RUN echo 4  # bust cache
+#RUN echo 5  # bust cache
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
@@ -36,10 +36,25 @@ RUN fpm run --profile release
 RUN fpm install --prefix /workdir/ --profile release
 ENV PATH="$PATH:/workdir/bin/"
 
+#===========================================================
+# Examples.  If these break, docs probably need updated
+
 RUN fynth
+RUN fynth lic.wav --licc
 RUN fynth sin.wav --sine   300 1
 RUN fynth squ.wav --square 300 1
 RUN fynth noi.wav --noise      1
+
+# ADSR envelopes
+RUN fynth squ.wav --square 300 1 --adsr 0.3 0.2 0.5 1.0
+
+RUN fynth sin.wav sin-copy.wav  # echo input to output
+RUN fynth sin.wav sin.csv       # time-domain conversion
+RUN fynth sin.wav sin.csv --fft # freq-domain conversion
+
+RUN fynth squ.wav squ-low.wav --low-pass 1600  # filter
+
+#===========================================================
 
 RUN ./scripts/run-plot.sh
 RUN ./scripts/run-fft-plot.sh

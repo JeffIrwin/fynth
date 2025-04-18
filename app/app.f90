@@ -4,6 +4,7 @@ module fynth__app
 	! TODO: split to app.f90
 
 	use fynth
+	use fynth__audio
 	use fynth__utils
 
 	implicit none
@@ -24,6 +25,7 @@ module fynth__app
 			has_file2 = .false., &
 			sine      = .false., &
 			square    = .false., &
+			adsr      = .false., &
 			noise     = .false., &
 			low_pass  = .false., &
 			fft       = .false., &
@@ -31,13 +33,39 @@ module fynth__app
 			version   = .false., &
 			help      = .false.
 
+		type(env_t) :: env
+
 	end type args_t
 
 contains
 
 !===============================================================================
 
+double precision function get_next_double_arg(i, dash_arg, description, error) result(arg)
+	integer, intent(inout) :: i
+	character(len = *), intent(in) :: dash_arg, description
+	logical, intent(inout) :: error
+
+	!********
+
+	character(len = :), allocatable :: str
+	integer :: io
+
+	call get_next_arg(i, str)
+	read(str, *, iostat = io) arg
+	if (io /= 0) then
+		write(*,*) ERROR_STR//dash_arg//" "//description//" """ &
+			//str//""" is not a valid number"
+		error = .true.
+	end if
+
+end function get_next_double_arg
+
+!===============================================================================
+
 subroutine get_next_arg(i, argv)
+	! TODO: why is this not a fn that returns argv?
+
 	integer, intent(inout) :: i
 	character(len = :), allocatable, intent(out) :: argv
 	!********
@@ -182,6 +210,16 @@ function read_args() result(args)
 				error = .true.
 			end if
 
+		case ("--adsr")
+			args%adsr = .true.
+
+			! TODO: use get_next_double_arg() for other args
+			args%env%a = get_next_double_arg(i, argv, "attack" , error)
+			args%env%d = get_next_double_arg(i, argv, "decay"  , error)
+			args%env%s = get_next_double_arg(i, argv, "sustain", error)
+			args%env%r = get_next_double_arg(i, argv, "release", error)
+			!print *, "env = ", args%env
+
 		case default
 
 			! Positional arg
@@ -268,22 +306,23 @@ function read_args() result(args)
 	if (error .or. args%help) then
 
 		write(*,*) fg_bold//"Usage:"//color_reset
-		write(*,*) "	fynth -h | --help"
-		write(*,*) "	fynth --version"
+		write(*,*) "    fynth -h | --help"
+		write(*,*) "    fynth --version"
 
 		! This is probably ok as a single line now.  If it gets too long I might
 		! want to break it up (including no-filter echo input to output)
-		write(*,*) "	fynth <in.wav> <out.wav> [--fft] [(--low-pass|--low) <frequency>]"
-		!write(*,*) "	fynth <in.wav> <out.csv> [--fft]"
-		!write(*,*) "	fynth <in.wav> <out.wav> (--low-pass|--low) <frequency>"
+		write(*,*) "    fynth <in.wav> <out.wav> [--fft] [(--low-pass|--low) <frequency>]"
+		!write(*,*) "    fynth <in.wav> <out.csv> [--fft]"
+		!write(*,*) "    fynth <in.wav> <out.wav> (--low-pass|--low) <frequency>"
 
-		write(*,*) "	fynth <out.wav> (--sine|--square) <frequency> <length>"
-		write(*,*) "	fynth <out.wav> --noise <length>"
-		write(*,*) "	fynth <out.wav> --licc"
+		write(*,*) "    fynth <out.wav> (--sine|--square) <frequency> <length>"
+		write(*,*) "        [--adsr <attack> <decay> <sustain> <release>]"
+		write(*,*) "    fynth <out.wav> --noise <length>"
+		write(*,*) "    fynth <out.wav> --licc"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset
-		write(*,*) "	-h --help        Show this help"
-		write(*,*) "	--version        Show version"
+		write(*,*) "    -h --help        Show this help"
+		write(*,*) "    --version        Show version"
 		write(*,*)
 
 		if (.not. args%help) call fynth_exit(EXIT_FAILURE)

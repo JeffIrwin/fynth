@@ -31,6 +31,7 @@ module fynth
 	!   * wave forms:
 	!     + sine and square wave done
 	!     + tbd:  triangle, sawtooth
+	!     + pulse width option for square.  default 0.5, range (0, 1)
 	!   * filters:
 	!     + fft-based low-pass filter with hard cutoff done
 	!     + tbd: high-pass, rolling cutoffs (units dB per octave?)
@@ -55,10 +56,10 @@ contains
 
 !===============================================================================
 
-subroutine write_wav_sine(filename, freq, len)
+subroutine write_wav_sine(filename, freq, len_)
 
 	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: freq, len
+	double precision, intent(in) :: freq, len_
 
 	!********
 
@@ -75,7 +76,7 @@ subroutine write_wav_sine(filename, freq, len)
 	sample_rate = 44100
 
 	notes = [freq]
-	duras = [len]
+	duras = [len_]
 
 	wave = new_vec_f64()
 	do ii = 1, size(notes)
@@ -96,10 +97,10 @@ end subroutine write_wav_sine
 
 !===============================================================================
 
-subroutine write_wav_square(filename, freq, len)
+subroutine write_wav_square(filename, freq, len_)
 
 	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: freq, len
+	double precision, intent(in) :: freq, len_
 
 	!********
 
@@ -116,7 +117,7 @@ subroutine write_wav_square(filename, freq, len)
 	sample_rate = 44100
 
 	notes = [freq]
-	duras = [len]
+	duras = [len_]
 
 	wave = new_vec_f64()
 	do ii = 1, size(notes)
@@ -137,10 +138,79 @@ end subroutine write_wav_square
 
 !===============================================================================
 
-subroutine write_wav_noise(filename, len)
+subroutine write_wav_square_adsr(filename, freq, len_, env)
 
 	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: len
+	double precision, intent(in) :: freq, len_
+
+	type(env_t) :: env
+
+	!********
+
+	double precision, parameter :: amp = 1.d0  ! could be an arg later
+	double precision :: f, t, ampl, a, ad, ads
+	!double precision, allocatable :: notes(:), duras(:)
+
+	integer :: it
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	sample_rate = 44100
+
+	!notes = [freq]
+	!duras = [len_]
+
+	! cumsum of envelope segments
+	a = env%a
+	ad = a + env%d
+	ads = len_
+
+	wave = new_vec_f64()
+
+	f = freq
+
+	! ADS
+	do it = 1, int(len_ * sample_rate)
+		t = 1.d0 * it / sample_rate
+
+		!ampl = amp
+		if (t < a) then
+			ampl = amp * t / a
+		else if (t < ad) then
+			ampl = amp + (t - a) / (ad - a) * (env%s * amp - amp)  ! TODO: simplify? lerp fn?
+		else !if (t < ads) then
+			ampl = env%s * amp
+		!else
+		!	ampl = env%s * amp * (1.d0 - (t - ads) / env%r)
+		end if
+
+		! TODO: make this a square() fn (unit square? take amp/f as args?)
+		call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
+
+	end do
+
+	! Release
+	do it = 1, int(env%r * sample_rate)
+		t = 1.d0 * it / sample_rate
+		ampl = env%s * amp * (1.d0 - t / env%r)
+		call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
+	end do
+
+	call wave%trim()
+
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+
+end subroutine write_wav_square_adsr
+
+!===============================================================================
+
+subroutine write_wav_noise(filename, len_)
+
+	character(len = *), intent(in) :: filename
+	double precision, intent(in) :: len_
 
 	!********
 
@@ -162,7 +232,7 @@ subroutine write_wav_noise(filename, len)
 
 	wave = new_vec_f64()
 
-	do it = 1, int(len * sample_rate)
+	do it = 1, int(len_ * sample_rate)
 		t = 1.d0 * it / sample_rate
 		call random_number(r)  ! in [0, 1)
 		!call wave%push(r)
