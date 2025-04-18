@@ -26,9 +26,8 @@ program main
 
 	if (args%square) then
 
-		! TODO: separate fns with and without adsr env or combine?
 		if (args%adsr) then
-			call write_wav_square_adsr(args%file1, args%square_freq, args%square_len, args%env)
+			call write_wav_square(args%file1, args%square_freq, args%square_len, env = args%env)
 		else
 			call write_wav_square(args%file1, args%square_freq, args%square_len)
 		end if

@@ -97,61 +97,26 @@ end subroutine write_wav_sine
 
 !===============================================================================
 
-subroutine write_wav_square(filename, freq, len_)
+subroutine write_wav_square(filename, freq, len_, env)
+
+	! TODO: add more args:
+	!   - amp :  max amplitude/volume
+	!   - hold:  fraction of how long note is held out of `len_`.  name?
+	!
+	! Rename fn?  Maybe generalize to play onto an audio track instead of
+	! directly writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len_
 
-	!********
-
-	double precision :: f, t
-	double precision, allocatable :: notes(:), duras(:)
-
-	integer :: ii, it
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
-
-	!********
-
-	sample_rate = 44100
-
-	notes = [freq]
-	duras = [len_]
-
-	wave = new_vec_f64()
-	do ii = 1, size(notes)
-
-		! Play frequency `notes(ii)` for duration `duras(ii)`
-		f = notes(ii)
-		do it = 1, int(duras(ii) * sample_rate)
-			t = 1.d0 * it / sample_rate
-			call wave%push( 2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1 )
-		end do
-
-	end do
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-end subroutine write_wav_square
-
-!===============================================================================
-
-subroutine write_wav_square_adsr(filename, freq, len_, env)
-
-	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: freq, len_
-
-	type(env_t) :: env
+	type(env_t), optional :: env
 
 	!********
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, ampl, a, ad, ads
-	!double precision, allocatable :: notes(:), duras(:)
+	double precision :: f, t, tl, ampl, a, ad
 
-	integer :: it
+	integer :: it, nads, nr
 	integer(kind = 4) :: sample_rate
 
 	type(vec_f64_t) :: wave
@@ -160,50 +125,61 @@ subroutine write_wav_square_adsr(filename, freq, len_, env)
 
 	sample_rate = 44100
 
-	!notes = [freq]
-	!duras = [len_]
-
-	! cumsum of envelope segments
-	a = env%a
-	ad = a + env%d
-	ads = len_
+	if (present(env)) then
+		! cumsum of envelope segments
+		a = env%a
+		ad = a + env%d
+	else
+		a  = 0
+		ad = 0
+	end if
 
 	wave = new_vec_f64()
 
 	f = freq
 
 	! ADS
-	do it = 1, int(len_ * sample_rate)
+	nads = int(len_ * sample_rate)
+	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
-		!ampl = amp
+		! TODO: unroll loop or optimize branching?
 		if (t < a) then
 			ampl = amp * t / a
 		else if (t < ad) then
 			ampl = amp + (t - a) / (ad - a) * (env%s * amp - amp)  ! TODO: simplify? lerp fn?
-		else !if (t < ads) then
+		else
 			ampl = env%s * amp
-		!else
-		!	ampl = env%s * amp * (1.d0 - (t - ads) / env%r)
 		end if
 
+		! TODO: probably don't want to use `push()` here due to release.
+		! Release of one note can overlap with start of next note.  Instead of
+		! pushing, resize once per note.  Then add sample to previous value
+		! instead of (re) setting.  Fix release segment below too
+
 		! TODO: make this a square() fn (unit square? take amp/f as args?)
+
 		call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
 
 	end do
 
-	! Release
-	do it = 1, int(env%r * sample_rate)
-		t = 1.d0 * it / sample_rate
-		ampl = env%s * amp * (1.d0 - t / env%r)
-		call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
-	end do
+	if (present(env)) then
+		! Release
+		nr = int(env%r * sample_rate)
+		do it = 1, nr
+			! Amlitude is based on local time `tl` while waveform is based on `t`
+			t = 1.d0 * (it + nads) / sample_rate
+			tl = 1.d0 * it / sample_rate
+			ampl = env%s * amp * (1.d0 - tl / env%r)
+			call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
+		end do
+	end if
 
 	call wave%trim()
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
-end subroutine write_wav_square_adsr
+end subroutine write_wav_square
 
 !===============================================================================
 
