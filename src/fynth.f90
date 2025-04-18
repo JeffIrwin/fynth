@@ -109,7 +109,7 @@ subroutine write_wav_square(filename, freq, len_, env)
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len_
 
-	type(env_t), optional :: env
+	type(env_t), intent(in), optional :: env
 
 	!********
 
@@ -143,6 +143,7 @@ subroutine write_wav_square(filename, freq, len_, env)
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
+		if (present(env)) then
 		! TODO: unroll loop or optimize branching?
 		if (t < a) then
 			! TODO: might want to make amp ramp exponentially.  Perception of
@@ -152,6 +153,9 @@ subroutine write_wav_square(filename, freq, len_, env)
 			ampl = lerp(amp, env%s * amp, (t - a) / (ad - a))
 		else
 			ampl = env%s * amp
+		end if
+		else
+			ampl = 1.d0
 		end if
 
 		! TODO: probably don't want to use `push()` here due to release.
