@@ -148,8 +148,6 @@ subroutine write_wav_square(filename, freq, len_, env)
 		if (present(env)) then
 			! TODO: unroll loop or optimize branching?
 			if (t < a) then
-				! TODO: might want to make amp ramp exponentially.  Perception of
-				! volume is not linear!
 				ampi = lerp(0.d0, amp, (t / a))
 			else if (t < ad) then
 				ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
@@ -160,16 +158,12 @@ subroutine write_wav_square(filename, freq, len_, env)
 			ampl = 1.d0
 		end if
 		ampl = ampi ** AMP_EXP
-		!ampl = exp(ampi)
 
 		! TODO: probably don't want to use `push()` here due to release.
 		! Release of one note can overlap with start of next note.  Instead of
 		! pushing, resize once per note.  Then add sample to previous value
 		! instead of (re) setting.  Fix release segment below too
-
-		! TODO: make this a square() fn (unit square? take amp/f as args?)
-
-		call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
+		call wave%push(ampl * square_wave(f * t))
 
 	end do
 
@@ -182,8 +176,9 @@ subroutine write_wav_square(filename, freq, len_, env)
 			tl = 1.d0 * it / sample_rate
 			ampi = lerp(env%s, 0.d0, tl / env%r)
 			ampl = ampi ** AMP_EXP
-			!ampl = exp(ampi)
-			call wave%push( ampl * (2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1) )
+
+			call wave%push(ampl * square_wave(f * t))
+
 		end do
 	end if
 
@@ -192,6 +187,14 @@ subroutine write_wav_square(filename, freq, len_, env)
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 end subroutine write_wav_square
+
+!===============================================================================
+
+double precision function square_wave(t)
+	! Unit amplitude square wave with unit period
+	double precision, intent(in) :: t
+	square_wave = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
+end function square_wave
 
 !===============================================================================
 
