@@ -73,47 +73,6 @@ contains
 
 !===============================================================================
 
-subroutine write_wav_sine(filename, freq, len_)
-
-	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: freq, len_
-
-	!********
-
-	double precision :: f, t
-	double precision, allocatable :: notes(:), duras(:)
-
-	integer :: ii, it
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
-
-	!********
-
-	sample_rate = 44100
-
-	notes = [freq]
-	duras = [len_]
-
-	wave = new_vec_f64()
-	do ii = 1, size(notes)
-
-		! Play frequency `notes(ii)` for duration `duras(ii)`
-		f = notes(ii)
-		do it = 1, int(duras(ii) * sample_rate)
-			t = 1.d0 * it / sample_rate
-			call wave%push( sin(2.d0 * PI * f * t) )
-		end do
-
-	end do
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-end subroutine write_wav_sine
-
-!===============================================================================
-
 subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 
 	double precision, intent(in) :: cutoff
@@ -157,7 +116,6 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
 	!       is a spectrum from staccato to legato
 	!     * start time
-	!   - apply any changes from here also to write_wav_sine()
 	!   - rename fn?  Maybe generalize to play onto an audio track instead of
 	!     directly writing to file.  That could be done separately
 
@@ -311,7 +269,6 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env)
 	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
 	!       is a spectrum from staccato to legato
 	!     * start time
-	!   - apply any changes from here also to write_wav_sine()
 	!   - rename fn?  Maybe generalize to play onto an audio track instead of
 	!     directly writing to file.  That could be done separately
 
@@ -432,46 +389,6 @@ double precision function noise_wave(t) result(x)
 	call random_number(x)  ! in [0, 1)
 	x = 2.d0 * x - 1.d0
 end function noise_wave
-
-!===============================================================================
-
-subroutine write_wav_noise(filename, len_)
-
-	character(len = *), intent(in) :: filename
-	double precision, intent(in) :: len_
-
-	!********
-
-	double precision :: t, r
-
-	integer :: i, it, nrng
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
-
-	!********
-
-	sample_rate = 44100
-
-	!allocate(r(l))
-	call random_seed(size = nrng)
-	call random_seed(put = [(0, i = 1, nrng)])
-	!call random_number(r)
-
-	wave = new_vec_f64()
-
-	do it = 1, int(len_ * sample_rate)
-		t = 1.d0 * it / sample_rate
-		call random_number(r)  ! in [0, 1)
-		!call wave%push(r)
-		call wave%push(2.d0 * r - 1.d0)
-	end do
-
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-end subroutine write_wav_noise
 
 !===============================================================================
 

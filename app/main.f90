@@ -37,13 +37,6 @@ program main
 		end select
 	end if
 
-	!if (args%sine) then
-	!	! TODO: remove this now that we have waveform enum
-	!	call write_wav_sine(args%file1, args%freq, args%len_)
-	!	call fynth_exit(EXIT_SUCCESS)
-	!end if
-
-	!if (args%square) then
 	if (args%has_waveform) then
 
 		if (args%adsr) then
@@ -66,12 +59,6 @@ program main
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if
-
-	!if (args%noise) then
-	!	! TODO
-	!	call write_wav_noise(args%file1, args%len_)
-	!	call fynth_exit(EXIT_SUCCESS)
-	!end if
 
 	if (args%licc) then
 		call write_wav_licc(args%file1)

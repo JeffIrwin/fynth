@@ -22,7 +22,7 @@ RUN fpm --version
 ARG BRANCH="main"
 RUN echo "BRANCH = $BRANCH"
 
-RUN echo 6  # bust cache
+RUN echo 7  # bust cache
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
@@ -58,6 +58,8 @@ RUN fynth squ.wav squ-low.wav --low-pass 1600  # filter
 
 RUN ./scripts/run-plot.sh
 RUN ./scripts/run-fft-plot.sh
+RUN ./scripts/run-low-pass-plot.sh
+RUN ./scripts/run-two-pole.sh
 
 #RUN fpm test --profile debug
 #RUN fpm test --profile release
