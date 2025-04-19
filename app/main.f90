@@ -7,6 +7,8 @@ program main
 
 	implicit none
 
+	double precision :: cutoff
+
 	character(len = :), allocatable :: ext
 
 	type(args_t)  :: args
@@ -47,20 +49,24 @@ program main
 		env = env_t(a = 0, d = 0, s = 1, r = 0)
 	end if
 
+	if (args%two_pole) then
+		cutoff = args%two_pole_cutoff
+	else
+		! Defaut null low pass cutoff
+		cutoff = huge(cutoff)
+	end if
+
 	if (args%has_waveform) then
 
 		! TODO: cleanup this branching by setting default null env and filters
+		! TODO: make fn args not optional afterwards
 
-		if (args%two_pole) then
-			call write_waveform_two_pole &
-			( &
-				args%file1, waveform_fn, args%freq, args%len_, &
-				env = env, &
-				cutoff = args%two_pole_cutoff &
-			)
-		else
-			call write_waveform(args%file1, waveform_fn, args%freq, args%len_, env = env)
-		end if
+		call write_waveform_two_pole &
+		( &
+			args%file1, waveform_fn, args%freq, args%len_, &
+			env = env, &
+			cutoff = cutoff &
+		)
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if
