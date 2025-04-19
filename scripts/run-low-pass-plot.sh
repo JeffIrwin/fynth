@@ -14,7 +14,7 @@ base="build/low-pass-data-1"
 # Filtered version
 basef="$base"f
 
-fpm run -- "$base".wav --noise 10.0
+fpm run -- "$base".wav --noise 300 10.0
 fpm run -- "$base".wav "$base"f.wav --low-pass 1000.0
 
 ## Running a low-pass on a square wave yields the expected Fourier components
