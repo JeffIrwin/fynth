@@ -222,6 +222,39 @@ end function get_file_extension
 
 !===============================================================================
 
+double precision function plerp(table, x)
+	! Piecewise lerp
+	double precision, intent(in) :: table(:,:), x
+
+	double precision :: dx, dd
+	integer :: i, nt
+
+	nt = size(table, 2)
+
+	if (x <= table(1, 1)) then
+		plerp = table(2, 1)
+		return
+	else if (x >= table(1, nt)) then
+		plerp = table(2, nt)
+		return
+	end if
+
+	! We could use a bisection search here.  For small nt though, a dumb loop
+	! may be optimal.  For ADSR or DADSR envelopes, nt will be 5 or 6
+	do i = 1, nt - 1
+		if (x < table(1, i)) cycle
+		if (x > table(1, i+1)) cycle
+
+		dx = x - table(1, i)
+		dd = table(1, i+1) - table(1, i)
+		plerp = lerp(table(2, i), table(2, i+1), dx / dd)
+		return
+
+	end do
+
+end function plerp
+!===============================================================================
+
 double precision function lerp(a, b, x)
 	double precision, intent(in) :: a, b, x
 

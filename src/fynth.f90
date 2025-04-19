@@ -185,8 +185,9 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	!********
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, tl, ampi, ampl, a, ad, b0, b1, b2, a1, a2, x, y, y0, &
-		y00, yout, x0, x00, cutoffl
+	double precision :: f, t, tl, ampi, ampl, a, ad, ads, adsr, &
+		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl
+	double precision, allocatable :: amp_tab(:,:)
 
 	integer :: it, nads, nr
 	integer(kind = 4) :: sample_rate
@@ -200,6 +201,20 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	! cumsum of envelope segment durations
 	a = env%a
 	ad = a + env%d
+	ads = len_
+	adsr = ads + env%r
+
+	! Amplitude envelope lookup table:  left column is time, right column is
+	! amplitude/volume
+	amp_tab = reshape( &
+		[ &
+			0.d0, 0.d0 , &
+			a   , 1.d0 , &
+			ad  , env%s, &
+			ads , env%s, &
+			adsr, 0.d0   &
+		], [2, 5] &
+	)
 
 	wave = new_vec_f64()
 
@@ -220,18 +235,9 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
-		! TODO: combine release segment.  Unroll loop or optimize branching?
-		! Probaly can't unroll because amp env will permute with filter env.  A
-		! piecewise lerp helper fn would be good though.  What happens if note
-		! is released in the middle of decay?  Should probably start decay from
-		! a higher amp then
-		if (t < a) then
-			ampi = lerp(0.d0, amp, (t / a))
-		else if (t < ad) then
-			ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
-		else
-			ampi = env%s * amp
-		end if
+		! TODO: What happens if note is released in the middle of decay?  Should
+		! probably start decay from a higher amp then
+		ampi = plerp(amp_tab, t)
 		ampl = ampi ** AMP_EXP
 
 		! Update
@@ -276,7 +282,8 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	end do
 
-	! Release
+	! Release.  TODO: release can be part of ADS loop now with amp_tab lookup
+	! table
 
 	call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 	!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
@@ -319,8 +326,9 @@ double precision function square_wave(t) result(x)
 	x = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
 
 	!! A pulse wave can be created by subtracting a sawtooth wave from a
-	!! phase-shifted version of itself.  How can pulse width / pulse mod / duty
-	!! cycle be generalized for other waveforms?
+	!! phase-shifted version of itself
+	!!
+	!! TODO: add pm arg for waveform fns (except true_saw_wave())
 	!double precision, parameter :: pm = 0.2d0
 	!x = true_saw_wave(t) - true_saw_wave(t + pm) + 2 * pm - 1.d0
 
