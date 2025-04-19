@@ -197,7 +197,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	sample_rate = 44100
 
-	! cumsum of envelope segments
+	! cumsum of envelope segment durations
 	a = env%a
 	ad = a + env%d
 
@@ -205,6 +205,8 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	f = freq
 
+	! TODO: consider using arrays for previous signals for generalization from
+	! two-pole to four-pole filters
 	x = 0.d0
 	x0 = 0.d0
 	x00 = 0.d0
@@ -218,7 +220,11 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
-		! TODO: unroll loop or optimize branching?
+		! TODO: combine release segment.  Unroll loop or optimize branching?
+		! Probaly can't unroll because amp env will permute with filter env.  A
+		! piecewise lerp helper fn would be good though.  What happens if note
+		! is released in the middle of decay?  Should probably start decay from
+		! a higher amp then
 		if (t < a) then
 			ampi = lerp(0.d0, amp, (t / a))
 		else if (t < ad) then
@@ -308,17 +314,61 @@ end subroutine write_waveform
 double precision function square_wave(t) result(x)
 	! Unit amplitude square wave with unit period
 	double precision, intent(in) :: t
+
+	! True square wave
 	x = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
+
+	!! A pulse wave can be created by subtracting a sawtooth wave from a
+	!! phase-shifted version of itself.  How can pulse width / pulse mod / duty
+	!! cycle be generalized for other waveforms?
+	!double precision, parameter :: pm = 0.2d0
+	!x = true_saw_wave(t) - true_saw_wave(t + pm) + 2 * pm - 1.d0
+
 end function square_wave
 
 double precision function triangle_wave(t) result(x)
 	double precision, intent(in) :: t
-	x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0
+
+	!x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0
+
+	!double precision, parameter :: pm = 0.8d0  ! 0 for true tri wave
+
+	!!double precision :: pm1, pm2
+	!!pm2 = 2.d0 * pm - 1.d0
+	!!pm1 = 1.d0 - pm2
+
+	x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0  ! in [-1, 1]
+
+	!x = 0.5d0 * (x + 1.d0)  ! in [0, 1]
+	!x = max(x, pm)          ! in [pm, 1]
+	!x = x - pm              ! in [0, 1-pm]
+	!x = x / (1.d0 - pm)     ! in [0, 1]
+	!x = 2.d0 * x - 1.d0     ! in [-1, 1]
+
+	!!x = max(x, pm2) * 2.d0 / pm1
+	!!!x = (x - (pm2 + 1.d0)) * 2.d0 / pm1
+	!!!x = (x - (pm2 + 1.d0))
+
 end function triangle_wave
+
+double precision function true_saw_wave(t) result(x)
+	double precision, intent(in) :: t
+	x = 2.d0 * (t - floor(t + 0.5d0))
+end function true_saw_wave
 
 double precision function sawtooth_wave(t) result(x)
 	double precision, intent(in) :: t
+
+	!double precision, parameter :: pm = 0.8d0  ! 0 for true sawtooth wave
+
 	x = 2.d0 * (t - floor(t + 0.5d0))
+
+	!x = 0.5d0 * (x + 1.d0)  ! in [0, 1]
+	!x = max(x, pm)          ! in [pm, 1]
+	!x = x - pm              ! in [0, 1-pm]
+	!x = x / (1.d0 - pm)     ! in [0, 1]
+	!x = 2.d0 * x - 1.d0     ! in [-1, 1]
+
 end function sawtooth_wave
 
 double precision function sine_wave(t) result(x)
