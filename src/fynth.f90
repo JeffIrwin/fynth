@@ -29,9 +29,9 @@ module fynth
 	! - play notes with different wave forms envelopes (ADSR), filtering (e.g.
 	!   low pass), etc.
 	!   * wave forms:
-	!     + square, triangle, sine wave done
-	!     + tbd:  triangle, sawtooth
-	!     + pulse width option for square.  default 0.5, range (0, 1)
+	!     + pulse width option.  default 0.5, range (0, 1)
+	!     + i'm clear on square and i guess triangle pulse mod/width.  what does
+	!       it do for a sawtooth?
 	!   * filters:
 	!     + fft-based low-pass filter with hard cutoff done
 	!     + tbd: high-pass, rolling cutoffs (units dB per octave?)
@@ -55,6 +55,7 @@ module fynth
 	end type waveform_t
 
 	type(waveform_t), parameter :: &
+		WAVEFORM_SAWTOOTH = waveform_t(5), &
 		WAVEFORM_TRIANGLE = waveform_t(4), &
 		WAVEFORM_NOISE    = waveform_t(3), &
 		WAVEFORM_SINE     = waveform_t(2), &
@@ -371,6 +372,12 @@ double precision function triangle_wave(t) result(x)
 	double precision, intent(in) :: t
 	x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0
 end function triangle_wave
+
+double precision function sawtooth_wave(t) result(x)
+	double precision, intent(in) :: t
+	!x = t - floor(t)
+	x = 2.d0 * (t - floor(t + 0.5d0))
+end function sawtooth_wave
 
 double precision function sine_wave(t) result(x)
 	double precision, intent(in) :: t

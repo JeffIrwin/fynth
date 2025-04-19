@@ -27,6 +27,7 @@ module fynth__app
 			sine         = .false., &
 			square       = .false., &
 			triangle     = .false., &
+			sawtooth     = .false., &
 			noise        = .false., &
 			has_waveform = .false., &
 			adsr         = .false., &
@@ -199,6 +200,13 @@ function read_args() result(args)
 			args%freq = get_next_double_arg(i, argv, "frequency", error)
 			args%len_ = get_next_double_arg(i, argv, "length", error)
 
+		case ("--saw", "--sawtooth")
+			args%sawtooth = .true.
+			args%has_waveform = .true.
+
+			args%freq = get_next_double_arg(i, argv, "frequency", error)
+			args%len_ = get_next_double_arg(i, argv, "length", error)
+
 		case ("--noi", "--noise")
 			args%noise = .true.
 			args%has_waveform = .true.
@@ -275,6 +283,11 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%sawtooth .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --sawtooth"
+		error = .true.
+	end if
+
 	if (args%noise .and. .not. args%has_file1) then
 		write(*,*) ERROR_STR//"output file arg not defined for --noise"
 		error = .true.
@@ -303,7 +316,8 @@ function read_args() result(args)
 		error = .true.
 	end if
 
-	if (count([args%square, args%triangle, args%sine, args%noise]) > 1) then
+	if (count([args%square, args%triangle, args%sawtooth, args%sine, &
+			args%noise]) > 1) then
 		! TODO: allow adding noise to any other waveform
 		write(*,*) ERROR_STR//"cannot combine multiple waveforms"
 		error = .true.
@@ -312,6 +326,8 @@ function read_args() result(args)
 		args%waveform = WAVEFORM_SQUARE
 	else if (args%triangle) then
 		args%waveform = WAVEFORM_TRIANGLE
+	else if (args%sawtooth) then
+		args%waveform = WAVEFORM_SAWTOOTH
 	else if (args%sine) then
 		args%waveform = WAVEFORM_SINE
 	else if (args%noise) then
@@ -348,7 +364,7 @@ function read_args() result(args)
 		!write(*,*) "    fynth <in.wav> <out.csv> [--fft]"
 		!write(*,*) "    fynth <in.wav> <out.wav> (--low-pass|--low) <frequency>"
 
-		write(*,*) "    fynth <out.wav> (--square|--triangle|--sine|--noise) <frequency> <length>"
+		write(*,*) "    fynth <out.wav> (--square|--triangle|--sawtooth|--sine|--noise) <frequency> <length>"
 		write(*,*) "        [--adsr <attack> <decay> <sustain> <release>]"
 		!write(*,*) "    fynth <out.wav> --noise <length>"
 		write(*,*) "    fynth <out.wav> --licc"

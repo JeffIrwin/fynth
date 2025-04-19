@@ -28,6 +28,8 @@ program main
 			waveform_fn => square_wave
 		case (WAVEFORM_TRIANGLE%i)
 			waveform_fn => triangle_wave
+		case (WAVEFORM_SAWTOOTH%i)
+			waveform_fn => sawtooth_wave
 		case (WAVEFORM_SINE%i)
 			waveform_fn => sine_wave
 		case (WAVEFORM_NOISE%i)
