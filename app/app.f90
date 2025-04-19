@@ -20,6 +20,8 @@ module fynth__app
 		double precision :: noise_len
 		double precision :: low_pass_freq
 		double precision :: two_pole_cutoff, two_pole_resonance
+		! TODO: resonance unused
+		! TODO: add help for filter params
 
 		logical :: &
 			has_file1 = .false., &

@@ -136,8 +136,6 @@ end subroutine get_filter_coefs
 
 subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonance)
 
-	use fynth__notes, only:  c2_note => c2
-
 	! TODO:
 	!   - add more args:
 	!     * amp :  max amplitude/volume
@@ -157,7 +155,7 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
 	double precision :: f, t, tl, ampi, ampl, a, ad, b0, b1, b2, a1, a2, x, y, y0, &
-		y00, yout, x0, x00, cc, dd, cutoffl
+		y00, yout, x0, x00, cutoffl
 
 	integer :: it, nads, nr
 	integer(kind = 4) :: sample_rate
@@ -224,8 +222,11 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 		!! TODO: add env params for filter sweep
 		!cutoffl = lerp(40000.d0, f, t/len_)
 
-		! Linear reduction in filter cutoff octave
-		cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
+		!! Linear reduction in filter cutoff octave
+		!cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
+
+		! Constant cutoff until i add filter env plumbing
+		cutoffl = cutoff
 
 		!print *, "cutoffl = ", cutoffl
 		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
@@ -250,8 +251,8 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 	if (present(env)) then
 		! Release
 
-		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-		call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
+		call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+		!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
 
 		nr = int(env%r * sample_rate)
 		do it = 1, nr
