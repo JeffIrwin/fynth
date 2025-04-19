@@ -422,7 +422,9 @@ end function sine_wave
 
 double precision function noise_wave(t) result(x)
 	double precision, intent(in) :: t
-	! TODO:  seed rng once at beginning
+	!! TODO:  seed rng once at beginning.  Or not depending on an arg?
+	!call random_seed(size = nrng)
+	!call random_seed(put = [(0, i = 1, nrng)])
 
 	!associate(t => t) ; end associate
 	if (.false.) print *, t  ! quiet unused dummy arg warning
