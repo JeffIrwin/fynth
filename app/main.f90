@@ -12,6 +12,9 @@ program main
 	type(args_t)  :: args
 	type(audio_t) :: audio
 
+	!procedure(fn_f64_to_f64) :: waveform_fn
+	procedure(fn_f64_to_f64), pointer :: waveform_fn
+
 	!********
 
 	args = read_args()
@@ -19,35 +22,55 @@ program main
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
-	if (args%sine) then
-		call write_wav_sine(args%file1, args%sine_freq, args%sine_len)
-		call fynth_exit(EXIT_SUCCESS)
+	if (args%has_waveform) then
+		select case (args%waveform%i)
+		case (WAVEFORM_SQUARE%i)
+			waveform_fn => square_wave
+		case (WAVEFORM_TRIANGLE%i)
+			waveform_fn => triangle_wave
+		case (WAVEFORM_SINE%i)
+			waveform_fn => sine_wave
+		case (WAVEFORM_NOISE%i)
+			waveform_fn => noise_wave
+		case default
+			call panic("bad waveform enum")
+		end select
 	end if
 
-	if (args%square) then
+	!if (args%sine) then
+	!	! TODO: remove this now that we have waveform enum
+	!	call write_wav_sine(args%file1, args%freq, args%len_)
+	!	call fynth_exit(EXIT_SUCCESS)
+	!end if
+
+	!if (args%square) then
+	if (args%has_waveform) then
 
 		if (args%adsr) then
+			! TODO: cleanup this branching by setting default null env and filters
 
 			if (args%two_pole) then
+				! TODO: rename for general waveform
 				call write_wav_square_two_pole &
 				( &
-					args%file1, args%square_freq, args%square_len, &
+					args%file1, waveform_fn, args%freq, args%len_, &
 					env = args%env, &
 					cutoff = args%two_pole_cutoff &
 				)
 			else
-				call write_wav_square(args%file1, args%square_freq, args%square_len, env = args%env)
+				call write_wav_square(args%file1, args%freq, args%len_, env = args%env)
 			end if
 
 		else
-			call write_wav_square(args%file1, args%square_freq, args%square_len)
+			call write_wav_square(args%file1, args%freq, args%len_)
 		end if
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
 	if (args%noise) then
-		call write_wav_noise(args%file1, args%noise_len)
+		! TODO
+		call write_wav_noise(args%file1, args%len_)
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 

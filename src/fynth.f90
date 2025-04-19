@@ -29,7 +29,7 @@ module fynth
 	! - play notes with different wave forms envelopes (ADSR), filtering (e.g.
 	!   low pass), etc.
 	!   * wave forms:
-	!     + sine and square wave done
+	!     + square, triangle, sine wave done
 	!     + tbd:  triangle, sawtooth
 	!     + pulse width option for square.  default 0.5, range (0, 1)
 	!   * filters:
@@ -49,6 +49,25 @@ module fynth
 	character(len = *), parameter :: program_name = "fynth"
 
 	integer, parameter :: AMP_EXP = 3
+
+	type waveform_t
+		integer :: i
+	end type waveform_t
+
+	type(waveform_t), parameter :: &
+		WAVEFORM_TRIANGLE = waveform_t(4), &
+		WAVEFORM_NOISE    = waveform_t(3), &
+		WAVEFORM_SINE     = waveform_t(2), &
+		WAVEFORM_SQUARE   = waveform_t(1)
+
+	abstract interface
+		! This is a function interface for passing callbacks
+		function fn_f64_to_f64(x) result(fx)
+			double precision, intent(in) :: x
+			double precision :: fx
+		end function
+	end interface
+
 
 contains
 
@@ -130,7 +149,7 @@ end subroutine get_filter_coefs
 
 !===============================================================================
 
-subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff)
+subroutine write_wav_square_two_pole(filename, waveform_fn, freq, len_, env, cutoff)
 
 	! TODO:
 	!   - add more args:
@@ -143,6 +162,7 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff)
 	!     directly writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
+	procedure(fn_f64_to_f64) :: waveform_fn
 	double precision, intent(in) :: freq, len_
 	type(env_t), intent(in), optional :: env
 	double precision, intent(in) :: cutoff
@@ -211,7 +231,8 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff)
 		x0 = x
 
 		! Filter input signal is `x`
-		x = ampl * square_wave(f * t)
+		!x = ampl * square_wave(f * t)
+		x = ampl * waveform_fn(f * t)
 
 		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 
@@ -265,8 +286,9 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff)
 			x00 = x0
 			x0 = x
 
-			x = ampl * square_wave(f * t)
-			!call wave%push(ampl * square_wave(f * t))
+			!x = ampl * square_wave(f * t)
+			x = ampl * waveform_fn(f * t)
+
 			y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
 			call wave%push(y)
 
@@ -375,11 +397,32 @@ end subroutine write_wav_square
 
 !===============================================================================
 
-double precision function square_wave(t)
+double precision function square_wave(t) result(x)
 	! Unit amplitude square wave with unit period
 	double precision, intent(in) :: t
-	square_wave = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
+	x = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
 end function square_wave
+
+double precision function triangle_wave(t) result(x)
+	double precision, intent(in) :: t
+	x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0
+end function triangle_wave
+
+double precision function sine_wave(t) result(x)
+	double precision, intent(in) :: t
+	x = sin(2 * PI * t)
+end function sine_wave
+
+double precision function noise_wave(t) result(x)
+	double precision, intent(in) :: t
+	! TODO:  seed rng once at beginning
+
+	!associate(t => t) ; end associate
+	if (.false.) print *, t  ! quiet unused dummy arg warning
+
+	call random_number(x)  ! in [0, 1)
+	x = 2.d0 * x - 1.d0
+end function noise_wave
 
 !===============================================================================
 

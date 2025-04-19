@@ -15,28 +15,31 @@ module fynth__app
 		! arguments
 		character(len = :), allocatable :: file1, file2
 
-		double precision :: sine_freq, sine_len
-		double precision :: square_freq, square_len
-		double precision :: noise_len
+		double precision :: freq, len_
+
 		double precision :: low_pass_freq
 		double precision :: two_pole_cutoff !, two_pole_resonance
 		! TODO: add help for filter params
 
 		logical :: &
-			has_file1 = .false., &
-			has_file2 = .false., &
-			sine      = .false., &
-			square    = .false., &
-			adsr      = .false., &
-			two_pole  = .false., &
-			noise     = .false., &
-			low_pass  = .false., &
-			fft       = .false., &
-			licc      = .false., &
-			version   = .false., &
-			help      = .false.
+			has_file1    = .false., &
+			has_file2    = .false., &
+			sine         = .false., &
+			square       = .false., &
+			triangle     = .false., &
+			noise        = .false., &
+			has_waveform = .false., &
+			adsr         = .false., &
+			two_pole     = .false., &
+			low_pass     = .false., &
+			fft          = .false., &
+			licc         = .false., &
+			version      = .false., &
+			help         = .false.
 
 		type(env_t) :: env
+
+		type(waveform_t) :: waveform
 
 	end type args_t
 
@@ -151,9 +154,10 @@ function read_args() result(args)
 
 		case ("--sin", "--sine")
 			args%sine = .true.
+			args%has_waveform = .true.
 
 			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%sine_freq
+			read(str, *, iostat = io) args%freq
 			if (io /= 0) then
 				write(*,*) ERROR_STR//argv//" frequency """ &
 					//str//""" is not a valid number"
@@ -161,7 +165,7 @@ function read_args() result(args)
 			end if
 
 			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%sine_len
+			read(str, *, iostat = io) args%len_
 			if (io /= 0) then
 				write(*,*) ERROR_STR//argv//" length """ &
 					//str//""" is not a valid number"
@@ -170,9 +174,10 @@ function read_args() result(args)
 
 		case ("--squ", "--square")
 			args%square = .true.
+			args%has_waveform = .true.
 
 			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%square_freq
+			read(str, *, iostat = io) args%freq
 			if (io /= 0) then
 				write(*,*) ERROR_STR//argv//" frequency """ &
 					//str//""" is not a valid number"
@@ -180,27 +185,26 @@ function read_args() result(args)
 			end if
 
 			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%square_len
+			read(str, *, iostat = io) args%len_
 			if (io /= 0) then
 				write(*,*) ERROR_STR//argv//" length """ &
 					//str//""" is not a valid number"
 				error = .true.
 			end if
+
+		case ("--tri", "--triangle")
+			args%triangle = .true.
+			args%has_waveform = .true.
+
+			args%freq = get_next_double_arg(i, argv, "frequency", error)
+			args%len_ = get_next_double_arg(i, argv, "length", error)
 
 		case ("--noi", "--noise")
 			args%noise = .true.
+			args%has_waveform = .true.
 
-			! Noise has a length but no frequency
-			!
-			! TODO: make a helper fn to get a real (double) arg, including the
-			! error message
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%noise_len
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" length """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
+			args%freq = get_next_double_arg(i, argv, "frequency", error)
+			args%len_ = get_next_double_arg(i, argv, "length", error)
 
 		case ("--low", "--low-pass")
 			args%low_pass = .true.
@@ -266,6 +270,11 @@ function read_args() result(args)
 		error = .true.
 	end if
 
+	if (args%triangle .and. .not. args%has_file1) then
+		write(*,*) ERROR_STR//"output file arg not defined for --triangle"
+		error = .true.
+	end if
+
 	if (args%noise .and. .not. args%has_file1) then
 		write(*,*) ERROR_STR//"output file arg not defined for --noise"
 		error = .true.
@@ -292,6 +301,21 @@ function read_args() result(args)
 	if (args%low_pass .and. .not. args%has_file2) then
 		write(*,*) ERROR_STR//"output file arg not defined for --low-pass"
 		error = .true.
+	end if
+
+	if (count([args%square, args%triangle, args%sine, args%noise]) > 1) then
+		! TODO: allow adding noise to any other waveform
+		write(*,*) ERROR_STR//"cannot combine multiple waveforms"
+		error = .true.
+	end if
+	if (args%square) then
+		args%waveform = WAVEFORM_SQUARE
+	else if (args%triangle) then
+		args%waveform = WAVEFORM_TRIANGLE
+	else if (args%sine) then
+		args%waveform = WAVEFORM_SINE
+	else if (args%noise) then
+		args%waveform = WAVEFORM_NOISE
 	end if
 
 	! TODO: warn if file2 is given with args that don't use it?
@@ -324,9 +348,9 @@ function read_args() result(args)
 		!write(*,*) "    fynth <in.wav> <out.csv> [--fft]"
 		!write(*,*) "    fynth <in.wav> <out.wav> (--low-pass|--low) <frequency>"
 
-		write(*,*) "    fynth <out.wav> (--sine|--square) <frequency> <length>"
+		write(*,*) "    fynth <out.wav> (--square|--triangle|--sine|--noise) <frequency> <length>"
 		write(*,*) "        [--adsr <attack> <decay> <sustain> <release>]"
-		write(*,*) "    fynth <out.wav> --noise <length>"
+		!write(*,*) "    fynth <out.wav> --noise <length>"
 		write(*,*) "    fynth <out.wav> --licc"
 		write(*,*)
 		write(*,*) fg_bold//"Options:"//color_reset
