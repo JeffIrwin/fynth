@@ -11,6 +11,7 @@ program main
 
 	type(args_t)  :: args
 	type(audio_t) :: audio
+	type(env_t)   :: env
 
 	!procedure(fn_f64_to_f64) :: waveform_fn
 	procedure(fn_f64_to_f64), pointer :: waveform_fn
@@ -39,24 +40,26 @@ program main
 		end select
 	end if
 
+	if (args%has_env) then
+		env = args%env
+	else
+		! Set default null ADSR envelope
+		env = env_t(a = 0, d = 0, s = 1, r = 0)
+	end if
+
 	if (args%has_waveform) then
 
-		if (args%adsr) then
-			! TODO: cleanup this branching by setting default null env and filters
+		! TODO: cleanup this branching by setting default null env and filters
 
-			if (args%two_pole) then
-				call write_waveform_two_pole &
-				( &
-					args%file1, waveform_fn, args%freq, args%len_, &
-					env = args%env, &
-					cutoff = args%two_pole_cutoff &
-				)
-			else
-				call write_waveform(args%file1, waveform_fn, args%freq, args%len_, env = args%env)
-			end if
-
+		if (args%two_pole) then
+			call write_waveform_two_pole &
+			( &
+				args%file1, waveform_fn, args%freq, args%len_, &
+				env = env, &
+				cutoff = args%two_pole_cutoff &
+			)
 		else
-			call write_waveform(args%file1, waveform_fn, args%freq, args%len_)
+			call write_waveform(args%file1, waveform_fn, args%freq, args%len_, env = env)
 		end if
 
 		call fynth_exit(EXIT_SUCCESS)

@@ -80,7 +80,8 @@ subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 	integer, intent(in) :: sample_rate
 	double precision, intent(out) :: a1, a2, b0, b1, b2
 
-	double precision :: cc, dd, n0, n1, n2, d0, d1, d2, q, theta, k, w, alpha
+	!double precision :: cc, dd, n0, n1, n2, d0, d1, d2, q, qq, theta, k, w, alpha
+	double precision :: cc, dd, q, qq
 
 	if (cutoff * 2 > sample_rate) then
 		! Nyquist fail.  Apply no filter
@@ -92,13 +93,27 @@ subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 		return
 	end if
 
+	q = 2.d0
+	q = 1.d0 / sqrt(2.d0) ! same as no resonance
+
+	qq = sqrt(2.d0) * q
 	cc = tan(2.d0 * PI * cutoff / (2.d0 * sample_rate))
 
 	!****************
 	! Source:  https://stackoverflow.com/a/52764064/4347028
-	dd =  1.d0 + sqrt(2.d0) * cc + cc ** 2
+
+	!! Without resonance, as in source
+	!dd =  1.d0 + sqrt(2.d0) * cc + cc ** 2
+	!a1 = 2.d0 * (cc ** 2.d0 - 1.d0) / dd
+	!a2 = (1.d0 - sqrt(2.d0) * cc + cc ** 2) / dd
+	!b0 = cc ** 2 / dd
+	!b1 = 2.d0 * b0
+	!b2 = b0
+
+	! With resonance
+	dd =  1.d0 + sqrt(2.d0) * cc / qq + cc ** 2
 	a1 = 2.d0 * (cc ** 2.d0 - 1.d0) / dd
-	a2 = (1.d0 - sqrt(2.d0) * cc + cc ** 2) / dd
+	a2 = (1.d0 - sqrt(2.d0) * cc / qq + cc ** 2) / dd
 	b0 = cc ** 2 / dd
 	b1 = 2.d0 * b0
 	b2 = b0
@@ -122,10 +137,9 @@ subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 	!a2 = d2 / d0
 
 	!!****************
-	!! Second-order filter with resonance q:
+	!! Second-order filter with resonance `q`:
 	!!
 	!!     https://www.st.com/resource/en/application_note/an2874-bqd-filter-design-equations-stmicroelectronics.pdf
-	!q = 2.d0
 	!theta = 2.d0 * PI * cutoff / sample_rate
 	!k = tan(theta / 2.d0)  ! aka `cc` above
 	!w = k ** 2

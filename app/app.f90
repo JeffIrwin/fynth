@@ -30,7 +30,7 @@ module fynth__app
 			sawtooth     = .false., &
 			noise        = .false., &
 			has_waveform = .false., &
-			adsr         = .false., &
+			has_env      = .false., &
 			two_pole     = .false., &
 			low_pass     = .false., &
 			fft          = .false., &
@@ -226,7 +226,7 @@ function read_args() result(args)
 			end if
 
 		case ("--adsr")
-			args%adsr = .true.
+			args%has_env = .true.
 
 			! TODO: use get_next_double_arg() for other args
 			args%env%a = get_next_double_arg(i, argv, "attack" , error)
