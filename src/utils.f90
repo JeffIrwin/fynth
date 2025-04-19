@@ -225,7 +225,8 @@ end function get_file_extension
 double precision function lerp(a, b, x)
 	double precision, intent(in) :: a, b, x
 
-	lerp = a + (b - a) * x
+	!lerp = a + (b - a) * x
+	lerp = a + (b - a) * max(0.d0, min(1.d0, x))
 
 end function lerp
 

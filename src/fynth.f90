@@ -99,6 +99,41 @@ end subroutine write_wav_sine
 
 !===============================================================================
 
+subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+
+	double precision, intent(in) :: cutoff
+	integer, intent(in) :: sample_rate
+	double precision, intent(out) :: a1, a2, b0, b1, b2
+
+	double precision :: cc, dd
+
+	if (cutoff * 2 > sample_rate) then
+		! Nyquist fail.  Apply no filter
+		b0 = 1.d0
+		b1 = 0.d0
+		b2 = 0.d0
+		a1 = 0.d0
+		a2 = 0.d0
+		return
+	end if
+
+	! Source:  https://stackoverflow.com/a/52764064/4347028
+	cc = tan(2.d0 * PI * cutoff / (2.d0 * sample_rate))
+	dd = 1.d0 + sqrt(2.d0)*cc + cc**2
+	a1 = 2.d0*(cc**2.d0-1.d0)/dd
+	a2 = (1.d0-sqrt(2.d0)*cc+cc**2)/dd
+	b0 = cc**2/dd
+	b1 = 2.d0*b0
+	b2 = b0
+
+	!print *, "b012 = ", b0, b1, b2
+	!print *, "a12 = ", a1, a2
+	!print *, "sum = ", b0 + b1 + b2 + a1 + a2
+
+end subroutine get_filter_coefs
+
+!===============================================================================
+
 subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonance)
 
 	use fynth__notes, only:  c2_note => c2
@@ -122,7 +157,7 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
 	double precision :: f, t, tl, ampi, ampl, a, ad, b0, b1, b2, a1, a2, x, y, y0, &
-		y00, yout, x0, x00, cc, dd
+		y00, yout, x0, x00, cc, dd, cutoffl
 
 	integer :: it, nads, nr
 	integer(kind = 4) :: sample_rate
@@ -145,19 +180,6 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 	wave = new_vec_f64()
 
 	f = freq
-
-	! Source:  https://stackoverflow.com/a/52764064/4347028
-	cc = tan(2.d0 * PI * cutoff / (2.d0 * sample_rate))
-	dd = 1.d0 + sqrt(2.d0)*cc + cc**2
-	a1 = 2.d0*(cc**2.d0-1.d0)/dd
-	a2 = (1.d0-sqrt(2.d0)*cc+cc**2)/dd
-	b0 = cc**2/dd
-	b1 = 2.d0*b0
-	b2 = b0
-
-	print *, "b012 = ", b0, b1, b2
-	print *, "a12 = ", a1, a2
-	print *, "sum = ", b0 + b1 + b2 + a1 + a2
 
 	x = 0.d0
 	x0 = 0.d0
@@ -197,13 +219,23 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 		! Filter input signal is `x`
 		x = ampl * square_wave(f * t)
 
+		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+
+		!! TODO: add env params for filter sweep
+		!cutoffl = lerp(40000.d0, f, t/len_)
+
+		! Linear reduction in filter cutoff octave
+		cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
+
+		!print *, "cutoffl = ", cutoffl
+		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
+
 		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
 
 		! Clamp because filter overshoots would otherwise squash down the volume
 		! of the rest of the track?
-		!y = max(-1.d0, min(1.d0, y))
-		!yout = max(-1.d0, min(1.d0, y))
 		yout = y
+		yout = max(-1.d0, min(1.d0, y))  ! TODO?
 
 		! TODO: probably don't want to use `push()` here due to release.
 		! Release of one note can overlap with start of next note.  Instead of
@@ -217,6 +249,10 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 
 	if (present(env)) then
 		! Release
+
+		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+		call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
+
 		nr = int(env%r * sample_rate)
 		do it = 1, nr
 			! Amlitude is based on local time `tl` while waveform is based on `t`
