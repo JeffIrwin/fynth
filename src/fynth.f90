@@ -50,10 +50,10 @@ module fynth
 
 	integer, parameter :: AMP_EXP = 3
 
+	! Enum type
 	type waveform_t
 		integer :: i
 	end type waveform_t
-
 	type(waveform_t), parameter :: &
 		WAVEFORM_SAWTOOTH = waveform_t(5), &
 		WAVEFORM_TRIANGLE = waveform_t(4), &
