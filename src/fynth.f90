@@ -80,7 +80,7 @@ subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 	integer, intent(in) :: sample_rate
 	double precision, intent(out) :: a1, a2, b0, b1, b2
 
-	double precision :: cc, dd
+	double precision :: cc, dd, n0, n1, n2, d0, d1, d2, q, theta, k, w, alpha
 
 	if (cutoff * 2 > sample_rate) then
 		! Nyquist fail.  Apply no filter
@@ -92,18 +92,60 @@ subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
 		return
 	end if
 
-	! Source:  https://stackoverflow.com/a/52764064/4347028
 	cc = tan(2.d0 * PI * cutoff / (2.d0 * sample_rate))
-	dd = 1.d0 + sqrt(2.d0)*cc + cc**2
-	a1 = 2.d0*(cc**2.d0-1.d0)/dd
-	a2 = (1.d0-sqrt(2.d0)*cc+cc**2)/dd
-	b0 = cc**2/dd
-	b1 = 2.d0*b0
+
+	!****************
+	! Source:  https://stackoverflow.com/a/52764064/4347028
+	dd =  1.d0 + sqrt(2.d0) * cc + cc ** 2
+	a1 = 2.d0 * (cc ** 2.d0 - 1.d0) / dd
+	a2 = (1.d0 - sqrt(2.d0) * cc + cc ** 2) / dd
+	b0 = cc ** 2 / dd
+	b1 = 2.d0 * b0
 	b2 = b0
+
+	!!****************
+	!! Source:  https://apicsllc.com/apics/Sr_3/Sr_3.htm
+	!!
+	!! Equivalent to stackoverflow source
+
+	!n0 = 1.d0
+	!n1 = 2.d0
+	!n2 = 1.d0
+	!d0 = cc ** 2 + sqrt(2.d0) * cc + 1.d0
+	!d1 = 2.d0 * (cc ** 2 - 1.d0)  ! opposite sign as reference
+	!d2 = cc ** 2 - sqrt(2.d0) * cc + 1.d0
+
+	!b0 = cc ** 2 * n0 / d0
+	!b1 = cc ** 2 * n1 / d0
+	!b2 = cc ** 2 * n2 / d0
+	!a1 = d1 / d0
+	!a2 = d2 / d0
+
+	!!****************
+	!! Second-order filter with resonance q:
+	!!
+	!!     https://www.st.com/resource/en/application_note/an2874-bqd-filter-design-equations-stmicroelectronics.pdf
+	!q = 2.d0
+	!theta = 2.d0 * PI * cutoff / sample_rate
+	!k = tan(theta / 2.d0)  ! aka `cc` above
+	!w = k ** 2
+	!alpha = 1.d0 + k/q + w
+
+	!a1 = 2.d0 * (w - 1.d0) / alpha
+	!a2 = (1.d0 - k/q + w) / alpha
+	!b0 = w / alpha
+	!b1 = 2 * w / alpha
+	!b2 = b0
+
+	!****************
+
+	!a1 = -a1  ! wrong
+	!a2 = -a2
 
 	!print *, "b012 = ", b0, b1, b2
 	!print *, "a12 = ", a1, a2
 	!print *, "sum = ", b0 + b1 + b2 + a1 + a2
+	!stop
 
 end subroutine get_filter_coefs
 
@@ -117,8 +159,8 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
 	!       is a spectrum from staccato to legato
 	!     * start time
-	!   - rename fn?  Maybe generalize to play onto an audio track instead of
-	!     directly writing to file.  That could be done separately
+	!   - maybe generalize to play onto an audio track instead of directly
+	!     writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
 	procedure(fn_f64_to_f64) :: waveform_fn
@@ -172,7 +214,6 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 			if (t < a) then
 				ampi = lerp(0.d0, amp, (t / a))
 			else if (t < ad) then
-				!stop
 				ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
 			else
 				ampi = env%s * amp
@@ -190,7 +231,6 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 		x0 = x
 
 		! Filter input signal is `x`
-		!x = ampl * square_wave(f * t)
 		x = ampl * waveform_fn(f * t)
 
 		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
@@ -207,12 +247,13 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 		!print *, "cutoffl = ", cutoffl
 		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
 
+		! Note the negative a* terms
 		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
 
 		! Clamp because filter overshoots would otherwise squash down the volume
 		! of the rest of the track?
 		yout = y
-		yout = max(-1.d0, min(1.d0, y))  ! TODO?
+		!yout = max(-1.d0, min(1.d0, y))  ! TODO?
 
 		! TODO: probably don't want to use `push()` here due to release.
 		! Release of one note can overlap with start of next note.  Instead of
@@ -245,7 +286,6 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 			x00 = x0
 			x0 = x
 
-			!x = ampl * square_wave(f * t)
 			x = ampl * waveform_fn(f * t)
 
 			y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
@@ -270,8 +310,8 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env)
 	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
 	!       is a spectrum from staccato to legato
 	!     * start time
-	!   - rename fn?  Maybe generalize to play onto an audio track instead of
-	!     directly writing to file.  That could be done separately
+	!   - maybe generalize to play onto an audio track instead of directly
+	!     writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
 	procedure(fn_f64_to_f64) :: waveform_fn
@@ -375,7 +415,6 @@ end function triangle_wave
 
 double precision function sawtooth_wave(t) result(x)
 	double precision, intent(in) :: t
-	!x = t - floor(t)
 	x = 2.d0 * (t - floor(t + 0.5d0))
 end function sawtooth_wave
 
