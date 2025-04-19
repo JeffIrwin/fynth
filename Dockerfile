@@ -48,13 +48,25 @@ RUN fynth saw.wav --saw    300 1
 RUN fynth noi.wav --noise  300 1
 
 # ADSR envelopes
-RUN fynth squ.wav --square 300 1 --adsr 0.3 0.2 0.5 1.0
+RUN fynth squ-adsr.wav --square 300 1 --adsr 0.3 0.2 0.5 1.0
+RUN fynth tri-adsr.wav --tri    300 1 --adsr 0.3 0.2 0.5 1.0
+RUN fynth saw-adsr.wav --saw    300 1 --adsr 0.3 0.2 0.5 1.0
+
+# Two-pole low pass filtering
+RUN fynth squ-filt.wav --square 300 1 --two-pole 1500
+RUN fynth tri-filt.wav --tri    300 1 --two-pole 1500
+RUN fynth saw-filt.wav --saw    300 1 --two-pole 1500
+
+# Combine filter with amplitude envelope
+RUN fynth squ-env-filt.wav --squ 300 1 --adsr 0.3 0.2 0.5 1 --2pole 1500
+RUN fynth tri-env-filt.wav --tri 300 1 --adsr 0.3 0.2 0.5 1 --2pole 1500
+RUN fynth saw-env-filt.wav --saw 300 1 --adsr 0.3 0.2 0.5 1 --2pole 1500
 
 RUN fynth sin.wav sin-copy.wav  # echo input to output
 RUN fynth sin.wav sin.csv       # time-domain conversion
 RUN fynth sin.wav sin.csv --fft # freq-domain conversion
 
-RUN fynth squ.wav squ-low.wav --low-pass 1600  # filter
+RUN fynth squ.wav squ-low.wav --low-pass 1600  # FFT filter
 
 #===========================================================
 
@@ -65,4 +77,6 @@ RUN ./scripts/run-two-pole.sh
 
 #RUN fpm test --profile debug
 #RUN fpm test --profile release
+
+RUN sha256sum *.wav build/*.wav
 
