@@ -29,19 +29,25 @@ program main
 		select case (args%waveform%i)
 		case (WAVEFORM_SQUARE%i)
 			waveform_fn => square_wave
+
 		case (WAVEFORM_TRIANGLE%i)
 			waveform_fn => triangle_wave
+
 		case (WAVEFORM_SAWTOOTH%i)
 			waveform_fn => sawtooth_wave
+
 		case (WAVEFORM_SINE%i)
 			waveform_fn => sine_wave
+
 		case (WAVEFORM_NOISE%i)
 			waveform_fn => noise_wave
+
 		case default
 			call panic("bad waveform enum")
 		end select
 	end if
 
+	! TODO: set defaults in read_args()
 	if (args%has_env) then
 		env = args%env
 	else
@@ -58,14 +64,12 @@ program main
 
 	if (args%has_waveform) then
 
-		! TODO: cleanup this branching by setting default null env and filters
-		! TODO: make fn args not optional afterwards
-
-		call write_waveform_two_pole &
+		call write_waveform &
 		( &
-			args%file1, waveform_fn, args%freq, args%len_, &
-			env = env, &
-			cutoff = cutoff &
+			args%file1, &
+			waveform_fn, args%freq, args%len_, &
+			env, &
+			cutoff &
 		)
 
 		call fynth_exit(EXIT_SUCCESS)

@@ -165,7 +165,7 @@ end subroutine get_filter_coefs
 
 !===============================================================================
 
-subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutoff)
+subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	! TODO:
 	!   - add more args:
@@ -174,12 +174,12 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 	!       is a spectrum from staccato to legato
 	!     * start time
 	!   - maybe generalize to play onto an audio track instead of directly
-	!     writing to file.  That could be done separately
+	!     writing to file.  that could be done separately
 
 	character(len = *), intent(in) :: filename
 	procedure(fn_f64_to_f64) :: waveform_fn
 	double precision, intent(in) :: freq, len_
-	type(env_t), intent(in), optional :: env
+	type(env_t), intent(in) :: env
 	double precision, intent(in) :: cutoff
 
 	!********
@@ -197,14 +197,9 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 
 	sample_rate = 44100
 
-	if (present(env)) then
-		! cumsum of envelope segments
-		a = env%a
-		ad = a + env%d
-	else
-		a  = 0
-		ad = 0
-	end if
+	! cumsum of envelope segments
+	a = env%a
+	ad = a + env%d
 
 	wave = new_vec_f64()
 
@@ -223,17 +218,13 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
-		if (present(env)) then
-			! TODO: unroll loop or optimize branching?
-			if (t < a) then
-				ampi = lerp(0.d0, amp, (t / a))
-			else if (t < ad) then
-				ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
-			else
-				ampi = env%s * amp
-			end if
+		! TODO: unroll loop or optimize branching?
+		if (t < a) then
+			ampi = lerp(0.d0, amp, (t / a))
+		else if (t < ad) then
+			ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
 		else
-			ampl = 1.d0
+			ampi = env%s * amp
 		end if
 		ampl = ampi ** AMP_EXP
 
@@ -279,134 +270,32 @@ subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutof
 
 	end do
 
-	if (present(env)) then
-		! Release
+	! Release
 
-		call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-		!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
+	call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+	!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
 
-		nr = int(env%r * sample_rate)
-		do it = 1, nr
-			! Amlitude is based on local time `tl` while waveform is based on `t`
-			t = 1.d0 * (it + nads) / sample_rate
-			tl = 1.d0 * it / sample_rate
-			ampi = lerp(env%s, 0.d0, tl / env%r)
-			ampl = ampi ** AMP_EXP
-
-			! Update
-			y00 = y0
-			y0 = y
-
-			x00 = x0
-			x0 = x
-
-			x = ampl * waveform_fn(f * t)
-
-			y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
-			call wave%push(y)
-
-		end do
-	end if
-
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-end subroutine write_waveform_two_pole
-
-!===============================================================================
-
-subroutine write_waveform(filename, waveform_fn, freq, len_, env)
-
-	! TODO:
-	!   - add more args:
-	!     * amp :  max amplitude/volume
-	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
-	!       is a spectrum from staccato to legato
-	!     * start time
-	!   - maybe generalize to play onto an audio track instead of directly
-	!     writing to file.  That could be done separately
-
-	character(len = *), intent(in) :: filename
-	procedure(fn_f64_to_f64) :: waveform_fn
-	double precision, intent(in) :: freq, len_
-
-	type(env_t), intent(in), optional :: env
-
-	!********
-
-	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, tl, ampi, ampl, a, ad
-
-	integer :: it, nads, nr
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
-
-	!********
-
-	!print *, "starting write_waveform()"
-	!print *, "freq = ", freq
-	!print *, "len_ = ", len_
-	!print *, "present(env) = ", present(env)
-
-	sample_rate = 44100
-
-	if (present(env)) then
-		! cumsum of envelope segments
-		a = env%a
-		ad = a + env%d
-	else
-		a  = 0
-		ad = 0
-	end if
-
-	wave = new_vec_f64()
-
-	f = freq
-
-	! ADS
-	nads = int(len_ * sample_rate)
-	do it = 1, nads
-		t = 1.d0 * it / sample_rate
-
-		if (present(env)) then
-			! TODO: unroll loop or optimize branching?
-			if (t < a) then
-				ampi = lerp(0.d0, amp, (t / a))
-			else if (t < ad) then
-				ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
-			else
-				ampi = env%s * amp
-			end if
-		else
-			ampi = 1.d0
-		end if
+	nr = int(env%r * sample_rate)
+	do it = 1, nr
+		! Amlitude is based on local time `tl` while waveform is based on `t`
+		t = 1.d0 * (it + nads) / sample_rate
+		tl = 1.d0 * it / sample_rate
+		ampi = lerp(env%s, 0.d0, tl / env%r)
 		ampl = ampi ** AMP_EXP
-		!print *, "ampi = ", ampi
 
-		! TODO: probably don't want to use `push()` here due to release.
-		! Release of one note can overlap with start of next note.  Instead of
-		! pushing, resize once per note.  Then add sample to previous value
-		! instead of (re) setting.  Fix release segment below too
-		call wave%push(ampl * waveform_fn(f * t))
+		! Update
+		y00 = y0
+		y0 = y
+
+		x00 = x0
+		x0 = x
+
+		x = ampl * waveform_fn(f * t)
+
+		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
+		call wave%push(y)
 
 	end do
-
-	if (present(env)) then
-		! Release
-		nr = int(env%r * sample_rate)
-		do it = 1, nr
-			! Amlitude is based on local time `tl` while waveform is based on `t`
-			t = 1.d0 * (it + nads) / sample_rate
-			tl = 1.d0 * it / sample_rate
-			ampi = lerp(env%s, 0.d0, tl / env%r)
-			ampl = ampi ** AMP_EXP
-
-			call wave%push(ampl * waveform_fn(f * t))
-
-		end do
-	end if
 
 	call wave%trim()
 
