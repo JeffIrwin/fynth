@@ -27,7 +27,19 @@ program main
 	if (args%square) then
 
 		if (args%adsr) then
-			call write_wav_square(args%file1, args%square_freq, args%square_len, env = args%env)
+
+			if (args%two_pole) then
+				call write_wav_square_two_pole &
+				( &
+					args%file1, args%square_freq, args%square_len, &
+					env = args%env, &
+					cutoff = args%two_pole_cutoff, &
+					resonance = args%two_pole_resonance &
+				)
+			else
+				call write_wav_square(args%file1, args%square_freq, args%square_len, env = args%env)
+			end if
+
 		else
 			call write_wav_square(args%file1, args%square_freq, args%square_len)
 		end if

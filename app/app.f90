@@ -19,6 +19,7 @@ module fynth__app
 		double precision :: square_freq, square_len
 		double precision :: noise_len
 		double precision :: low_pass_freq
+		double precision :: two_pole_cutoff, two_pole_resonance
 
 		logical :: &
 			has_file1 = .false., &
@@ -26,6 +27,7 @@ module fynth__app
 			sine      = .false., &
 			square    = .false., &
 			adsr      = .false., &
+			two_pole  = .false., &
 			noise     = .false., &
 			low_pass  = .false., &
 			fft       = .false., &
@@ -219,6 +221,12 @@ function read_args() result(args)
 			args%env%s = get_next_double_arg(i, argv, "sustain", error)
 			args%env%r = get_next_double_arg(i, argv, "release", error)
 			!print *, "env = ", args%env
+
+		case ("--2pole", "--two-pole")
+			args%two_pole = .true.
+
+			args%two_pole_cutoff    = get_next_double_arg(i, argv, "cutoff"   , error)
+			args%two_pole_resonance = get_next_double_arg(i, argv, "resonance", error)
 
 		case default
 

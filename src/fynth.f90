@@ -99,14 +99,218 @@ end subroutine write_wav_sine
 
 !===============================================================================
 
+subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonance)
+
+	use fynth__notes, only:  c2_note => c2
+
+	! TODO:
+	!   - add more args:
+	!     * amp :  max amplitude/volume
+	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
+	!       is a spectrum from staccato to legato
+	!     * start time
+	!   - apply any changes from here also to write_wav_sine()
+	!   - rename fn?  Maybe generalize to play onto an audio track instead of
+	!     directly writing to file.  That could be done separately
+
+	character(len = *), intent(in) :: filename
+	double precision, intent(in) :: freq, len_
+	type(env_t), intent(in), optional :: env
+	double precision, intent(in) :: cutoff, resonance
+
+	!********
+
+	double precision, parameter :: amp = 1.d0  ! could be an arg later
+	double precision :: f, t, tl, ampi, ampl, a, ad, b0, b1, b2, a0, a1, a2, x, y, y0, &
+		y00, yout, c0, c1, c2, d0, d1, d2, x0, x00, c, ita, ff, q, cc, dd
+
+	integer :: it, nads, nr
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	sample_rate = 44100
+
+	if (present(env)) then
+		! cumsum of envelope segments
+		a = env%a
+		ad = a + env%d
+	else
+		a  = 0
+		ad = 0
+	end if
+
+	wave = new_vec_f64()
+
+	f = freq
+
+	!! TODO: i don't think `theta_c` is `cutoff`.  Might need to research other
+	!! digital filters
+	!b0 = 1.0  ! ?
+	!a1 = -2.d0 * resonance * cos(cutoff)
+	!a2 = resonance ** 2
+
+	!! Two-pole difference equation:
+	!!
+	!!     y(n) = b0 * x(n) - a1 * y(n-1) - a2 * y(n-2)
+
+	!  https://apicsllc.com/apics/Sr_3/Sr_3.htm.  i use c0, c1, ... instead of n0, n1
+	c0 = 1.d0
+	c1 = 2.d0
+	c2 = 1.d0
+
+	!c = cotan(cutoff * sample_rate / 2.d0)
+	c = cotan(cutoff / (2.d0 * sample_rate))
+	!c = cutoff / (2.d0 * sample_rate)
+
+	d0 = c ** 2 + sqrt(2.d0) * c + 1.d0
+	d1 = -2.d0 * (c ** 2 - 1.d0)
+	d2 = c ** 2 - sqrt(2.d0) * c + 1.d0
+
+	! y(k) = n0/d0 * x(k) + n1/d0 * x(k-1) + ... - d1/d0 * y(k-1) - d2/d0 * y(k-2) - ...
+
+	! y(k) = b0 * x(k) + b1 * x(k-1) + ... - a1 * y(k-1) - a2 * y(k-2) - ...
+
+	b0 = c0 / d0
+	b1 = c1 / d0
+	b2 = c2 / d0
+	a1 = d1 / d0
+	a2 = d2 / d0
+
+	! Start from scratch
+
+	!const double ita =1.0/ tan(M_PI*ff);
+	!const double q=sqrt(2.0);
+	!b0 = 1.0 / (1.0 + q*ita + ita*ita);
+	!b1= 2*b0;
+	!b2= b0;
+	!a1 = 2.0 * (ita*ita - 1.0) * b0;
+	!a2 = -(1.0 - q*ita + ita*ita) * b0;
+
+	ff = cutoff / sample_rate
+	ita = 1.d0 / tan(PI * ff)
+	q = sqrt(2.d0)
+	b0 = 1.0 / (1.0 + q*ita + ita*ita)
+	b1= 2*b0
+	b2= b0
+	a1 = 2.0 * (ita*ita - 1.0) * b0
+	a2 = -(1.0 - q*ita + ita*ita) * b0
+
+	! Source:  https://stackoverflow.com/a/52764064/4347028
+	cc = tan(2.d0 * PI * cutoff / (2.d0 * sample_rate))
+	dd = 1.d0 + sqrt(2.d0)*cc + cc**2
+	a0 = 1.d0
+	a1 = 2.d0*(cc**2.d0-1.d0)/dd
+	a2 = (1.d0-sqrt(2.d0)*cc+cc**2)/dd
+	b0 = cc**2/dd
+	b1 = 2.d0*b0
+	b2 = b0
+
+	!print *, "ff = ", ff
+	!print *, "ita = ", ita
+	print *, "b012 = ", b0, b1, b2
+	print *, "a12 = ", a1, a2
+	print *, "sum = ", b0 + b1 + b2 + a1 + a2
+
+	x = 0.d0
+	x0 = 0.d0
+	x00 = 0.d0
+
+	y = 0.d0
+	y0 = 0.d0
+	y00 = 0.d0
+
+	! ADS
+	nads = int(len_ * sample_rate)
+	do it = 1, nads
+		t = 1.d0 * it / sample_rate
+
+		if (present(env)) then
+			! TODO: unroll loop or optimize branching?
+			if (t < a) then
+				ampi = lerp(0.d0, amp, (t / a))
+			else if (t < ad) then
+				!stop
+				ampi = lerp(amp, env%s * amp, (t - a) / (ad - a))
+			else
+				ampi = env%s * amp
+			end if
+		else
+			ampl = 1.d0
+		end if
+		ampl = ampi ** AMP_EXP
+
+		! Update
+		y00 = y0
+		y0 = y
+
+		x00 = x0
+		x0 = x
+
+		! Filter input signal is `x`
+		x = ampl * square_wave(f * t)
+
+		!! Filter output signal is `y`
+		!!
+		!!     y(n) = b0 * x(n) - a1 * y(n-1) - a2 * y(n-2)
+		!y = b0 * x - a1 * y0 - a2 * y00
+
+		! y(k) = b0 * x(k) + b1 * x(k-1) + ... - a1 * y(k-1) - a2 * y(k-2) - ...
+		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
+
+		! Clamp because filter overshoots would otherwise squash down the volume
+		! of the rest of the track?
+		!y = max(-1.d0, min(1.d0, y))
+		yout = max(-1.d0, min(1.d0, y))
+		!yout = y
+
+		! TODO: probably don't want to use `push()` here due to release.
+		! Release of one note can overlap with start of next note.  Instead of
+		! pushing, resize once per note.  Then add sample to previous value
+		! instead of (re) setting.  Fix release segment below too
+		call wave%push(yout)
+
+		!print *, "t, x, yout = ", t, x, yout
+
+	end do
+
+	if (present(env)) then
+		! Release
+		nr = int(env%r * sample_rate)
+		do it = 1, nr
+			! Amlitude is based on local time `tl` while waveform is based on `t`
+			t = 1.d0 * (it + nads) / sample_rate
+			tl = 1.d0 * it / sample_rate
+			ampi = lerp(env%s, 0.d0, tl / env%r)
+			ampl = ampi ** AMP_EXP
+
+			! TODO: apply two-pole filter in release
+			call wave%push(ampl * square_wave(f * t))
+
+		end do
+	end if
+
+	call wave%trim()
+
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+
+end subroutine write_wav_square_two_pole
+
+!===============================================================================
+
 subroutine write_wav_square(filename, freq, len_, env)
 
-	! TODO: add more args:
-	!   - amp :  max amplitude/volume
-	!   - hold:  fraction of how long note is held out of `len_`.  name?
-	!
-	! Rename fn?  Maybe generalize to play onto an audio track instead of
-	! directly writing to file.  That could be done separately
+	! TODO:
+	!   - add more args:
+	!     * amp :  max amplitude/volume
+	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
+	!       is a spectrum from staccato to legato
+	!     * start time
+	!   - apply any changes from here also to write_wav_sine()
+	!   - rename fn?  Maybe generalize to play onto an audio track instead of
+	!     directly writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len_
