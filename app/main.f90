@@ -33,8 +33,7 @@ program main
 				( &
 					args%file1, args%square_freq, args%square_len, &
 					env = args%env, &
-					cutoff = args%two_pole_cutoff, &
-					resonance = args%two_pole_resonance &
+					cutoff = args%two_pole_cutoff &
 				)
 			else
 				call write_wav_square(args%file1, args%square_freq, args%square_len, env = args%env)

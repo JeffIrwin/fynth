@@ -19,8 +19,7 @@ module fynth__app
 		double precision :: square_freq, square_len
 		double precision :: noise_len
 		double precision :: low_pass_freq
-		double precision :: two_pole_cutoff, two_pole_resonance
-		! TODO: resonance unused
+		double precision :: two_pole_cutoff !, two_pole_resonance
 		! TODO: add help for filter params
 
 		logical :: &
@@ -228,7 +227,7 @@ function read_args() result(args)
 			args%two_pole = .true.
 
 			args%two_pole_cutoff    = get_next_double_arg(i, argv, "cutoff"   , error)
-			args%two_pole_resonance = get_next_double_arg(i, argv, "resonance", error)
+			!args%two_pole_resonance = get_next_double_arg(i, argv, "resonance", error)
 
 		case default
 

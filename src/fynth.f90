@@ -35,10 +35,6 @@ module fynth
 	!   * filters:
 	!     + fft-based low-pass filter with hard cutoff done
 	!     + tbd: high-pass, rolling cutoffs (units dB per octave?)
-	!     + two-pole filter:  https://www.dsprelated.com/freebooks/filters/Two_Pole.html
-	!       > ref describes two parameters -- cutoff frequency theta_c (i
-	!         think?) and resonance R. this matches up with the actual knobs on my
-	!         prophet.  maybe b0 is 1?
 	!     + can't find much definitive info on four-pole digital filters
 	!   * LFO? this is a slippery slope to an entire modular digital synth
 	! - parse some kind of human-writeable music notation format? doing well
@@ -134,7 +130,7 @@ end subroutine get_filter_coefs
 
 !===============================================================================
 
-subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonance)
+subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff)
 
 	! TODO:
 	!   - add more args:
@@ -149,7 +145,7 @@ subroutine write_wav_square_two_pole(filename, freq, len_, env, cutoff, resonanc
 	character(len = *), intent(in) :: filename
 	double precision, intent(in) :: freq, len_
 	type(env_t), intent(in), optional :: env
-	double precision, intent(in) :: cutoff, resonance
+	double precision, intent(in) :: cutoff
 
 	!********
 
