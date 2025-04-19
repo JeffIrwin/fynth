@@ -149,7 +149,7 @@ end subroutine get_filter_coefs
 
 !===============================================================================
 
-subroutine write_wav_square_two_pole(filename, waveform_fn, freq, len_, env, cutoff)
+subroutine write_waveform_two_pole(filename, waveform_fn, freq, len_, env, cutoff)
 
 	! TODO:
 	!   - add more args:
@@ -299,11 +299,11 @@ subroutine write_wav_square_two_pole(filename, waveform_fn, freq, len_, env, cut
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
-end subroutine write_wav_square_two_pole
+end subroutine write_waveform_two_pole
 
 !===============================================================================
 
-subroutine write_wav_square(filename, freq, len_, env)
+subroutine write_waveform(filename, waveform_fn, freq, len_, env)
 
 	! TODO:
 	!   - add more args:
@@ -316,6 +316,7 @@ subroutine write_wav_square(filename, freq, len_, env)
 	!     directly writing to file.  That could be done separately
 
 	character(len = *), intent(in) :: filename
+	procedure(fn_f64_to_f64) :: waveform_fn
 	double precision, intent(in) :: freq, len_
 
 	type(env_t), intent(in), optional :: env
@@ -331,6 +332,11 @@ subroutine write_wav_square(filename, freq, len_, env)
 	type(vec_f64_t) :: wave
 
 	!********
+
+	!print *, "starting write_waveform()"
+	!print *, "freq = ", freq
+	!print *, "len_ = ", len_
+	!print *, "present(env) = ", present(env)
 
 	sample_rate = 44100
 
@@ -362,15 +368,16 @@ subroutine write_wav_square(filename, freq, len_, env)
 				ampi = env%s * amp
 			end if
 		else
-			ampl = 1.d0
+			ampi = 1.d0
 		end if
 		ampl = ampi ** AMP_EXP
+		!print *, "ampi = ", ampi
 
 		! TODO: probably don't want to use `push()` here due to release.
 		! Release of one note can overlap with start of next note.  Instead of
 		! pushing, resize once per note.  Then add sample to previous value
 		! instead of (re) setting.  Fix release segment below too
-		call wave%push(ampl * square_wave(f * t))
+		call wave%push(ampl * waveform_fn(f * t))
 
 	end do
 
@@ -384,7 +391,7 @@ subroutine write_wav_square(filename, freq, len_, env)
 			ampi = lerp(env%s, 0.d0, tl / env%r)
 			ampl = ampi ** AMP_EXP
 
-			call wave%push(ampl * square_wave(f * t))
+			call wave%push(ampl * waveform_fn(f * t))
 
 		end do
 	end if
@@ -393,7 +400,7 @@ subroutine write_wav_square(filename, freq, len_, env)
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
-end subroutine write_wav_square
+end subroutine write_waveform
 
 !===============================================================================
 

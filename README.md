@@ -36,8 +36,10 @@ fynth square.wav --square 300 1
 
 Write a file `noise.wav` with random white noise for 1 s:
 ```bash
-fynth noise.wav --noise 1
+fynth noise.wav --noise 300 1
 ```
+For consistency with other waveforms, the `--noise` waveform takes an unused
+frequency dummy argument.
 
 # Disambiguation
 

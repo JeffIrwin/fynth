@@ -50,29 +50,28 @@ program main
 			! TODO: cleanup this branching by setting default null env and filters
 
 			if (args%two_pole) then
-				! TODO: rename for general waveform
-				call write_wav_square_two_pole &
+				call write_waveform_two_pole &
 				( &
 					args%file1, waveform_fn, args%freq, args%len_, &
 					env = args%env, &
 					cutoff = args%two_pole_cutoff &
 				)
 			else
-				call write_wav_square(args%file1, args%freq, args%len_, env = args%env)
+				call write_waveform(args%file1, waveform_fn, args%freq, args%len_, env = args%env)
 			end if
 
 		else
-			call write_wav_square(args%file1, args%freq, args%len_)
+			call write_waveform(args%file1, waveform_fn, args%freq, args%len_)
 		end if
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
-	if (args%noise) then
-		! TODO
-		call write_wav_noise(args%file1, args%len_)
-		call fynth_exit(EXIT_SUCCESS)
-	end if
+	!if (args%noise) then
+	!	! TODO
+	!	call write_wav_noise(args%file1, args%len_)
+	!	call fynth_exit(EXIT_SUCCESS)
+	!end if
 
 	if (args%licc) then
 		call write_wav_licc(args%file1)

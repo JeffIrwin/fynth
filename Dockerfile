@@ -22,7 +22,7 @@ RUN fpm --version
 ARG BRANCH="main"
 RUN echo "BRANCH = $BRANCH"
 
-#RUN echo 5  # bust cache
+RUN echo 6  # bust cache
 RUN git clone https://github.com/jeffirwin/fynth --branch "$BRANCH"
 WORKDIR /workdir/fynth
 
@@ -43,7 +43,7 @@ RUN fynth
 RUN fynth lic.wav --licc
 RUN fynth sin.wav --sine   300 1
 RUN fynth squ.wav --square 300 1
-RUN fynth noi.wav --noise      1
+RUN fynth noi.wav --noise  300 1
 
 # ADSR envelopes
 RUN fynth squ.wav --square 300 1 --adsr 0.3 0.2 0.5 1.0
