@@ -23,7 +23,7 @@ module-naming = true
 
 [install]
 library = true
-test = false
+#test = false
 
 [fortran]
 implicit-typing = false

@@ -3,18 +3,12 @@
 
 // c.f. ribbit/src/utils.c
 
-#ifdef _WIN32
-	#define rm_file_c_ RM_FILE_C
-#endif
 int rm_file_c_(char* filename)
 {
 	//printf("filename = \"%s\"\n", filename);
 	return remove(filename);
 }
 
-#ifdef _WIN32
-	#define make_dir_ MAKE_DIR
-#endif
 int make_dir_(char* dir)
 {
 	return mkdir(dir, 0755);
