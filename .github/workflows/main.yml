@@ -50,6 +50,7 @@ jobs:
     - name: Test fynth on ${{ matrix.os }}
       env:
         FPM_FC: "${{ env.FC }}"
+      shell: bash
       run: |
         fpm test --verbose
 
