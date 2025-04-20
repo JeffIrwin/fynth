@@ -65,7 +65,8 @@ subroutine fseek_relative_(fid, jump_bytes_forward)
 
 	!********
 	integer :: i
-	integer(kind = 1) :: dummy
+	!integer(kind = 1) :: dummy
+	character :: dummy
 
 	!! TODO: fseek is a gnu extension.  Intel also has it though (without any
 	!! need for ifport)
