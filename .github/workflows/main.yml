@@ -41,7 +41,7 @@ jobs:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
     - name: Activate oneAPI
-      if: runner.os == 'Windows' && contains(inputs.compiler, 'intel')
+      if: matrix.os == 'windows-latest' && contains(inputs.compiler, 'intel')
       shell: cmd
       run: |
         call "%ONEAPI_ROOT%\setvars.bat"
