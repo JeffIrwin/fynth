@@ -56,6 +56,30 @@ contains
 
 !===============================================================================
 
+subroutine fseek_relative_(fid, jump_bytes_forward)
+
+	! This subroutine is for lfortran compatibility as of lfortran 0.51.0 on
+	! 2025-04-20
+
+	integer, intent(in) :: fid, jump_bytes_forward
+
+	!********
+	integer :: i
+	integer(kind = 1) :: dummy
+
+	!! TODO: fseek is a gnu extension.  Intel also has it though (without any
+	!! need for ifport)
+	!call fseek(fid, wavh%dlength, FSEEK_RELATIVE)
+
+	!read(fid) [(dummy, i = 1, jump_bytes_forward)]
+	do i = 1, jump_bytes_forward
+		read(fid) dummy
+	end do
+
+end subroutine fseek_relative_
+
+!===============================================================================
+
 function read_wav(filename) result(audio)
 
 	character(len = *), intent(in) :: filename
@@ -123,8 +147,7 @@ function read_wav(filename) result(audio)
 
 		!print *, "dlength = ", wavh%dlength
 
-		! TODO: fseek is a gnu extension.  Intel needs to use ifport for this
-		call fseek(fid, wavh%dlength, FSEEK_RELATIVE)
+		call fseek_relative_(fid, wavh%dlength)
 
 		read(fid, iostat = io) wavh%data
 		if (io /= 0) call panic("cannot read wav chunk from file """//filename//"""")
