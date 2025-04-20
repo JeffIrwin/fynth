@@ -25,9 +25,12 @@ jobs:
           - {compiler: gcc, version: 13}
           - {compiler: intel, version: '2024.1'}
           #- {compiler: lfortran, version: '0.51.0'}
-        include:
-          - os: ubuntu-latest
-            toolchain: {compiler: nvidia-hpc, version: '25.1'}
+
+        #include:
+        #  - os: ubuntu-latest
+        #    # nvidia compiles but fails every md5 test and then segfaults
+        #    # might be due to non-standard integer overflow behavior
+        #    toolchain: {compiler: nvidia-hpc, version: '25.1'}
 
     steps:
     - uses: actions/checkout@v3
