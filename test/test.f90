@@ -45,8 +45,8 @@ subroutine test_md5(ntot, nfail)
 	write(*,*) "Testing md5 hashes ..."
 
 	nfail = nfail + test_eq(md5_str(""), &
-		!"d41d8cd98f00b204e9800998ecf8427e", ntot)
-		"41d8cd98f00b204e9800998ecf8427e", ntot)
+		"d41d8cd98f00b204e9800998ecf8427e", ntot)
+		!"41d8cd98f00b204e9800998ecf8427e", ntot)
 
 	nfail = nfail + test_eq(md5_str( &
 		"The quick brown fox jumps over the lazy dog"), &
