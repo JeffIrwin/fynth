@@ -2,6 +2,42 @@ module fynth__md5
 
 	implicit none
 
+contains
+
+!===============================================================================
+
+integer function inot(a)
+	integer :: a
+	inot = ieor(a, int(z"ffffffff", 4))
+end function inot
+
+!===============================================================================
+
+integer function leftrotate_md5(x, rot)
+	integer, intent(in) :: x, rot
+	! c.f. aes_rotl8() from syntran/samples/aes.syntran
+
+	leftrotate_md5 = &
+		ior(shiftl(x, rot), shiftr(x, 32-rot))
+
+end function leftrotate_md5
+
+!===============================================================================
+
+function md5_str(msg_in) result(hex_digest)
+	! Calculate the MD5 hash of a str message and return the digest as a
+	! 32-char hex str
+	!
+	! The digest is also available as an array of 4 ints near the end of this
+	! fn
+	!
+	! c.f. aoc-syntran/md5.syntran
+
+	character(len = *), intent(in)  :: msg_in  ! TODO: rename in/loc vars
+	character(len = :), allocatable :: hex_digest
+
+	!********
+
 	integer, parameter :: K_MD5(*) = [ &
 		int(z"d76aa478"), int(z"e8c7b756"), int(z"242070db"), int(z"c1bdceee"), &
 		int(z"f57c0faf"), int(z"4787c62a"), int(z"a8304613"), int(z"fd469501"), &
@@ -31,87 +67,13 @@ module fynth__md5
 
 	character(len = *), parameter :: HEX_CHARS_MD5 = "0123456789abcdef";
 
-contains
-
-!===============================================================================
-
-integer function inot(a)
-	integer :: a
-	inot = ieor(a, int(z"ffffffff", 4))
-end function inot
-
-!===============================================================================
-
-integer function leftrotate_md5(x, rot)
-	integer, intent(in) :: x, rot
-	! c.f. aes_rotl8() from syntran/samples/aes.syntran
-
-	leftrotate_md5 = &
-		ior(shiftl(x, rot), shiftr(x, 32-rot))
-
-end function leftrotate_md5
-
-!fn leftrotate_md5(x: i32, rot: i32): i32
-!{
-!	return ((x << rot) | (x >> (32 - rot)));
-!}
-
-!===============================================================================
-
-!// S_MD5 specifies the per-round shift amounts
-!let S_MD5 = [
-!	7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
-!	5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
-!	4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
-!	6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
-!];
-!
-
-!let K_MD5 = [
-!	0xd76a_a478, 0xe8c7_b756, 0x2420_70db, 0xc1bd_ceee,
-!	0xf57c_0faf, 0x4787_c62a, 0xa830_4613, 0xfd46_9501,
-!	0x6980_98d8, 0x8b44_f7af, 0xffff_5bb1, 0x895c_d7be,
-!	0x6b90_1122, 0xfd98_7193, 0xa679_438e, 0x49b4_0821,
-!	0xf61e_2562, 0xc040_b340, 0x265e_5a51, 0xe9b6_c7aa,
-!	0xd62f_105d, 0x0244_1453, 0xd8a1_e681, 0xe7d3_fbc8,
-!	0x21e1_cde6, 0xc337_07d6, 0xf4d5_0d87, 0x455a_14ed,
-!	0xa9e3_e905, 0xfcef_a3f8, 0x676f_02d9, 0x8d2a_4c8a,
-!	0xfffa_3942, 0x8771_f681, 0x6d9d_6122, 0xfde5_380c,
-!	0xa4be_ea44, 0x4bde_cfa9, 0xf6bb_4b60, 0xbebf_bc70,
-!	0x289b_7ec6, 0xeaa1_27fa, 0xd4ef_3085, 0x0488_1d05,
-!	0xd9d4_d039, 0xe6db_99e5, 0x1fa2_7cf8, 0xc4ac_5665,
-!	0xf429_2244, 0x432a_ff97, 0xab94_23a7, 0xfc93_a039,
-!	0x655b_59c3, 0x8f0c_cc92, 0xffef_f47d, 0x8584_5dd1,
-!	0x6fa8_7e4f, 0xfe2c_e6e0, 0xa301_4314, 0x4e08_11a1,
-!	0xf753_7e82, 0xbd3a_f235, 0x2ad7_d2bb, 0xeb86_d391
-!];
-
-!//println("S_MD5 = ", S_MD5);
-!//println("K_MD5 = ", K_MD5);
-!
-!let HEX_CHARS_MD5 = "0123456789abcdef";
-
-function md5_str(msg_in) result(hex_digest)
-	! Calculate the MD5 hash of a str message and return the digest as a
-	! 32-char hex str
-	!
-	! The digest is also available as an array of 4 ints near the end of this
-	! fn
-	!
-	! c.f. aoc-syntran/md5.syntran
-
-	character(len = *), intent(in)  :: msg_in  ! TODO: rename in/loc vars
-	character(len = :), allocatable :: hex_digest
-
-	!********
-
 	character(len = :), allocatable :: msg
 
 	integer :: i, j, ij, k, ic, id, a0, b0, c0, d0, a, b, c, d, f, g, len0, num_zeros
 	integer :: m(0: 15), digest(0: 3)
 
-	print *, "starting md5_str()"
-	print *, "msg_in = """, msg_in, """"
+	!print *, "starting md5_str()"
+	!print *, "msg_in = """, msg_in, """"
 
 	! Initialize variables
 	a0 = int(z"67452301")  ! note endianness
@@ -127,12 +89,10 @@ function md5_str(msg_in) result(hex_digest)
 
 	! This line could probably be simplified
 	num_zeros = 63 - mod(mod((len(msg_in) - 56), 64) + 64, 64)
-	!let num_zeros = 63 - ((i32(len(msg_in)) - 56) % 64 + 64) % 64;
-	!//msg_in += repeat(char(0x00), num_zeros);
-	print *, "num_zeros = ", num_zeros
-	
-	print *, "msg_in = `", msg_in, "`"
-	print *, "len(msg_in) = ", len(msg_in)
+
+	!print *, "num_zeros = ", num_zeros
+	!print *, "msg_in = `", msg_in, "`"
+	!print *, "len(msg_in) = ", len(msg_in)
 
 	! append original length in bits mod 264 to message
 
@@ -150,14 +110,11 @@ function md5_str(msg_in) result(hex_digest)
 		// char(0) &
 		// char(0)
 
-	print *, "msg = `", msg, "`"
-	print *, "len(msg) = ", len(msg)
+	!print *, "msg = `", msg, "`"
+	!print *, "len(msg) = ", len(msg)
 
 	do i = 0, len(msg) - 1, 64
-	!for i in [0: 64: len(msg)]
-
-		print *, "i = ", i
-		!//let chunk = msg[i: i + 64];
+		!print *, "i = ", i
 	
 		! break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
 		m = 0
@@ -167,17 +124,8 @@ function md5_str(msg_in) result(hex_digest)
 			ij = i + 4*j + 3 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)), 16) )
 			ij = i + 4*j + 4 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)), 24) )
 		end do
-		print *, "m = ", m
+		!print *, "m = ", m
 
-		!for j in [0: 16]
-		!{
-		!	m[j] |= i32(msg[i + 4 * j + 0]) <<  0;
-		!	m[j] |= i32(msg[i + 4 * j + 1]) <<  8;
-		!	m[j] |= i32(msg[i + 4 * j + 2]) << 16;
-		!	m[j] |= i32(msg[i + 4 * j + 3]) << 24;
-		!}
-		!//println("m = ", m);
-	
 		! Initialize hash value for this chunk:
 		a = a0
 		b = b0
@@ -186,35 +134,20 @@ function md5_str(msg_in) result(hex_digest)
 	
 		! Main loop
 		do k = 0, 63
-		!for k in [0: 64]
-
 			f = 0
 			g = 0
 			if (0 <= k .and. k <= 15) then
-			!if 0 <= k and k <= 15 {
 				f = ior(iand(b, c), iand(inot(b), d))
 				g = k
-				!f = (b & c) | (!b & d);
-				!g = k;
 			else if (16 <= k .and. k <= 31) then
-			!} else if 16 <= k and k <= 31 {
 				f = ior(iand(d, b), iand(inot(d), c))
 				g = mod(5*k + 1, 16)
-				!f = (d & b) | (!d & c);
-				!g = (5*k + 1) % 16;
 			else if (32 <= k .and. k <= 47) then
-			!} else if 32 <= k and k <= 47 {
 				f = ieor(ieor(b, c), d)
 				g = mod(3*k + 5, 16)
-				!f = b ^ c ^ d;
-				!g = (3*k + 5) % 16;
 			else if (48 <= k .and. k <= 63) then
 				f = ieor(c, ior(b, inot(d)))
 				g = mod(7*k, 16)
-			!} else if 48 <= k and k <= 63 {
-				!f = c ^ (b | !d);
-				!g = (7*k) % 16;
-			!}
 			end if
 
 			! "Be wary of the below definitions of a,b,c,d" (what did they mean
@@ -237,11 +170,16 @@ function md5_str(msg_in) result(hex_digest)
 
 	!****************
 
+	! Could have one core fn that returns this digest, and wrapper fns which
+	! convert it to uppercase hex, lowercase hex, or other formats
+
 	digest = [a0, b0, c0, d0]
-	print *, "digest = ", digest
+	!print *, "digest = ", digest
 
 	hex_digest = repeat(" ", 32)
 
+	! TODO: unless there are endian issues, can we just use builtin fortran hex
+	! formatting?
 	j = 0
 	do id = 0, 3
 		d = digest(id)
@@ -254,19 +192,12 @@ function md5_str(msg_in) result(hex_digest)
 			j = j + 2
 		end do
 	end do
-!	let j = 0;
-!	for d in digest
-!		for i in [0: 4]
-!		{
-!			hex_digest[j+0] = HEX_CHARS_MD5[(d >> (4 * (2*i + 1))) & 0xf];
-!			hex_digest[j+1] = HEX_CHARS_MD5[(d >> (4 * (2*i + 0))) & 0xf];
-!			j += 2;
-!		}
 
-	print *, "hex_digest = ", hex_digest
+	!print *, "hex_digest = ", hex_digest
 
 end function md5_str
 
 !===============================================================================
 
 end module fynth__md5
+
