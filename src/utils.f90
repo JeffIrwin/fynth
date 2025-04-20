@@ -274,5 +274,39 @@ end function lerp3
 
 !===============================================================================
 
+function read_file(filename) result(str)
+
+	! Read a whole file as a single string
+
+	character(len = *), intent(in)  :: filename
+	character(len = :), allocatable :: str
+
+	!********
+
+	integer :: iu, io
+	integer(kind = 8) :: size_
+
+	! I'm not sure how portable the size inquiry is.  Syntran has a read_file()
+	! fn which uses a str builder, but it does not handle newlines in a portable
+	! way that would work robustly for hashing
+	inquire(file = filename, size = size_, iostat = io)
+	!print *, "size_ = ", size_
+	if (io /= 0) call panic("cannot get size of file """//filename//"""")
+
+	allocate(character(len = size_) :: str)
+	open(file = filename, newunit = iu, status = "old", &
+		form = "unformatted", access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file """//filename//"""")
+
+	read(iu, iostat = io) str
+	if (io /= 0) call panic("cannot read file """//filename//"""")
+	!print *, "str = ", str
+
+	close(iu)
+
+end function read_file
+
+!===============================================================================
+
 end module fynth__utils
 

@@ -7,41 +7,6 @@ contains
 
 !===============================================================================
 
-function read_file(filename) result(str)
-
-	! TODO: move to utils
-
-	character(len = *), intent(in)  :: filename
-	character(len = :), allocatable :: str
-
-	!********
-
-	integer :: iu, io
-	integer(kind = 8) :: size_
-
-	! I'm not sure how portable the size inquiry is.  Syntran has a read_file()
-	! fn which uses a str builder, but it does not handle newlines in a portable
-	! way that would work robustly for hashing
-	inquire(file = filename, size = size_, iostat = io)
-	!print *, "size_ = ", size_
-	if (io /= 0) call panic("cannot get size of file """//filename//"""")
-
-	!str = ""
-	allocate(character(len = size_) :: str)
-	!open(file = filename, newunit = iu, status = 'old', iostat = io)
-	open(file = filename, newunit = iu, status = "old", &
-		form = "unformatted", access = "stream", iostat = io)
-	if (io /= 0) call panic("cannot open file """//filename//"""")
-
-	read(iu, iostat = io) str
-	if (io /= 0) call panic("cannot read file """//filename//"""")
-	!print *, "str = ", str
-	close(iu)
-
-end function read_file
-
-!===============================================================================
-
 function md5_file(filename) result(hex_digest)
 	! Calculate the MD5 hash of a file and return the digest as a
 	! 32-char hex str
@@ -78,16 +43,17 @@ end function leftrotate_md5
 
 !===============================================================================
 
-function md5_str(msg_in) result(hex_digest)
+function md5_str(msg) result(hex_digest)
 	! Calculate the MD5 hash of a str message and return the digest as a
-	! 32-char hex str
+	! 32-char hex str.  This will not work for messages longer than about 2 GB.
+	! Length handling will need fixing for large messages
 	!
 	! The digest is also available as an array of 4 ints near the end of this
 	! fn
 	!
 	! c.f. aoc-syntran/md5.syntran
 
-	character(len = *), intent(in)  :: msg_in  ! TODO: rename in/loc vars
+	character(len = *), intent(in)  :: msg
 	character(len = :), allocatable :: hex_digest
 
 	!********
@@ -121,13 +87,13 @@ function md5_str(msg_in) result(hex_digest)
 
 	character(len = *), parameter :: HEX_CHARS_MD5 = "0123456789abcdef";
 
-	character(len = :), allocatable :: msg
+	character(len = :), allocatable :: msgl
 
 	integer :: i, j, ij, k, ic, id, a0, b0, c0, d0, a, b, c, d, f, g, len0, num_zeros
 	integer :: m(0: 15), digest(0: 3)
 
 	!print *, "starting md5_str()"
-	!print *, "msg_in = """, msg_in, """"
+	!print *, "msg = """, msg, """"
 
 	! Initialize variables
 	a0 = int(z"67452301")  ! note endianness
@@ -135,24 +101,24 @@ function md5_str(msg_in) result(hex_digest)
 	c0 = int(z"98badcfe")
 	d0 = int(z"10325476")
 
-	len0 = len(msg_in) * 8; ! length *in bits* :(
+	len0 = len(msg) * 8; ! length *in bits* :(
 
-	! Assume msg_in is complete bytes (no partial bytes)
+	! Assume msg is complete bytes (no partial bytes)
 
 	! Perform pre-process padding
 
 	! This line could probably be simplified
-	num_zeros = 63 - mod(mod((len(msg_in) - 56), 64) + 64, 64)
+	num_zeros = 63 - mod(mod((len(msg) - 56), 64) + 64, 64)
 
 	!print *, "num_zeros = ", num_zeros
-	!print *, "msg_in = `", msg_in, "`"
-	!print *, "len(msg_in) = ", len(msg_in)
+	!print *, "msg = `", msg, "`"
+	!print *, "len(msg) = ", len(msg)
 
-	! append original length in bits mod 264 to message
+	! append original length in bits mod 2**64 to message
 
 	! Do all of the padding steps at once to avoid too much string growth
 	! amortization
-	msg = msg_in &
+	msgl = msg &
 		// char(128) &
 		// repeat(char(0), num_zeros) &
 		// char( iand(255, shiftr(len0,  0) )) &
@@ -164,19 +130,19 @@ function md5_str(msg_in) result(hex_digest)
 		// char(0) &
 		// char(0)
 
-	!print *, "msg = `", msg, "`"
-	!print *, "len(msg) = ", len(msg)
+	!print *, "msgl = `", msgl, "`"
+	!print *, "len(msgl) = ", len(msgl)
 
-	do i = 0, len(msg) - 1, 64
+	do i = 0, len(msgl) - 1, 64
 		!print *, "i = ", i
 	
 		! break chunk into sixteen 32-bit words M[j], 0 ≤ j ≤ 15
 		m = 0
 		do j = 0, 15
-			ij = i + 4*j + 1 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)),  0) )
-			ij = i + 4*j + 2 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)),  8) )
-			ij = i + 4*j + 3 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)), 16) )
-			ij = i + 4*j + 4 ; m(j) = ior(m(j), shiftl(ichar(msg(ij:ij)), 24) )
+			ij = i + 4*j + 1 ; m(j) = ior(m(j), shiftl(ichar(msgl(ij:ij)),  0) )
+			ij = i + 4*j + 2 ; m(j) = ior(m(j), shiftl(ichar(msgl(ij:ij)),  8) )
+			ij = i + 4*j + 3 ; m(j) = ior(m(j), shiftl(ichar(msgl(ij:ij)), 16) )
+			ij = i + 4*j + 4 ; m(j) = ior(m(j), shiftl(ichar(msgl(ij:ij)), 24) )
 		end do
 		!print *, "m = ", m
 
