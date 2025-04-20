@@ -6,7 +6,6 @@ on: [push]
 jobs:
 
   test-docker:
-
     name: Test in docker
     runs-on: ubuntu-latest
     steps:
@@ -14,4 +13,19 @@ jobs:
     - name: Test in docker
       run: |
         docker build . -t rocky
+
+  test-windows:
+    name: Test on Windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: fortran-lang/setup-fpm@v7
+    - uses: fortran-lang/setup-fortran@v1
+      id: setup-fortran
+      with:
+        compiler: gcc
+        version: 13
+    - name: Test on Windows
+      run: |
+        fpm test
 
