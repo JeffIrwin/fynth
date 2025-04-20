@@ -14,17 +14,23 @@ jobs:
       run: |
         docker build . -t rocky
 
-  test-windows:
+  test-matrix:
     name: Test on Windows
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        toolchain:
+          - {compiler: gcc, version: 13}
+
     steps:
     - uses: actions/checkout@v3
     - uses: fortran-lang/setup-fpm@v7
     - uses: fortran-lang/setup-fortran@v1
       id: setup-fortran
       with:
-        compiler: gcc
-        version: 13
+        compiler: ${{ matrix.toolchain.compiler }}
+        version: ${{ matrix.toolchain.version }}
     - name: Test on Windows
       run: |
         fpm test
