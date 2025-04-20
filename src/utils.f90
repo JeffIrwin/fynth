@@ -68,8 +68,11 @@ module fynth__utils
 
 	! External C fns
 	interface
-		integer function rm_file_c(filename) bind(c)
-			character(len = *), intent(in) :: filename
+		integer(kind=c_int) function rm_file_c(filename) bind(c)
+			use iso_c_binding
+			!character(len = *), intent(in) :: filename
+			character(kind=c_char), dimension(*) :: filename
+			!character, dimension(*) :: filename
 		end function rm_file_c
 	end interface
 

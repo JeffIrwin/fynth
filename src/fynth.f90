@@ -238,7 +238,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 		! TODO: What happens if note is released in the middle of decay?  Should
 		! probably start decay from a higher amp then
 		ampi = plerp(amp_tab, t)
-		ampl = ampi ** AMP_EXP
+		ampl = amp * ampi ** AMP_EXP
 
 		! Update
 		y00 = y0
