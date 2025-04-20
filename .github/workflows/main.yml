@@ -47,10 +47,19 @@ jobs:
         call "%ONEAPI_ROOT%\setvars.bat"
         set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
 
-    - name: Test fynth on ${{ matrix.os }}
+    - name: Test fynth on Windows
       env:
         FPM_FC: "${{ env.FC }}"
+      if: matrix.os == 'windows-latest'
       shell: cmd
+      run: |
+        fpm test --verbose --compiler "$FPM_FC"
+
+    - name: Test fynth on ubuntu
+      env:
+        FPM_FC: "${{ env.FC }}"
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
       run: |
         fpm test --verbose --compiler "$FPM_FC"
 
