@@ -29,6 +29,8 @@ jobs:
           - os: ubuntu-latest
             toolchain: {compiler: nvidia-hpc, version: '25.1'}
 
+    env:
+      FPM_FC: ${{ env.FC }}
     steps:
     - uses: actions/checkout@v3
     - uses: fortran-lang/setup-fpm@v7
