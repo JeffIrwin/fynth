@@ -549,7 +549,7 @@ subroutine low_pass_filter(audio, freq)
 
 	!********
 
-	double complex, allocatable :: xx(:), xc(:)
+	double complex, allocatable :: xx(:)
 
 	double precision :: df
 
@@ -562,8 +562,7 @@ subroutine low_pass_filter(audio, freq)
 
 	do ic = 1, size(audio%channel, 1)
 
-		xc = cmplx(audio%channel(ic,:), kind = 8)
-		xx = fft(xc)
+		xx = fft(cmplx(audio%channel(ic,:), kind = 8))
 
 		! Frequency resolution
 		df = 1.d0 * audio%sample_rate / size(xx)

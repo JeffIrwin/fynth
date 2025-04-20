@@ -59,20 +59,21 @@ contains
 subroutine fseek_relative_(fid, jump_bytes_forward)
 
 	! This subroutine is for lfortran compatibility as of lfortran 0.51.0 on
-	! 2025-04-20
+	! 2025-04-20.  We could get rid of it.  I'm not using lfortran anyway
+	! because it also can't read/write structs (e.g. wav_header_t) in one line
 
 	integer, intent(in) :: fid, jump_bytes_forward
 
 	!********
+
+	!integer, parameter :: FSEEK_RELATIVE = 1
 	integer :: i
-	!integer(kind = 1) :: dummy
 	character :: dummy
 
-	!! TODO: fseek is a gnu extension.  Intel also has it though (without any
-	!! need for ifport)
+	!! fseek is a gnu extension.  Intel also has it though (without any need
+	!! for ifport)
 	!call fseek(fid, wavh%dlength, FSEEK_RELATIVE)
 
-	!read(fid) [(dummy, i = 1, jump_bytes_forward)]
 	do i = 1, jump_bytes_forward
 		read(fid) dummy
 	end do
@@ -87,8 +88,6 @@ function read_wav(filename) result(audio)
 	type(audio_t) :: audio
 
 	!********
-
-	integer, parameter :: FSEEK_RELATIVE = 1
 
 	integer :: io, fid
 	integer :: buffer_size
@@ -294,15 +293,14 @@ subroutine write_csv_fft(filename, audio)
 
 	!********
 
-	double complex, allocatable :: xx(:), xc(:)
+	double complex, allocatable :: xx(:)
 
 	double precision :: df
 
 	integer :: i, io, fid, nf
 
 	! TODO: iterate fft on all channels.  Increase rank of xx, write extra cols to csv
-	xc = cmplx(audio%channel(1,:), kind = 8)
-	xx = fft(xc)
+	xx = fft(cmplx(audio%channel(1,:), kind = 8))
 
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)

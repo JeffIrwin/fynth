@@ -15,7 +15,7 @@ jobs:
         docker build . -t rocky
 
   test-matrix:
-    name: Test ${{ matrix.toolchain.compiler }} ${{ matrix.toolchain.version }} on ${{ matrix.os }} 
+    name: Test ${{ matrix.toolchain.compiler }} ${{ matrix.toolchain.version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,9 +25,17 @@ jobs:
           - {compiler: gcc, version: 13}
           #- {compiler: lfortran, version: '0.51.0'}
 
+        # ifx complains on windows ci/cd:
+        #
+        #     link: unknown option -- d
+        #
+        # setvars.bat is being called and warns about being called twice. ifx is
+        # fine locally, not sure what the issue is.  --verbose provides no more
+        # info, it's some bad backend linking step
         include:
           - os: ubuntu-latest
             toolchain: {compiler: intel, version: "2025.1"}
+
         #include:
         #  - os: ubuntu-latest
         #    # nvidia compiles but fails every md5 test and then segfaults
