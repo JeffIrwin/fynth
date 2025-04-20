@@ -40,6 +40,13 @@ jobs:
       with:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
+    - name: Activate oneAPI
+      if: runner.os == 'Windows' && contains(inputs.compiler, 'intel')
+      shell: cmd
+      run: |
+        call "%ONEAPI_ROOT%\setvars.bat"
+        set | findstr /c:"oneAPI" >> "%GITHUB_ENV%"
+
     - name: Test fynth on ${{ matrix.os }}
       env:
         FPM_FC: "${{ env.FC }}"
