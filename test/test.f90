@@ -508,6 +508,9 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	! waveform data between wav files, but that would require storing whole
 	! baseline wav files in git, instead of just their checksums.  Maybe
 	! compress them?
+	!
+	! Alternatively, we could do testing with a much smaller sample rate (or
+	! length)
 
 	! Set default null ADSR envelope and high cutoff
 	env = env_t(a = 0, d = 0, s = 1, r = 0)
@@ -565,6 +568,10 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!print *, "md5 = ", md5
 	nfail = nfail + test_eq(md5, md5_expect, ntot)
 
+	! TODO: consider adding a quiet arg for write_waveform() for clean test
+	! logging
+	write(*,*)
+
 end subroutine test_basic_sounds
 
 !===============================================================================
@@ -602,6 +609,49 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
 	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	!********
+	fwav = "test/resources/squ-env.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => square_wave
+	env = env_t(a = 0.4d0, d = 0.3d0, s = 0.6d0, r = 0.5d0)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	!********
+	fwav = "test/resources/tri-env.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => triangle_wave
+	env = env_t(a = 0.2d0, d = 0.3d0, s = 0.7d0, r = 0.6d0)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	!********
+	fwav = "test/resources/saw-env.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => sawtooth_wave
+	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.6d0, r = 0.3d0)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	! TODO: make a macro wrapper for test_eq() to log the line number and
+	! filename for failures
+
+	! TODO: test a few more basic ADSR permutations
+
+	! TODO: fix cases for note len_ < attack and len_ < attack + decay and add
+	! tests
+
+	write(*,*)
 
 end subroutine test_envelopes
 
