@@ -15,13 +15,14 @@ jobs:
         docker build . -t rocky
 
   test-matrix:
-    name: Test on Windows
+    name: Test fynth on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
         toolchain:
           - {compiler: gcc, version: 13}
+          - {compiler: intel, version: '2025.0'}
 
     steps:
     - uses: actions/checkout@v3
@@ -31,7 +32,7 @@ jobs:
       with:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
-    - name: Test on Windows
+    - name: Test fynth on ${{ matrix.os }}
       run: |
         fpm test
 
