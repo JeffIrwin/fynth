@@ -1,5 +1,7 @@
 module fynth__test
 
+	use fynth
+	use fynth__audio
 	use fynth__md5
 	use fynth__utils
 
@@ -364,6 +366,55 @@ end subroutine test_md5
 
 !===============================================================================
 
+subroutine test_basic_sounds(ntot, nfail)
+
+	integer, intent(inout) :: ntot, nfail
+
+	!********
+
+	character(len = :), allocatable :: fwav, fmd5, md5, md5_expect
+
+	double precision :: freq, len_, cutoff
+
+	procedure(fn_f64_to_f64), pointer :: waveform_fn
+
+	type(env_t) :: env
+
+	write(*,*) "Testing basic sounds ..."
+
+	! I'm not sure if this strategy of testing md5 checksums on wav files will
+	! be robust.  Small numerical differences could break tests.  I could
+	! compare waveform data between wav files, but that would require storing
+	! whole baseline wav files in git, instead of just their checksums
+
+	! Set default null ADSR envelope and high cutoff
+	env = env_t(a = 0, d = 0, s = 1, r = 0)
+	cutoff = huge(cutoff)
+
+	fwav = "test/resources/sin.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => sine_wave
+	freq = 300.d0
+	len_ = 1.d0
+	call write_waveform &
+	( &
+		fwav, &
+		waveform_fn, freq, len_, &
+		env, &
+		cutoff &
+	)
+	md5 = md5_file(fwav)
+	md5_expect = read_file(fmd5)
+	print *, "md5 = ", md5
+
+	! TODO: add a test --rebase arg to write the received hash to the file
+
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+end subroutine test_basic_sounds
+
+!===============================================================================
+
 end module fynth__test
 
 !===============================================================================
@@ -381,6 +432,7 @@ program main
 	nfail = 0
 
 	call test_md5(ntot, nfail)
+	call test_basic_sounds(ntot, nfail)
 
 	write(*,*)
 	write(*,*) fg_bright_magenta//"Finished fynth tests"//color_reset
@@ -395,4 +447,6 @@ program main
 	call exit(nfail)
 
 end program main
+
+!===============================================================================
 

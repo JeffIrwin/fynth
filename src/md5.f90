@@ -198,11 +198,14 @@ function md5_str(msg) result(hex_digest)
 
 	hex_digest = repeat(" ", 32)
 
-	! TODO: unless there are endian issues, can we just use builtin fortran hex
-	! formatting?
 	j = 0
 	do id = 0, 3
 		d = digest(id)
+
+		!! Builtin hex conversion uses all uppercase and the wrong endianness
+		!write(hex_digest(j+1: j+8), "(z08)") d
+		!j = j + 8
+
 		do i = 0, 3
 			ic = iand(shiftr(d, 4 * (2*i + 1)), int(z"f")) + 1
 			hex_digest(j+1: j+1) = HEX_CHARS_MD5(ic: ic)
@@ -211,6 +214,7 @@ function md5_str(msg) result(hex_digest)
 			hex_digest(j+2: j+2) = HEX_CHARS_MD5(ic: ic)
 			j = j + 2
 		end do
+
 	end do
 
 	!print *, "hex_digest = ", hex_digest

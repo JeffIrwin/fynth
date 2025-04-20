@@ -5,5 +5,7 @@
 /*.png
 /*.csv
 
+/test/resources/*.wav
+
 #/*.mod
 
