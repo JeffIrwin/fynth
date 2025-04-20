@@ -52,5 +52,5 @@ jobs:
         FPM_FC: "${{ env.FC }}"
       shell: bash
       run: |
-        fpm test --verbose
+        fpm test --verbose --compiler "$FPM_FC"
 
