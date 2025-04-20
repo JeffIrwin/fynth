@@ -1,6 +1,7 @@
 module fynth__test
 
 	use fynth__md5
+	use fynth__utils
 
 	implicit none
 
@@ -10,32 +11,42 @@ module fynth__test
 
 contains
 
-integer function test_eq_str(a, b, ntot)
+!===============================================================================
 
-	character(len = *), intent(in) :: a, b
+integer function test_eq_str(val, expect, ntot)
+
+	character(len = *), intent(in) :: val, expect
 	integer, intent(inout) :: ntot
 
-	!print *, "a = '", a, "'"
-	!print *, "b = '", b, "'"
-	!print *, "len(a) = ", len(a)
-	!print *, "len(b) = ", len(b)
+	!print *, "len(val) = ", len(val)
+	!print *, "len(expect) = ", len(expect)
 
 	ntot = ntot + 1
-	if (a == b .and. len(a) == len(b)) then
+	if (val == expect .and. len(val) == len(expect)) then
 		test_eq_str = 0
 	else
 		test_eq_str = 1
+
+		write(*,*) ERROR_STR//"str equality test failed"
+		write(*,*) "    Received value: """, val, """"
+		write(*,*) "    Expected value: """, expect, """"
+
 	end if
 	!print *, "test_eq_str = ", test_eq_str
 
 end function test_eq_str
 
+!===============================================================================
+
 subroutine test_md5(ntot, nfail)
 
 	integer, intent(inout) :: ntot, nfail
 
+	write(*,*) "Testing md5 hashes ..."
+
 	nfail = nfail + test_eq(md5_str(""), &
-		"d41d8cd98f00b204e9800998ecf8427e", ntot)
+		!"d41d8cd98f00b204e9800998ecf8427e", ntot)
+		"41d8cd98f00b204e9800998ecf8427e", ntot)
 
 	nfail = nfail + test_eq(md5_str( &
 		"The quick brown fox jumps over the lazy dog"), &
@@ -341,9 +352,13 @@ subroutine test_md5(ntot, nfail)
 		// repeat(".", 70)), &
 		"1b4f8c94252180bf1411eb94691f9597", ntot)
 
-end subroutine
+end subroutine test_md5
+
+!===============================================================================
 
 end module fynth__test
+
+!===============================================================================
 
 program main
 	use fynth__test
@@ -351,13 +366,23 @@ program main
 
 	integer :: ntot, nfail
 
+	write(*,*) fg_bright_magenta//"Starting fynth tests"//color_reset
+	write(*,*)
+
 	ntot = 0
 	nfail = 0
 
 	call test_md5(ntot, nfail)
 
-	write(*, "(a,i0)") "Number of tests    = ", ntot
-	write(*, "(a,i0)") "Number of failures = ", nfail
+	write(*,*)
+	write(*,*) fg_bright_magenta//"Finished fynth tests"//color_reset
+	write(*,*) "Number of tests    = "//to_str(ntot)
+	write(*,*) "Number of failures = "//to_str(nfail)
+	if (nfail == 0) then
+		write(*,*) fg_bright_green//"Success!"//color_reset
+	else
+		write(*,*) ERROR_STR//"some tests failed"
+	end if
 
 	call exit(nfail)
 
