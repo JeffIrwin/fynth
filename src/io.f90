@@ -76,7 +76,7 @@ function read_wav(filename) result(audio)
 	write(*,*) "Reading wav file """, filename, """"
 	open(file = filename, newunit = fid, form = "unformatted", &
 		access = "stream", status = "old", iostat = io)
-	if (io /= 0) call panic("cannot open file """//filename//"""")
+	if (io /= 0) call panic("cannot open wav file for reading: """//filename//"""")
 
 	read(fid, iostat = io) wavh
 	if (io /= 0) call panic("cannot read wav header from file """//filename//"""")
@@ -213,7 +213,9 @@ subroutine write_wav(filename, audio)
 
 	! Remove old file first, or junk will be left over at end
 	io = rm_file(filename)
-	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
+	open(file = filename, newunit = fid, form = "unformatted", &
+		access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
 
 	! Holy fucking bingle.  Today I learned you can just write a whole struct to
 	! a binary file all at once
@@ -237,13 +239,15 @@ subroutine write_csv_audio(filename, audio)
 
 	double precision :: dt
 
-	integer :: i, fid, nt
+	integer :: i, io, fid, nt
 
 	dt = 1.d0 / audio%sample_rate
 	nt = size(audio%channel)
 
 	! TODO: write all channels in separate cols
-	open(file = filename, newunit = fid)
+	open(file = filename, newunit = fid, iostat = io)
+	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
+
 	write(fid, "(a)") "# time (s), channel amplitude"
 	write(fid, "(2es16.6)") [(dt * i, audio%channel(1, i+1), i = 0, nt-1)]
 	close(fid)
@@ -269,7 +273,7 @@ subroutine write_csv_fft(filename, audio)
 
 	double precision :: df
 
-	integer :: i, fid, nf
+	integer :: i, io, fid, nf
 
 	! TODO: iterate fft on all channels.  Increase rank of xx, write extra cols to csv
 	xx = fft(cmplx(audio%channel(1,:), kind = 8))
@@ -277,9 +281,10 @@ subroutine write_csv_fft(filename, audio)
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)
 
-	! TODO: check open, even for writing, e.g. in case of files in dirs that
-	! don't exist
-	open(file = filename, newunit = fid)
+	! Check open, even for writing, e.g. in case of files in dirs that don't
+	! exist
+	open(file = filename, newunit = fid, iostat = io)
+	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
 
 	! TODO: also write a magnitude column (using abs).  Update plotting script
 	write(fid, "(a)") "# frequency (Hz), FFT real, FFT imag"

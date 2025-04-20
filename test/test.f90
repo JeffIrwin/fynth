@@ -506,7 +506,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	! I'm not sure if this strategy of testing md5 checksums on wav files will
 	! be robust.  Small numerical differences will break tests.  I could compare
 	! waveform data between wav files, but that would require storing whole
-	! baseline wav files in git, instead of just their checksums
+	! baseline wav files in git, instead of just their checksums.  Maybe
+	! compress them?
 
 	! Set default null ADSR envelope and high cutoff
 	env = env_t(a = 0, d = 0, s = 1, r = 0)
@@ -590,6 +591,15 @@ program main
 
 	call test_md5(ntot, nfail)
 	call test_basic_sounds(ntot, nfail, args%rebase)
+
+	! TODO: more tests:
+	!   - envelopes
+	!   - filters
+	!     * not sure if i have a stable api yet, e.g. filter envelopes, resonance
+	!   - noise? fix seeding
+	!   - csv conversion?
+	!   - fft?
+	!   - licc?
 
 	write(*,*)
 	write(*,*) fg_bright_magenta//"Finished fynth tests"//color_reset

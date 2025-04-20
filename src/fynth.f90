@@ -520,7 +520,9 @@ subroutine write_wav_test(filename)
 
 	! Remove old file first, or junk will be left over at end
 	io = rm_file(filename)
-	open(file = filename, newunit = fid, form = "unformatted", access = "stream")
+	open(file = filename, newunit = fid, form = "unformatted", &
+		access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
 
 	! Holy fucking bingle.  Today I learned you can just write a whole struct to
 	! a binary file all at once

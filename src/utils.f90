@@ -288,7 +288,7 @@ function read_file(filename) result(str)
 
 	open(file = filename, newunit = iu, status = "old", &
 		form = "unformatted", access = "stream", iostat = io)
-	if (io /= 0) call panic("cannot open file """//filename//"""")
+	if (io /= 0) call panic("cannot open file for reading: """//filename//"""")
 
 	! I'm not sure how portable the size inquiry is.  Syntran has a read_file()
 	! fn which uses a str builder, but it does not handle newlines in a portable
@@ -317,7 +317,7 @@ subroutine write_file(filename, str)
 	io = rm_file(filename)
 	open(file = filename, newunit = iu, &
 		form = "unformatted", access = "stream", iostat = io)
-	if (io /= 0) call panic("cannot open file """//filename//"""")
+	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
 
 	write(iu) str
 	close(iu)
