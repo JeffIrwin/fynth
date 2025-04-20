@@ -516,8 +516,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fwav = "test/resources/sin.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => sine_wave
-	freq = 300.d0
-	len_ = 1.d0
+	freq = 310.d0
+	len_ = 0.6d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -529,8 +529,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fwav = "test/resources/squ.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => square_wave
-	freq = 300.d0
-	len_ = 1.d0
+	freq = 320.d0
+	len_ = 0.7d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -542,8 +542,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fwav = "test/resources/tri.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => triangle_wave
-	freq = 300.d0
-	len_ = 1.d0
+	freq = 330.d0
+	len_ = 0.8d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -555,8 +555,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fwav = "test/resources/saw.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => sawtooth_wave
-	freq = 300.d0
-	len_ = 1.d0
+	freq = 340.d0
+	len_ = 0.9d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
