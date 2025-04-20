@@ -569,6 +569,44 @@ end subroutine test_basic_sounds
 
 !===============================================================================
 
+subroutine test_envelopes(ntot, nfail, rebase)
+
+	integer, intent(inout) :: ntot, nfail
+	logical, intent(in) :: rebase
+
+	!********
+
+	character(len = :), allocatable :: fwav, fmd5, md5, md5_expect
+
+	double precision :: freq, len_, cutoff
+
+	procedure(fn_f64_to_f64), pointer :: waveform_fn
+
+	type(env_t) :: env
+
+	write(*,*) "Testing ADSR amplitude envelopes ..."
+
+	! Set default null high cutoff
+	cutoff = huge(cutoff)
+
+	freq = 300.d0
+	len_ = 1.0d0
+
+	!********
+	fwav = "test/resources/sin-env.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => sine_wave
+	env = env_t(a = 0.3d0, d = 0.2d0, s = 0.5d0, r = 0.4d0)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+end subroutine test_envelopes
+
+!===============================================================================
+
 end module fynth__test
 
 !===============================================================================
@@ -591,6 +629,7 @@ program main
 
 	call test_md5(ntot, nfail)
 	call test_basic_sounds(ntot, nfail, args%rebase)
+	call test_envelopes   (ntot, nfail, args%rebase)
 
 	! TODO: more tests:
 	!   - envelopes
