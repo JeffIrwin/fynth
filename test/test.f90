@@ -11,7 +11,127 @@ module fynth__test
 		procedure :: test_eq_str
 	end interface
 
+	type args_t
+
+		logical :: &
+			rebase = .false.
+
+	end type args_t
+
 contains
+
+!===============================================================================
+
+subroutine get_next_arg(i, argv)
+	! TODO: why is this not a fn that returns argv?
+
+	integer, intent(inout) :: i
+	character(len = :), allocatable, intent(out) :: argv
+	!********
+	character(len = :), allocatable, save :: argv0
+	character(len = 1024) :: buffer
+	integer, parameter :: STAT_TRUNC = -1
+	integer :: io, argc
+	logical, save :: first = .true.
+
+	if (first) then
+		first = .false.
+		call get_command_argument(0, buffer)
+		argv0 = trim(buffer)
+	end if
+
+	i = i + 1
+	argc = command_argument_count()
+	if (i > argc) then
+		call panic("missing required argument after """//argv0//"""")
+	end if
+
+	call get_command_argument(i, buffer, status = io)
+	if (io == STAT_TRUNC) then
+		! Could make buffer allocatable and automatically try resizing
+		call panic("command argument too long after """//argv0//"""")
+
+	else if (io /= EXIT_SUCCESS) then
+		call panic("cannot get command argument after """//argv0//"""")
+
+	end if
+	argv = trim(buffer)
+	!print *, "argv = ", argv
+
+	argv0 = argv
+
+end subroutine get_next_arg
+
+!===============================================================================
+
+function read_args() result(args)
+
+	! This argument parser is based on http://docopt.org/
+	!
+	! c.f. github.com/jeffirwin/cali, syntran, ribbit, etc.
+
+	type(args_t) :: args
+
+	!********
+
+	character(len = :), allocatable :: argv
+
+	integer :: i, argc, ipos
+
+	logical :: error = .false.
+
+	!! Defaults
+	!args%maxerr = maxerr_def
+
+	argc = command_argument_count()
+	!print *, "argc = ", argc
+
+	i = 0
+	ipos = 0
+	do while (i < argc)
+		call get_next_arg(i, argv)
+
+		select case (argv)
+
+		case ("--rebase")
+			args%rebase = .true.
+
+		case default
+
+			! Positional arg
+			ipos = ipos + 1
+
+			if (.false.) then
+			!if (ipos == 1) then
+			!	args%has_file1 = .true.
+			!	args%file1 = argv
+
+			!else if (ipos == 2) then
+			!	args%has_file2 = .true.
+			!	args%file2 = argv
+
+			else
+				write(*,*) ERROR_STR//"bad argument `"//argv//"`"
+				error = .true.
+
+			end if
+
+		end select
+
+	end do
+
+	!if (ipos < 1 .and. .not. (args%help .or. args%version)) then
+	!	write(*,*) ERROR_STR//"input file not defined"
+	!	error = .true.
+	!end if
+
+	!if (args%has_file1) print *, "file1 = """, args%file1, """"
+
+	if (error) then
+		call fynth_exit(EXIT_FAILURE)
+	end if
+
+end function read_args
 
 !===============================================================================
 
@@ -366,9 +486,10 @@ end subroutine test_md5
 
 !===============================================================================
 
-subroutine test_basic_sounds(ntot, nfail)
+subroutine test_basic_sounds(ntot, nfail, rebase)
 
 	integer, intent(inout) :: ntot, nfail
+	logical, intent(in) :: rebase
 
 	!********
 
@@ -391,24 +512,30 @@ subroutine test_basic_sounds(ntot, nfail)
 	env = env_t(a = 0, d = 0, s = 1, r = 0)
 	cutoff = huge(cutoff)
 
+	!********
 	fwav = "test/resources/sin.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => sine_wave
 	freq = 300.d0
 	len_ = 1.d0
-	call write_waveform &
-	( &
-		fwav, &
-		waveform_fn, freq, len_, &
-		env, &
-		cutoff &
-	)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
 	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
-	print *, "md5 = ", md5
+	!print *, "md5 = ", md5
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
 
-	! TODO: add a test --rebase arg to write the received hash to the file
-
+	!********
+	fwav = "test/resources/squ.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => square_wave
+	freq = 300.d0
+	len_ = 1.d0
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	!print *, "md5 = ", md5
 	nfail = nfail + test_eq(md5, md5_expect, ntot)
 
 end subroutine test_basic_sounds
@@ -425,14 +552,18 @@ program main
 
 	integer :: ntot, nfail
 
+	type(args_t) :: args
+
 	write(*,*) fg_bright_magenta//"Starting fynth tests"//color_reset
 	write(*,*)
+
+	args = read_args()
 
 	ntot = 0
 	nfail = 0
 
 	call test_md5(ntot, nfail)
-	call test_basic_sounds(ntot, nfail)
+	call test_basic_sounds(ntot, nfail, args%rebase)
 
 	write(*,*)
 	write(*,*) fg_bright_magenta//"Finished fynth tests"//color_reset

@@ -1,8 +1,6 @@
 
 module fynth__app
 
-	! TODO: split to app.f90
-
 	use fynth
 	use fynth__audio
 	use fynth__utils

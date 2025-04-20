@@ -286,6 +286,10 @@ function read_file(filename) result(str)
 	integer :: iu, io
 	integer(kind = 8) :: size_
 
+	open(file = filename, newunit = iu, status = "old", &
+		form = "unformatted", access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file """//filename//"""")
+
 	! I'm not sure how portable the size inquiry is.  Syntran has a read_file()
 	! fn which uses a str builder, but it does not handle newlines in a portable
 	! way that would work robustly for hashing
@@ -294,9 +298,6 @@ function read_file(filename) result(str)
 	if (io /= 0) call panic("cannot get size of file """//filename//"""")
 
 	allocate(character(len = size_) :: str)
-	open(file = filename, newunit = iu, status = "old", &
-		form = "unformatted", access = "stream", iostat = io)
-	if (io /= 0) call panic("cannot open file """//filename//"""")
 
 	read(iu, iostat = io) str
 	if (io /= 0) call panic("cannot read file """//filename//"""")
@@ -305,6 +306,23 @@ function read_file(filename) result(str)
 	close(iu)
 
 end function read_file
+
+!===============================================================================
+
+subroutine write_file(filename, str)
+	character(len = *), intent(in)  :: filename, str
+
+	integer :: iu, io
+
+	io = rm_file(filename)
+	open(file = filename, newunit = iu, &
+		form = "unformatted", access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file """//filename//"""")
+
+	write(iu) str
+	close(iu)
+
+end subroutine write_file
 
 !===============================================================================
 
