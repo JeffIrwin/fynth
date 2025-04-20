@@ -42,7 +42,7 @@ jobs:
         version: ${{ matrix.toolchain.version }}
     - name: Test fynth on ${{ matrix.os }}
       env:
-        FPM_FC: ${{ env.FC }}
+        FPM_FC: "${{ env.FC }}"
       run: |
         fpm test
 
