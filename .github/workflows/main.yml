@@ -24,8 +24,10 @@ jobs:
           - {compiler: gcc, version: 12}
           - {compiler: gcc, version: 13}
           - {compiler: intel, version: '2025.1'}
-          - {compiler: nvidia-hpc, version: '25.1'}
           - {compiler: lfortran, version: '0.51.0'}
+        include:
+          - os: ubuntu-latest
+            toolchain: {compiler: nvidia-hpc, version: '25.1'}
 
     steps:
     - uses: actions/checkout@v3
