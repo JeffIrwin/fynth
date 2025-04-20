@@ -504,9 +504,9 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	write(*,*) "Testing basic sounds ..."
 
 	! I'm not sure if this strategy of testing md5 checksums on wav files will
-	! be robust.  Small numerical differences could break tests.  I could
-	! compare waveform data between wav files, but that would require storing
-	! whole baseline wav files in git, instead of just their checksums
+	! be robust.  Small numerical differences will break tests.  I could compare
+	! waveform data between wav files, but that would require storing whole
+	! baseline wav files in git, instead of just their checksums
 
 	! Set default null ADSR envelope and high cutoff
 	env = env_t(a = 0, d = 0, s = 1, r = 0)
@@ -529,6 +529,32 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fwav = "test/resources/squ.wav"
 	fmd5 = fwav // ".md5"
 	waveform_fn => square_wave
+	freq = 300.d0
+	len_ = 1.d0
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	!print *, "md5 = ", md5
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	!********
+	fwav = "test/resources/tri.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => triangle_wave
+	freq = 300.d0
+	len_ = 1.d0
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	!print *, "md5 = ", md5
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
+	!********
+	fwav = "test/resources/saw.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => sawtooth_wave
 	freq = 300.d0
 	len_ = 1.d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
