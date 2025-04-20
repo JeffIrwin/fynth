@@ -241,8 +241,9 @@ subroutine write_wav(filename, audio)
 		access = "stream", iostat = io)
 	if (io /= 0) call panic("cannot open file for writing: """//filename//"""")
 
-	! Holy fucking bingle.  Today I learned you can just write a whole struct to
-	! a binary file all at once
+	! Holy fucking bingle.  Today i learned you can just write a whole struct to
+	! a binary file all at once.  lfortran can't do this though, and i'm not
+	! going to workaround this one
 	write(fid) wavh
 
 	write(fid) buffer16
