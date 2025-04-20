@@ -15,7 +15,6 @@ program main
 	type(audio_t) :: audio
 	type(env_t)   :: env
 
-	!procedure(fn_f64_to_f64) :: waveform_fn
 	procedure(fn_f64_to_f64), pointer :: waveform_fn
 
 	!********

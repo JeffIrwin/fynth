@@ -292,14 +292,15 @@ subroutine write_csv_fft(filename, audio)
 
 	!********
 
-	double complex, allocatable :: xx(:)
+	double complex, allocatable :: xx(:), xc(:)
 
 	double precision :: df
 
 	integer :: i, io, fid, nf
 
 	! TODO: iterate fft on all channels.  Increase rank of xx, write extra cols to csv
-	xx = fft(cmplx(audio%channel(1,:), kind = 8))
+	xc = cmplx(audio%channel(1,:), kind = 8)
+	xx = fft(xc)
 
 	!print *, "xx = "
 	!print "(2es16.6)", xx(1: 10)

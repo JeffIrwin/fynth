@@ -15,7 +15,7 @@ jobs:
         docker build . -t rocky
 
   test-matrix:
-    name: Test fynth on ${{ matrix.os }} with ${{ matrix.toolchain.compiler }} ${{ matrix.toolchain.version }}
+    name: Test ${{ matrix.toolchain.compiler }} ${{ matrix.toolchain.version }} on ${{ matrix.os }} 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
