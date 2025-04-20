@@ -9,8 +9,3 @@ int rm_file_c(char* filename)
 	return remove(filename);
 }
 
-int make_dir(char* dir)
-{
-	return mkdir(dir, 0755);
-}
-
