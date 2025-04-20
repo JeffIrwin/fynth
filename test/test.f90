@@ -44,13 +44,21 @@ subroutine test_md5(ntot, nfail)
 
 	write(*,*) "Testing md5 hashes ..."
 
+	! String md5
 	nfail = nfail + test_eq(md5_str(""), &
 		"d41d8cd98f00b204e9800998ecf8427e", ntot)
-		!"41d8cd98f00b204e9800998ecf8427e", ntot)
 
 	nfail = nfail + test_eq(md5_str( &
 		"The quick brown fox jumps over the lazy dog"), &
 		"9e107d9d372bb6826bd81d3542a419d6", ntot)
+
+	! File md5
+	nfail = nfail + test_eq(md5_file( &
+		"test/resources/quick.txt"), &
+		"9e107d9d372bb6826bd81d3542a419d6", ntot)
+	nfail = nfail + test_eq(md5_file( &
+		"test/resources/two-lines.txt"), &
+		"5982739113a22d42c8ecaa87ab68d11a", ntot)
 
 	nfail = nfail + test_eq(md5_str("jeff was here"), &
 		"8827ae539d0921970eb4837485220d18", ntot)

@@ -1,8 +1,62 @@
 module fynth__md5
 
+	use fynth__utils
 	implicit none
 
 contains
+
+!===============================================================================
+
+function read_file(filename) result(str)
+
+	! TODO: move to utils
+
+	character(len = *), intent(in)  :: filename
+	character(len = :), allocatable :: str
+
+	!********
+
+	integer :: iu, io
+	integer(kind = 8) :: size_
+
+	! I'm not sure how portable the size inquiry is.  Syntran has a read_file()
+	! fn which uses a str builder, but it does not handle newlines in a portable
+	! way that would work robustly for hashing
+	inquire(file = filename, size = size_, iostat = io)
+	!print *, "size_ = ", size_
+	if (io /= 0) call panic("cannot get size of file """//filename//"""")
+
+	!str = ""
+	allocate(character(len = size_) :: str)
+	!open(file = filename, newunit = iu, status = 'old', iostat = io)
+	open(file = filename, newunit = iu, status = "old", &
+		form = "unformatted", access = "stream", iostat = io)
+	if (io /= 0) call panic("cannot open file """//filename//"""")
+
+	read(iu, iostat = io) str
+	if (io /= 0) call panic("cannot read file """//filename//"""")
+	!print *, "str = ", str
+	close(iu)
+
+end function read_file
+
+!===============================================================================
+
+function md5_file(filename) result(hex_digest)
+	! Calculate the MD5 hash of a file and return the digest as a
+	! 32-char hex str
+
+	character(len = *), intent(in)  :: filename
+	character(len = :), allocatable :: hex_digest
+
+	!********
+
+	character(len = :), allocatable :: msg
+
+	msg = read_file(filename)
+	hex_digest = md5_str(msg)
+
+end function md5_file
 
 !===============================================================================
 
