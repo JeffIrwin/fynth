@@ -44,5 +44,5 @@ jobs:
       env:
         FPM_FC: "${{ env.FC }}"
       run: |
-        fpm test
+        fpm test --verbose
 
