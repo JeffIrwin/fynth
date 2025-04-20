@@ -34,28 +34,25 @@ subroutine test_md5(ntot, nfail)
 
 	integer, intent(inout) :: ntot, nfail
 
-	nfail = nfail + test_eq(md5_str(""), "d41d8cd98f00b204e9800998ecf8427e", ntot)
+	nfail = nfail + test_eq(md5_str(""), &
+		"d41d8cd98f00b204e9800998ecf8427e", ntot)
 
-!//	status += assert_eq(md5(
-!//			""),
-!//			"d41d8cd98f00b204e9800998ecf8427e"
-!//	);
-!//	status += assert_eq(md5(
-!//			"The quick brown fox jumps over the lazy dog"),
-!//			"9e107d9d372bb6826bd81d3542a419d6"
-!//	);
-!//	status += assert_eq(md5(
-!//			"jeff was here"),
-!//			"8827ae539d0921970eb4837485220d18"
-!//	);
-!//	status += assert_eq(md5(
-!//			repeat("jeff was here", 60)), // repeat to trigger multiple chunks
-!//			"b33447f16a881ee569550ecff6182345"
-!//	);
-!//	status += assert_eq(md5(
-!//			"abcdef609043"),
-!//			"000001dbbfa3a5c83a2d506429c7b00e"
-!//	);
+	nfail = nfail + test_eq(md5_str( &
+		"The quick brown fox jumps over the lazy dog"), &
+		"9e107d9d372bb6826bd81d3542a419d6", ntot)
+
+	nfail = nfail + test_eq(md5_str("jeff was here"), &
+		"8827ae539d0921970eb4837485220d18", ntot)
+
+	! repeat to trigger multiple chunks
+	nfail = nfail + test_eq(md5_str(repeat("jeff was here", 60)), &
+		"b33447f16a881ee569550ecff6182345", ntot)
+
+	! TODO: test every possible len mod 64 (repeat a's or something).  need a
+	! bash script to verify baseline before commiting
+
+	nfail = nfail + test_eq(md5_str("abcdef609043"), &
+		"000001dbbfa3a5c83a2d506429c7b00e", ntot)
 
 end subroutine
 
