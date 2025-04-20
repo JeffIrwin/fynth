@@ -23,7 +23,7 @@ jobs:
         toolchain:
           - {compiler: gcc, version: 12}
           - {compiler: gcc, version: 13}
-          - {compiler: intel, version: '2024.1'}
+          - {compiler: intel, version: "2024.1"}
           #- {compiler: lfortran, version: '0.51.0'}
 
         #include:
