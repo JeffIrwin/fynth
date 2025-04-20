@@ -29,8 +29,6 @@ jobs:
           - os: ubuntu-latest
             toolchain: {compiler: nvidia-hpc, version: '25.1'}
 
-    env:
-      FPM_FC: ${{ env.FC }}
     steps:
     - uses: actions/checkout@v3
     - uses: fortran-lang/setup-fpm@v7
@@ -40,6 +38,8 @@ jobs:
         compiler: ${{ matrix.toolchain.compiler }}
         version: ${{ matrix.toolchain.version }}
     - name: Test fynth on ${{ matrix.os }}
+      env:
+        FPM_FC: ${{ env.FC }}
       run: |
         fpm test
 
