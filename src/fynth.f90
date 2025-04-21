@@ -216,6 +216,24 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 		], [2, 5] &
 	)
 
+	if (len_ < ad) then
+		! Release begins during decay
+
+		!print *, "filename = ", filename
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+
+		amp_tab(2, 3) = plerp(amp_tab, len_)
+		amp_tab(1, 3) = len_
+
+		amp_tab(1, 4)  = len_ + env%d
+		amp_tab(2, 4:) = 0.d0
+
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+		!print *, ""
+	end if
+
 	wave = new_vec_f64()
 
 	f = freq
@@ -231,12 +249,11 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	y00 = 0.d0
 
 	! ADS
-	nads = int(len_ * sample_rate)
+	!nads = int((len_ + env%r) * sample_rate)
+	nads = int(len_ * sample_rate) + int(env%r * sample_rate)
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
-		! TODO: What happens if note is released in the middle of decay?  Should
-		! probably start decay from a higher amp then
 		ampi = plerp(amp_tab, t)
 		ampl = amp * ampi ** AMP_EXP
 
@@ -282,33 +299,30 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	end do
 
-	! Release.  TODO: release can be part of ADS loop now with amp_tab lookup
-	! table
+	! Release
+	!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+	!!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
+	!nr = int(env%r * sample_rate)
+	!do it = 1, nr
+	!	! Amlitude is based on local time `tl` while waveform is based on `t`
+	!	t = 1.d0 * (it + nads) / sample_rate
+	!	tl = 1.d0 * it / sample_rate
+	!	ampi = lerp(env%s, 0.d0, tl / env%r)
+	!	ampl = ampi ** AMP_EXP
 
-	call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-	!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
+	!	! Update
+	!	y00 = y0
+	!	y0 = y
 
-	nr = int(env%r * sample_rate)
-	do it = 1, nr
-		! Amlitude is based on local time `tl` while waveform is based on `t`
-		t = 1.d0 * (it + nads) / sample_rate
-		tl = 1.d0 * it / sample_rate
-		ampi = lerp(env%s, 0.d0, tl / env%r)
-		ampl = ampi ** AMP_EXP
+	!	x00 = x0
+	!	x0 = x
 
-		! Update
-		y00 = y0
-		y0 = y
+	!	x = ampl * waveform_fn(f * t)
 
-		x00 = x0
-		x0 = x
+	!	y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
+	!	call wave%push(y)
 
-		x = ampl * waveform_fn(f * t)
-
-		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
-		call wave%push(y)
-
-	end do
+	!end do
 
 	call wave%trim()
 
