@@ -656,13 +656,23 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	md5_expect = read_file(fmd5)
 	nfail = nfail + test_eq(md5, md5_expect, ntot)
 
+	!********
+	! Edge case: len_ < attack
+	fwav = "test/resources/squ-env-a.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => square_wave
+	len_ = 0.075
+	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.7d0, r = 0.5d0)
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + test_eq(md5, md5_expect, ntot)
+
 	! TODO: make a macro wrapper for test_eq() to log the line number and
 	! filename for failures
 
 	! TODO: test a few more basic ADSR permutations
-
-	! TODO: fix cases for note len_ < attack and len_ < attack + decay and add
-	! tests
 
 	write(*,*)
 

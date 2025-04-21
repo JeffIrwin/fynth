@@ -170,9 +170,10 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	! TODO:
 	!   - add more args:
 	!     * amp :  max amplitude/volume
-	!     * hold:  fraction of how long note is held out of `len_`.  name?  this
-	!       is a spectrum from staccato to legato
+	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
+	!       is a spectrum from 0 == staccato to 1 == legato
 	!     * start time
+	!     * stereo pan
 	!   - maybe generalize to play onto an audio track instead of directly
 	!     writing to file.  that could be done separately
 
@@ -185,17 +186,21 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	!********
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, tl, ampi, ampl, a, ad, ads, adsr, &
+	double precision :: f, t, ampi, ampl, a, ad, ads, adsr, &
 		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl
 	double precision, allocatable :: amp_tab(:,:)
 
-	integer :: it, nads, nr
+	integer :: it, nads
 	integer(kind = 4) :: sample_rate
 
 	type(vec_f64_t) :: wave
 
 	!********
 
+	! TODO: after refactoring, setting the sample_rate should happen once while
+	! initializing audio, then most of the rest of this fn would become a
+	! play_waveform() fn, until the final file writing which would happen in
+	! write_waveform()
 	sample_rate = 44100
 
 	! cumsum of envelope segment durations
@@ -216,7 +221,24 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 		], [2, 5] &
 	)
 
-	if (len_ < ad) then
+	if (len_ < a) then
+		! Release begins during attack
+
+		!print *, "filename = ", filename
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+
+		amp_tab(2, 2) = plerp(amp_tab, len_)
+		amp_tab(1, 2) = len_
+
+		amp_tab(1, 3)  = len_ + env%d
+		amp_tab(2, 3:) = 0.d0
+
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+		!print *, ""
+
+	else if (len_ < ad) then
 		! Release begins during decay
 
 		!print *, "filename = ", filename
@@ -297,32 +319,6 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 		!print *, "t, x, yout = ", t, x, yout
 
 	end do
-
-	! Release
-	!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-	!!call get_filter_coefs(f, sample_rate, a1, a2, b0, b1, b2)
-	!nr = int(env%r * sample_rate)
-	!do it = 1, nr
-	!	! Amlitude is based on local time `tl` while waveform is based on `t`
-	!	t = 1.d0 * (it + nads) / sample_rate
-	!	tl = 1.d0 * it / sample_rate
-	!	ampi = lerp(env%s, 0.d0, tl / env%r)
-	!	ampl = ampi ** AMP_EXP
-
-	!	! Update
-	!	y00 = y0
-	!	y0 = y
-
-	!	x00 = x0
-	!	x0 = x
-
-	!	x = ampl * waveform_fn(f * t)
-
-	!	y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
-	!	call wave%push(y)
-
-	!end do
-
 	call wave%trim()
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
