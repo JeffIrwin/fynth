@@ -249,8 +249,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	y00 = 0.d0
 
 	! ADS
-	!nads = int((len_ + env%r) * sample_rate)
-	nads = int(len_ * sample_rate) + int(env%r * sample_rate)
+	nads = int((len_ + env%r) * sample_rate)
 	do it = 1, nads
 		t = 1.d0 * it / sample_rate
 
