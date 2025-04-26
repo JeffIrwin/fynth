@@ -485,6 +485,7 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 	print *, "ftab = "
 	print "(2es16.6)", ftab
 	print *, ""
+	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 
 	wave = new_vec_f64()
 
@@ -525,8 +526,8 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		!! Linear reduction in filter cutoff octave
 		!cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
 
-		cutoffl = plerp(ftab, t)
-		!print *, "cutoffl = ", cutoffl
+		cutoffl = 2 ** plerp(ftab, t)
+		print *, "cutoffl = ", cutoffl
 
 		! Constant cutoff until i add filter env plumbing
 		!cutoffl = cutoff
