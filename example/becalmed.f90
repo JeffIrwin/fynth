@@ -7,7 +7,7 @@ program example
 	!********
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, f, len_, &
-		cutoff, tb1, tb2, tb3, tb4, wn
+		cutoff, tb1, tb2, tb3, tb4, wn, tb5, tb6, tb7, tb8
 
 	!integer :: ii!, it
 
@@ -35,6 +35,10 @@ program example
 	tb2 = 4 * quarter_note
 	tb3 = 2 * tb2
 	tb4 = 3 * tb2
+	tb5 = 4 * tb2
+	tb6 = 5 * tb2
+	tb7 = 6 * tb2
+	tb8 = 7 * tb2
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
@@ -48,6 +52,7 @@ program example
 	!fenv = env_t(a = 0, d = 0.2, s = 0, r = 0)
 	fenv = env_t(a = 2.0, d = 1.3, s = 0, r = 0)
 
+	!********
 	! A
 	call play_note(audio, square_wave, A2 , wn, tb1, env, cutoff, fenv)
 	call play_note(audio, square_wave, E3 , wn, tb1, env, cutoff, fenv)
@@ -72,7 +77,32 @@ program example
 	call play_note(audio, square_wave, FS3, wn, tb4, env, cutoff, fenv)
 	call play_note(audio, square_wave, A3 , wn, tb4, env, cutoff, fenv)
 
-	! TODO: the other 4 bars
+	!********
+	! A
+	call play_note(audio, square_wave, A2 , wn, tb5, env, cutoff, fenv)
+	call play_note(audio, square_wave, E3 , wn, tb5, env, cutoff, fenv)
+	call play_note(audio, square_wave, A3 , wn, tb5, env, cutoff, fenv)
+	call play_note(audio, square_wave, CS4, wn, tb5, env, cutoff, fenv)
+
+	! E
+	call play_note(audio, square_wave, E2 , wn, tb6, env, cutoff, fenv)
+	call play_note(audio, square_wave, B2 , wn, tb6, env, cutoff, fenv)
+	call play_note(audio, square_wave, E3 , wn, tb6, env, cutoff, fenv)
+	call play_note(audio, square_wave, GS3, wn, tb6, env, cutoff, fenv)
+
+	! F#m
+	call play_note(audio, square_wave, FS2, wn, tb7, env, cutoff, fenv)
+	call play_note(audio, square_wave, CS3, wn, tb7, env, cutoff, fenv)
+	call play_note(audio, square_wave, FS3, wn, tb7, env, cutoff, fenv)
+	call play_note(audio, square_wave, A3 , wn, tb7, env, cutoff, fenv)
+
+	! D
+	call play_note(audio, square_wave, D2 , wn, tb8, env, cutoff, fenv)
+	call play_note(audio, square_wave, D3 , wn, tb8, env, cutoff, fenv)
+	call play_note(audio, square_wave, FS3, wn, tb8, env, cutoff, fenv)
+	call play_note(audio, square_wave, A3 , wn, tb8, env, cutoff, fenv)
+
+	!********
 
 	call write_wav(filename, audio)
 
