@@ -330,6 +330,235 @@ end subroutine write_waveform
 
 !===============================================================================
 
+subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
+		cutoff, fenv)
+
+	! TODO:
+	!   - add more args:
+	!     * amp :  max amplitude/volume
+	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
+	!       is a spectrum from 0 == staccato to 1 == legato
+	!     * start time
+	!     * stereo pan
+	!   - maybe generalize to play onto an audio track instead of directly
+	!     writing to file.  that could be done separately
+
+	character(len = *), intent(in) :: filename
+	procedure(fn_f64_to_f64) :: waveform_fn
+	double precision, intent(in) :: freq, len_
+	type(env_t), intent(in) :: env
+	double precision, intent(in) :: cutoff
+	type(env_t), intent(in) :: fenv
+
+	!********
+
+	double precision, parameter :: amp = 1.d0  ! could be an arg later
+	double precision :: f, t, ampi, ampl, a, ad, ads, adsr, &
+		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl, sampd, &
+		fa, fad, fads, fadsr
+	double precision, allocatable :: amp_tab(:,:), ftab(:,:)
+
+	integer :: it, nads
+	integer(kind = 4) :: sample_rate
+
+	type(vec_f64_t) :: wave
+
+	!********
+
+	! TODO: after refactoring, setting the sample_rate should happen once while
+	! initializing audio, then most of the rest of this fn would become a
+	! play_waveform() fn, until the final file writing which would happen in
+	! write_waveform()
+	sample_rate = 44100
+
+	! cumsum of envelope segment durations
+	a = env%a
+	ad = a + env%d
+	ads = len_
+	adsr = ads + env%r
+
+	fa = fenv%a
+	fad = fa + fenv%d
+	fads = len_
+	fadsr = fads + fenv%r
+
+	! Amplitude envelope lookup table:  left column is time, right column is
+	! amplitude/volume
+	amp_tab = reshape( &
+		[ &
+			0.d0, 0.d0 , &
+			a   , 1.d0 , &
+			ad  , env%s, &
+			ads , env%s, &
+			adsr, 0.d0   &
+		], [2, 5] &
+	)
+
+	! TODO: or 0.5x ?
+	sampd = dble(sample_rate)
+
+	! Filter envelope table.  TODO: do some base 2 log or something for linear
+	! octave perception of filter sweeping
+	ftab = reshape( &
+		[ &
+			0.d0 , cutoff, &
+			fa   , sampd, &
+			fad  , lerp(cutoff, sampd, fenv%s), &
+			fads , lerp(cutoff, sampd, fenv%s), &
+			fadsr, cutoff &
+		], [2, 5] &
+	)
+
+	if (len_ < a) then
+		! Release begins during attack
+		!
+		! TODO: make a subroutine to fix both env and fenv tables
+		!
+		! TODO: what about 0 attack?
+
+		!print *, "filename = ", filename
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+
+		amp_tab(2, 2) = plerp(amp_tab, len_)
+		amp_tab(1, 2) = len_
+
+		amp_tab(1, 3)  = len_ + env%d
+		amp_tab(2, 3:) = 0.d0
+
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+		!print *, ""
+
+	else if (len_ < ad) then
+		! Release begins during decay
+		!
+		! These edge cases could be generalized with a loop that could cover
+		! things like DADSR or other higher-segment envelopes
+
+		!print *, "filename = ", filename
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+
+		amp_tab(2, 3) = plerp(amp_tab, len_)
+		amp_tab(1, 3) = len_
+
+		amp_tab(1, 4)  = len_ + env%d
+		amp_tab(2, 4:) = 0.d0
+
+		!print *, "amp_tab = "
+		!print "(2es16.6)", amp_tab
+		!print *, ""
+	end if
+
+	print *, "ftab = "
+	print "(2es16.6)", ftab
+	print *, ""
+	if (len_ < fa) then
+		! Release begins during attack
+		!
+		! TODO: make a subroutine to fix both env and fenv tables
+		!
+		! TODO: what about 0 attack?
+
+		print *, "release during attack"
+		ftab(2, 2) = plerp(ftab, len_)
+		ftab(1, 2) = len_
+
+		ftab(1, 3)  = len_ + fenv%d
+		ftab(2, 3:) = cutoff
+
+	else if (len_ < fad) then
+		! Release begins during decay
+		!
+		! These edge cases could be generalized with a loop that could cover
+		! things like DADSR or other higher-segment envelopes
+
+		print *, "release during decay"
+		ftab(2, 3) = plerp(ftab, len_)
+		ftab(1, 3) = len_
+
+		ftab(1, 4)  = len_ + fenv%d
+		ftab(2, 4:) = cutoff
+
+	end if
+	print *, "ftab = "
+	print "(2es16.6)", ftab
+	print *, ""
+
+	wave = new_vec_f64()
+
+	f = freq
+
+	! TODO: consider using arrays for previous signals for generalization from
+	! two-pole to four-pole filters
+	x = 0.d0
+	x0 = 0.d0
+	x00 = 0.d0
+
+	y = 0.d0
+	y0 = 0.d0
+	y00 = 0.d0
+
+	! ADS
+	nads = int((len_ + env%r) * sample_rate)
+	do it = 1, nads
+		t = 1.d0 * it / sample_rate
+
+		ampi = plerp(amp_tab, t)
+		ampl = amp * ampi ** AMP_EXP
+
+		! Update
+		y00 = y0
+		y0 = y
+
+		x00 = x0
+		x0 = x
+
+		! Filter input signal is `x`
+		x = ampl * waveform_fn(f * t)
+
+		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
+
+		!cutoffl = lerp(40000.d0, f, t/len_)
+
+		!! Linear reduction in filter cutoff octave
+		!cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
+
+		cutoffl = plerp(ftab, t)
+		!print *, "cutoffl = ", cutoffl
+
+		! Constant cutoff until i add filter env plumbing
+		!cutoffl = cutoff
+
+		!print *, "cutoffl = ", cutoffl
+		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
+
+		! Note the negative a* terms
+		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
+
+		! Clamp because filter overshoots would otherwise squash down the volume
+		! of the rest of the track?
+		yout = y
+		!yout = max(-1.d0, min(1.d0, y))  ! TODO?
+
+		! TODO: probably don't want to use `push()` here due to release.
+		! Release of one note can overlap with start of next note.  Instead of
+		! pushing, resize once per note.  Then add sample to previous value
+		! instead of (re) setting.  Fix release segment below too
+		call wave%push(yout)
+
+		!print *, "t, x, yout = ", t, x, yout
+
+	end do
+	call wave%trim()
+
+	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+
+end subroutine write_waveform_fenv
+
+!===============================================================================
+
 double precision function square_wave(t) result(x)
 	! Unit amplitude square wave with unit period
 	double precision, intent(in) :: t

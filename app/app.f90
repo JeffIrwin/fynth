@@ -29,6 +29,7 @@ module fynth__app
 			noise        = .false., &
 			has_waveform = .false., &
 			has_env      = .false., &
+			has_fenv     = .false., &
 			two_pole     = .false., &
 			low_pass     = .false., &
 			fft          = .false., &
@@ -36,7 +37,7 @@ module fynth__app
 			version      = .false., &
 			help         = .false.
 
-		type(env_t) :: env
+		type(env_t) :: env, fenv
 
 		type(waveform_t) :: waveform
 
@@ -232,6 +233,16 @@ function read_args() result(args)
 			args%env%s = get_next_double_arg(i, argv, "sustain", error)
 			args%env%r = get_next_double_arg(i, argv, "release", error)
 			!print *, "env = ", args%env
+
+		case ("--fadsr", "--filter-adsr")
+			args%has_fenv = .true.
+
+			! TODO: use get_next_double_arg() for other args
+			args%fenv%a = get_next_double_arg(i, argv, "attack" , error)
+			args%fenv%d = get_next_double_arg(i, argv, "decay"  , error)
+			args%fenv%s = get_next_double_arg(i, argv, "sustain", error)
+			args%fenv%r = get_next_double_arg(i, argv, "release", error)
+			!print *, "fenv = ", args%fenv
 
 		case ("--2pole", "--two-pole")
 			args%two_pole = .true.

@@ -63,13 +63,25 @@ program main
 
 	if (args%has_waveform) then
 
-		call write_waveform &
-		( &
-			args%file1, &
-			waveform_fn, args%freq, args%len_, &
-			env, &
-			cutoff &
-		)
+		! TODO: consolidate with a default filter env
+		if (args%has_fenv) then
+			call write_waveform_fenv &
+			( &
+				args%file1, &
+				waveform_fn, args%freq, args%len_, &
+				env, &
+				cutoff, &
+				args%fenv &
+			)
+		else
+			call write_waveform &
+			( &
+				args%file1, &
+				waveform_fn, args%freq, args%len_, &
+				env, &
+				cutoff &
+			)
+		end if
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if

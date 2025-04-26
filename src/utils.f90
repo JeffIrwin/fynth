@@ -232,10 +232,18 @@ double precision function plerp(table, x)
 
 	nt = size(table, 2)
 
-	if (x <= table(1, 1)) then
+	!! TODO: ?
+	!if (x <= table(1, 1)) then
+	!	plerp = table(2, 1)
+	!	return
+	!else if (x >= table(1, nt)) then
+	!	plerp = table(2, nt)
+	!	return
+	!end if
+	if (x <= minval(table(1, :))) then
 		plerp = table(2, 1)
 		return
-	else if (x >= table(1, nt)) then
+	else if (x >= maxval(table(1, :))) then
 		plerp = table(2, nt)
 		return
 	end if
