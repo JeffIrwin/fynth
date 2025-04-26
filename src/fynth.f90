@@ -284,6 +284,8 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 	! write_waveform()
 	sample_rate = 44100
 
+	! TODO: use play_note()
+
 	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
@@ -559,7 +561,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
 	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
-		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus
+		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus, rand
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
 
 	integer :: n, it, it0, it_end
@@ -575,7 +577,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
-	!sampd = 5000.d0
+	sampd = 3000.d0
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
@@ -588,7 +590,12 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	!wave = new_vec_f64()
 
-	f = freq
+	call random_number(rand)
+	rand = 2.d0 * rand - 1.d0
+
+	!f = freq
+	!f = freq * (1.d0 + 0.003d0 * rand)  ! slop
+	f = freq * (1.d0 + 0.d0 * rand)
 
 	! TODO: consider using arrays for previous signals for generalization from
 	! two-pole to four-pole filters
