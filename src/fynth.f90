@@ -10,17 +10,21 @@ module fynth
 
 	! TODO:
 	!
-	! - make some tests
-	!   * generate sample wav files and compare sha256 to expected files
+	! - more tests
 	!   * round trip read/write
 	! - add some of the generated gnuplot pngs to readme and discuss
 	! - parse more args
 	!   * -y to quietly overwrite a la ffmpeg.  otherwise just panic or prompt?
-	!   * filtering
-	!   * envelopes
-	!   * more waveforms
+	!   * do i really want args for everything or is it time for input files?
+	!   * more filtering options:
+	!     + delay
+	!     + max cutoff frequency
+	!     + key amount (changing cutoff based on note freq)
 	!   * concat wavs, crop start/end time, amplify, mix wavs
 	! - extend for stereo, 8-bit, float formats
+	!   * i think basic stereo io is working
+	!     + needs tests
+	!     + csv, fft output need generalized for stereo
 	!   * i have a few wav samples in my music folder if test read data is
 	!     needed.  could also save from audacity or just try writing and see if
 	!     it will play (although, windows media player is fault tolerant -- it
@@ -29,9 +33,11 @@ module fynth
 	! - play notes with different wave forms envelopes (ADSR), filtering (e.g.
 	!   low pass), etc.
 	!   * wave forms:
+	!     + saw+tri
 	!     + pulse width option.  default 0.5, range (0, 1)
 	!     + i'm clear on square and i guess triangle pulse mod/width.  what does
 	!       it do for a sawtooth?
+	!       > i think it's just the duty cycle
 	!   * filters:
 	!     + fft-based low-pass filter with hard cutoff done
 	!     + tbd: high-pass, rolling cutoffs (units dB per octave?)
@@ -40,6 +46,7 @@ module fynth
 	! - parse some kind of human-writeable music notation format? doing well
 	!   with the human-writeable part might be hard, at least if i want to do
 	!   more than just one voice/track
+	!   * i was thinking of something vaguely similar to https://strudel.cc/
 
 	integer, parameter :: &
 		FYNTH_MAJOR = 0, &
@@ -68,7 +75,6 @@ module fynth
 			double precision :: fx
 		end function
 	end interface
-
 
 contains
 
@@ -394,11 +400,10 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		], [2, 5] &
 	)
 
-	! TODO: or 0.5x ?
-	sampd = dble(sample_rate)
+	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
+	sampd = 0.501d0 * dble(sample_rate)
 
-	! Filter envelope table.  TODO: do some base 2 log or something for linear
-	! octave perception of filter sweeping
+	! Filter envelope table
 	ftab = reshape( &
 		[ &
 			0.d0 , cutoff, &
@@ -519,21 +524,9 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		! Filter input signal is `x`
 		x = ampl * waveform_fn(f * t)
 
-		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-
-		!cutoffl = lerp(40000.d0, f, t/len_)
-
-		!! Linear reduction in filter cutoff octave
-		!cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
-
 		cutoffl = 2 ** plerp(ftab, t)
-		print *, "cutoffl = ", cutoffl
-
-		! Constant cutoff until i add filter env plumbing
-		!cutoffl = cutoff
-
-		!print *, "cutoffl = ", cutoffl
 		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
+		!print *, "cutoffl = ", cutoffl
 
 		! Note the negative a* terms
 		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
@@ -650,8 +643,6 @@ subroutine write_wav_licc(filename)
 
 	!********
 
-	!double complex, allocatable :: xx(:)
-
 	double precision :: bpm, quarter_note, eigth_note, en, qn, f, t
 	double precision, allocatable :: notes(:), duras(:)
 
@@ -696,11 +687,6 @@ subroutine write_wav_licc(filename)
 	call wave%trim()
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-	!xx = fft(cmplx(wave%v, kind = 8))
-	!print *, "xx = "
-	!print "(2es16.6)", xx(1: 10)
-	!!call write_wav("fft.wav", audio_t(dble(xx), sample_rate))
 
 end subroutine write_wav_licc
 
