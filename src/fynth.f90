@@ -181,16 +181,15 @@ function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
 
 	double precision :: a, ad, ads, adsr
 
-	!amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
-
 	! cumsum of envelope segment durations
 	a = env%a
 	ad = a + env%d
 	ads = len_
 	adsr = ads + env%r
 
-	! Amplitude envelope lookup table:  left column is time, right column is
-	! amplitude/volume
+	! Envelope lookup table:  left column is time, right column is
+	! the variable being enveloped, e.g. amplitude volume or filter cutoff
+	! frequency
 	table = reshape( &
 		[ &
 			0.d0, ymin , &
@@ -266,7 +265,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	!********
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, ampi, ampl, a, ad, ads, adsr, &
+	double precision :: f, t, ampi, ampl, &
 		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl
 	double precision, allocatable :: amp_tab(:,:)
 
@@ -371,9 +370,8 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 	!********
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, ampi, ampl, a, ad, ads, adsr, &
-		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl, sampd, &
-		fa, fad, fads, fadsr
+	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
+		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:)
 
 	integer :: it, nads
@@ -389,119 +387,13 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 	! write_waveform()
 	sample_rate = 44100
 
-	! cumsum of envelope segment durations
-	a = env%a
-	ad = a + env%d
-	ads = len_
-	adsr = ads + env%r
-
-	fa = fenv%a
-	fad = fa + fenv%d
-	fads = len_
-	fadsr = fads + fenv%r
-
-	! Amplitude envelope lookup table:  left column is time, right column is
-	! amplitude/volume
-	amp_tab = reshape( &
-		[ &
-			0.d0, 0.d0 , &
-			a   , 1.d0 , &
-			ad  , env%s, &
-			ads , env%s, &
-			adsr, 0.d0   &
-		], [2, 5] &
-	)
+	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
 
-	! Filter envelope table
-	ftab = reshape( &
-		[ &
-			0.d0 , cutoff, &
-			fa   , sampd, &
-			fad  , lerp(cutoff, sampd, fenv%s), &  ! TODO: linear in octaves?
-			fads , lerp(cutoff, sampd, fenv%s), &
-			fadsr, cutoff &
-		], [2, 5] &
-	)
-
-	if (len_ < a) then
-		! Release begins during attack
-		!
-		! TODO: make a subroutine to fix both env and fenv tables
-		!
-		! TODO: what about 0 attack?
-
-		!print *, "filename = ", filename
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-
-		amp_tab(2, 2) = plerp(amp_tab, len_)
-		amp_tab(1, 2) = len_
-
-		amp_tab(1, 3)  = len_ + env%d
-		amp_tab(2, 3:) = 0.d0
-
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-		!print *, ""
-
-	else if (len_ < ad) then
-		! Release begins during decay
-		!
-		! These edge cases could be generalized with a loop that could cover
-		! things like DADSR or other higher-segment envelopes
-
-		!print *, "filename = ", filename
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-
-		amp_tab(2, 3) = plerp(amp_tab, len_)
-		amp_tab(1, 3) = len_
-
-		amp_tab(1, 4)  = len_ + env%d
-		amp_tab(2, 4:) = 0.d0
-
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-		!print *, ""
-	end if
-
-	print *, "ftab = "
-	print "(2es16.6)", ftab
-	print *, ""
-	if (len_ < fa) then
-		! Release begins during attack
-		!
-		! TODO: make a subroutine to fix both env and fenv tables
-		!
-		! TODO: what about 0 attack?
-
-		!print *, "release during attack"
-		ftab(2, 2) = plerp(ftab, len_)
-		ftab(1, 2) = len_
-
-		ftab(1, 3)  = len_ + fenv%d
-		ftab(2, 3:) = cutoff
-
-	else if (len_ < fad) then
-		! Release begins during decay
-		!
-		! These edge cases could be generalized with a loop that could cover
-		! things like DADSR or other higher-segment envelopes
-
-		!print *, "release during decay"
-		ftab(2, 3) = plerp(ftab, len_)
-		ftab(1, 3) = len_
-
-		ftab(1, 4)  = len_ + fenv%d
-		ftab(2, 4:) = cutoff
-
-	end if
-	print *, "ftab = "
-	print "(2es16.6)", ftab
-	print *, ""
+	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
+	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 
 	wave = new_vec_f64()
