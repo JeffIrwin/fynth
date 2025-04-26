@@ -236,9 +236,9 @@ function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
 		!print *, ""
 	end if
 
-	print *, "table = "
-	print "(2es16.6)", table
-	print *, ""
+	!print *, "table = "
+	!print "(2es16.6)", table
+	!print *, ""
 
 end function get_env_tab
 
@@ -271,7 +271,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:)
 
-	integer :: it, nads
+	integer :: it, n
 	integer(kind = 4) :: sample_rate
 
 	type(vec_f64_t) :: wave
@@ -290,10 +290,10 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 	sampd = 0.501d0 * dble(sample_rate)
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
-	print *, "fenv%s = ", fenv%s
-	print *, "cutoff = ", cutoff
-	print *, "sampd  = ", sampd
-	print *, "fsus   = ", fsus
+	!print *, "fenv%s = ", fenv%s
+	!print *, "cutoff = ", cutoff
+	!print *, "sampd  = ", sampd
+	!print *, "fsus   = ", fsus
 
 	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
@@ -312,9 +312,8 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 	y0 = 0.d0
 	y00 = 0.d0
 
-	! ADS
-	nads = int((len_ + env%r) * sample_rate)
-	do it = 1, nads
+	n = int((len_ + env%r) * sample_rate)
+	do it = 1, n
 		t = 1.d0 * it / sample_rate
 
 		ampi = plerp(amp_tab, t)
@@ -338,9 +337,10 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
 
 		! Clamp because filter overshoots would otherwise squash down the volume
-		! of the rest of the track?
+		! of the rest of the track?  Probably not, because this interferes with
+		! the filter.  Maybe there should be a separate gain/clip arg
 		yout = y
-		!yout = max(-1.d0, min(1.d0, y))  ! TODO?
+		!yout = max(-1.d0, min(1.d0, y))
 
 		! TODO: probably don't want to use `push()` here due to release.
 		! Release of one note can overlap with start of next note.  Instead of

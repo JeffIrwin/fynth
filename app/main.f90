@@ -50,7 +50,7 @@ program main
 	if (args%has_env) then
 		amp_env = args%env
 	else
-		! Set default null ADSR envelope
+		! Set default null ADSR envelope.  Sustain is 1 for amplitude
 		amp_env = env_t(a = 0, d = 0, s = 1, r = 0)
 	end if
 
@@ -64,7 +64,7 @@ program main
 	if (args%has_fenv) then
 		filter_env = args%fenv
 	else
-		!filter_env = env_t(a = 0, d = 0, s = 1, r = 0)
+		! Default sustain is 0 for filter
 		filter_env = env_t(a = 0, d = 0, s = 0, r = 0)
 	end if
 

@@ -523,7 +523,6 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 
 	! Set default null ADSR envelope and high cutoff
 	env  = env_t(a = 0, d = 0, s = 1, r = 0)
-	!fenv = env_t(a = 0, d = 0, s = 1, r = 0)
 	fenv = env_t(a = 0, d = 0, s = 0, r = 0)
 	cutoff = 0.1d0 * huge(cutoff)
 
@@ -606,7 +605,6 @@ subroutine test_envelopes(ntot, nfail, rebase)
 
 	! Set default null high cutoff
 	cutoff = 0.1d0 * huge(cutoff)
-	!fenv = env_t(a = 0, d = 0, s = 1, r = 0)
 	fenv = env_t(a = 0, d = 0, s = 0, r = 0)
 
 	freq = 300.d0
