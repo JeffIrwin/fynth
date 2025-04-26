@@ -13,7 +13,7 @@ program main
 
 	type(args_t)  :: args
 	type(audio_t) :: audio
-	type(env_t)   :: env
+	type(env_t)   :: amp_env, filter_env
 
 	procedure(fn_f64_to_f64), pointer :: waveform_fn
 
@@ -48,40 +48,36 @@ program main
 
 	! TODO: set defaults in read_args()
 	if (args%has_env) then
-		env = args%env
+		amp_env = args%env
 	else
 		! Set default null ADSR envelope
-		env = env_t(a = 0, d = 0, s = 1, r = 0)
+		amp_env = env_t(a = 0, d = 0, s = 1, r = 0)
 	end if
 
 	if (args%two_pole) then
 		cutoff = args%two_pole_cutoff
 	else
 		! Defaut null low pass cutoff
-		cutoff = huge(cutoff)
+		cutoff = 0.1d0 * huge(cutoff)
+	end if
+
+	if (args%has_fenv) then
+		filter_env = args%fenv
+	else
+		!filter_env = env_t(a = 0, d = 0, s = 1, r = 0)
+		filter_env = env_t(a = 0, d = 0, s = 0, r = 0)
 	end if
 
 	if (args%has_waveform) then
 
-		! TODO: consolidate with a default filter env
-		if (args%has_fenv) then
-			call write_waveform_fenv &
-			( &
-				args%file1, &
-				waveform_fn, args%freq, args%len_, &
-				env, &
-				cutoff, &
-				args%fenv &
-			)
-		else
-			call write_waveform &
-			( &
-				args%file1, &
-				waveform_fn, args%freq, args%len_, &
-				env, &
-				cutoff &
-			)
-		end if
+		call write_waveform &
+		( &
+			args%file1, &
+			waveform_fn, args%freq, args%len_, &
+			amp_env, &
+			cutoff, &
+			filter_env &
+		)
 
 		call fynth_exit(EXIT_SUCCESS)
 	end if

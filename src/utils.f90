@@ -266,9 +266,15 @@ end function plerp
 
 double precision function lerp(a, b, x)
 	double precision, intent(in) :: a, b, x
+	double precision :: xc
 
 	!lerp = a + (b - a) * x
-	lerp = a + (b - a) * max(0.d0, min(1.d0, x))
+	!lerp = a + (b - a) * max(0.d0, min(1.d0, x))
+
+	xc = max(0.d0, min(1.d0, x))
+
+	! This is more numerically stable than the above form
+	lerp = a * (1.d0 - xc) + b * xc
 
 end function lerp
 

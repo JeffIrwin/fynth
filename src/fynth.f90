@@ -236,118 +236,15 @@ function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
 		!print *, ""
 	end if
 
-	!print *, "table = "
-	!print "(2es16.6)", table
-	!print *, ""
+	print *, "table = "
+	print "(2es16.6)", table
+	print *, ""
 
 end function get_env_tab
 
 !===============================================================================
 
-subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
-
-	! TODO:
-	!   - add more args:
-	!     * amp :  max amplitude/volume
-	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
-	!       is a spectrum from 0 == staccato to 1 == legato
-	!     * start time
-	!     * stereo pan
-	!   - maybe generalize to play onto an audio track instead of directly
-	!     writing to file.  that could be done separately
-
-	character(len = *), intent(in) :: filename
-	procedure(fn_f64_to_f64) :: waveform_fn
-	double precision, intent(in) :: freq, len_
-	type(env_t), intent(in) :: env
-	double precision, intent(in) :: cutoff
-
-	!********
-
-	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, ampi, ampl, &
-		b0, b1, b2, a1, a2, x, y, y0, y00, yout, x0, x00, cutoffl
-	double precision, allocatable :: amp_tab(:,:)
-
-	integer :: it, nads
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
-
-	!********
-
-	! TODO: after refactoring, setting the sample_rate should happen once while
-	! initializing audio, then most of the rest of this fn would become a
-	! play_waveform() fn, until the final file writing which would happen in
-	! write_waveform()
-	sample_rate = 44100
-
-	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
-
-	wave = new_vec_f64()
-
-	f = freq
-
-	! TODO: consider using arrays for previous signals for generalization from
-	! two-pole to four-pole filters
-	x = 0.d0
-	x0 = 0.d0
-	x00 = 0.d0
-
-	y = 0.d0
-	y0 = 0.d0
-	y00 = 0.d0
-
-	! ADS
-	nads = int((len_ + env%r) * sample_rate)
-	do it = 1, nads
-		t = 1.d0 * it / sample_rate
-
-		ampi = plerp(amp_tab, t)
-		ampl = amp * ampi ** AMP_EXP
-
-		! Update
-		y00 = y0
-		y0 = y
-
-		x00 = x0
-		x0 = x
-
-		! Filter input signal is `x`
-		x = ampl * waveform_fn(f * t)
-
-		! Constant cutoff until i add filter env plumbing
-		cutoffl = cutoff
-
-		!print *, "cutoffl = ", cutoffl
-		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
-
-		! Note the negative a* terms
-		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
-
-		! Clamp because filter overshoots would otherwise squash down the volume
-		! of the rest of the track?
-		yout = y
-		!yout = max(-1.d0, min(1.d0, y))  ! TODO?
-
-		! TODO: probably don't want to use `push()` here due to release.
-		! Release of one note can overlap with start of next note.  Instead of
-		! pushing, resize once per note.  Then add sample to previous value
-		! instead of (re) setting.  Fix release segment below too
-		call wave%push(yout)
-
-		!print *, "t, x, yout = ", t, x, yout
-
-	end do
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
-
-end subroutine write_waveform
-
-!===============================================================================
-
-subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
+subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 		cutoff, fenv)
 
 	! TODO:
@@ -393,6 +290,11 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 	sampd = 0.501d0 * dble(sample_rate)
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
+	print *, "fenv%s = ", fenv%s
+	print *, "cutoff = ", cutoff
+	print *, "sampd  = ", sampd
+	print *, "fsus   = ", fsus
+
 	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 
@@ -453,7 +355,7 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 
 	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
-end subroutine write_waveform_fenv
+end subroutine write_waveform
 
 !===============================================================================
 
