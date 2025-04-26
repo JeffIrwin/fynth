@@ -17,7 +17,8 @@ module fynth__audio
 		!
 		! Attack, decay, and release times are in seconds
 		!
-		! Sustain level is a fraction of the max amplitude, in the range [0.0, 1.0]
+		! Sustain level is a fraction of the max amplitude, in the range
+		! [0.0, 1.0], or related to the cutoff frequency for filter envelopes
 		double precision :: a, d, s, r
 	end type env_t
 
