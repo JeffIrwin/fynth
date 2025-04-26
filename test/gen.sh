@@ -22,11 +22,11 @@ for i in {0..70} ; do
 	hash=$(echo -n "$message" | md5sum | cut -d " " -f 1)
 	
 	#echo "hash = $hash"
-	
-	echo -e "\tnfail = nfail + test_eq(md5_str( &"
-	echo -e "\t\trepeat("'"'"jeff was here"'"'", 60) &"
-	echo -e "\t\t// repeat("'"'"."'"'", $i)), &"
-	echo -e "\t\t"'"'"$hash"'"'", ntot)"
+
+	echo -e "\thash = md5_str(repeat("'"'"jeff was here"'"'", 60) // repeat("'"'"."'"'", $i))"
+	echo -e "\texpect = "'"'"$hash"'"'
+	echo -e "\tnfail = nfail + TEST_EQ(hash, expect, ntot)"
+	echo -e ""
 
 done
 

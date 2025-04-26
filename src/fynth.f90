@@ -240,6 +240,9 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	else if (len_ < ad) then
 		! Release begins during decay
+		!
+		! These edge cases could be generalized with a loop that could cover
+		! things like DADSR or other higher-segment envelopes
 
 		!print *, "filename = ", filename
 		!print *, "amp_tab = "
