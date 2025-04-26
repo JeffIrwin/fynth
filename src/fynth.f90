@@ -171,6 +171,80 @@ end subroutine get_filter_coefs
 
 !===============================================================================
 
+function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
+
+	type(env_t), intent(in) :: env
+	double precision, intent(in) :: len_, ymin, ysus, ymax
+	double precision, allocatable :: table(:,:)
+
+	!********
+
+	double precision :: a, ad, ads, adsr
+
+	!amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
+
+	! cumsum of envelope segment durations
+	a = env%a
+	ad = a + env%d
+	ads = len_
+	adsr = ads + env%r
+
+	! Amplitude envelope lookup table:  left column is time, right column is
+	! amplitude/volume
+	table = reshape( &
+		[ &
+			0.d0, ymin , &
+			a   , ymax , &
+			ad  , ysus , &
+			ads , ysus , &
+			adsr, ymin   &
+		], [2, 5] &
+	)
+
+	if (len_ < a) then
+		! Release begins during attack
+
+		!print *, "table = "
+		!print "(2es16.6)", table
+
+		table(2, 2) = plerp(table, len_)
+		table(1, 2) = len_
+
+		table(1, 3)  = len_ + env%d
+		table(2, 3:) = ymin
+
+		!print *, "table = "
+		!print "(2es16.6)", table
+		!print *, ""
+
+	else if (len_ < ad) then
+		! Release begins during decay
+		!
+		! These edge cases could be generalized with a loop that could cover
+		! things like DADSR or other higher-segment envelopes
+
+		!print *, "table = "
+		!print "(2es16.6)", table
+
+		table(2, 3) = plerp(table, len_)
+		table(1, 3) = len_
+
+		table(1, 4)  = len_ + env%d
+		table(2, 4:) = ymin
+
+		!print *, "table = "
+		!print "(2es16.6)", table
+		!print *, ""
+	end if
+
+	!print *, "table = "
+	!print "(2es16.6)", table
+	!print *, ""
+
+end function get_env_tab
+
+!===============================================================================
+
 subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 	! TODO:
@@ -209,61 +283,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 	! write_waveform()
 	sample_rate = 44100
 
-	! cumsum of envelope segment durations
-	a = env%a
-	ad = a + env%d
-	ads = len_
-	adsr = ads + env%r
-
-	! Amplitude envelope lookup table:  left column is time, right column is
-	! amplitude/volume
-	amp_tab = reshape( &
-		[ &
-			0.d0, 0.d0 , &
-			a   , 1.d0 , &
-			ad  , env%s, &
-			ads , env%s, &
-			adsr, 0.d0   &
-		], [2, 5] &
-	)
-
-	if (len_ < a) then
-		! Release begins during attack
-
-		!print *, "filename = ", filename
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-
-		amp_tab(2, 2) = plerp(amp_tab, len_)
-		amp_tab(1, 2) = len_
-
-		amp_tab(1, 3)  = len_ + env%d
-		amp_tab(2, 3:) = 0.d0
-
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-		!print *, ""
-
-	else if (len_ < ad) then
-		! Release begins during decay
-		!
-		! These edge cases could be generalized with a loop that could cover
-		! things like DADSR or other higher-segment envelopes
-
-		!print *, "filename = ", filename
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-
-		amp_tab(2, 3) = plerp(amp_tab, len_)
-		amp_tab(1, 3) = len_
-
-		amp_tab(1, 4)  = len_ + env%d
-		amp_tab(2, 4:) = 0.d0
-
-		!print *, "amp_tab = "
-		!print "(2es16.6)", amp_tab
-		!print *, ""
-	end if
+	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
 
 	wave = new_vec_f64()
 
@@ -296,14 +316,6 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, cutoff)
 
 		! Filter input signal is `x`
 		x = ampl * waveform_fn(f * t)
-
-		!call get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
-
-		!! TODO: add env params for filter sweep
-		!cutoffl = lerp(40000.d0, f, t/len_)
-
-		!! Linear reduction in filter cutoff octave
-		!cutoffl = f * 2 ** lerp(4.d0, 0.d0, t/len_)
 
 		! Constant cutoff until i add filter env plumbing
 		cutoffl = cutoff
@@ -408,7 +420,7 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		[ &
 			0.d0 , cutoff, &
 			fa   , sampd, &
-			fad  , lerp(cutoff, sampd, fenv%s), &
+			fad  , lerp(cutoff, sampd, fenv%s), &  ! TODO: linear in octaves?
 			fads , lerp(cutoff, sampd, fenv%s), &
 			fadsr, cutoff &
 		], [2, 5] &
@@ -466,7 +478,7 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		!
 		! TODO: what about 0 attack?
 
-		print *, "release during attack"
+		!print *, "release during attack"
 		ftab(2, 2) = plerp(ftab, len_)
 		ftab(1, 2) = len_
 
@@ -479,7 +491,7 @@ subroutine write_waveform_fenv(filename, waveform_fn, freq, len_, env, &
 		! These edge cases could be generalized with a loop that could cover
 		! things like DADSR or other higher-segment envelopes
 
-		print *, "release during decay"
+		!print *, "release during decay"
 		ftab(2, 3) = plerp(ftab, len_)
 		ftab(1, 3) = len_
 
