@@ -680,7 +680,22 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	md5_expect = read_file(fmd5)
 	nfail = nfail + TEST_EQ(md5, md5_expect, ntot)
 
-	! TODO: test a few more basic ADSR permutations
+	!********
+	!********
+	! TODO: if we keep this test, move it to a filter subroutine.  It's probably
+	! premature for now with its usage of fenv and cutoff
+	fwav = "test/resources/squ-env-2.wav"
+	fmd5 = fwav // ".md5"
+	waveform_fn => square_wave
+	len_ = 3.4285714285714284d0
+	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
+	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 0)
+	cutoff = 300.d0
+	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + TEST_EQ(md5, md5_expect, ntot)
 
 	write(*,*)
 

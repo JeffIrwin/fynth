@@ -209,7 +209,7 @@ function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
 		table(2, 2) = plerp(table, len_)
 		table(1, 2) = len_
 
-		table(1, 3)  = len_ + env%d
+		table(1, 3)  = len_ + env%r
 		table(2, 3:) = ymin
 
 		!print *, "table = "
@@ -228,8 +228,10 @@ function get_env_tab(env, len_, ymin, ysus, ymax) result(table)
 		table(2, 3) = plerp(table, len_)
 		table(1, 3) = len_
 
-		table(1, 4)  = len_ + env%d
+		table(1, 4)  = len_ + env%r
 		table(2, 4:) = ymin
+
+		!table(1, 5:) = 1.1d0 * table(1, 4)
 
 		!print *, "table = "
 		!print "(2es16.6)", table
@@ -517,18 +519,10 @@ subroutine write_wav_licc(filename)
 		call play_note(audio, square_wave, f, len_, t, env, cutoff, fenv)
 		!call play_note(audio, triangle_wave, f, len_, t, env, cutoff, fenv)
 
-		!do it = 1, int(duras(ii) * sample_rate)
-		!	t = 1.d0 * it / sample_rate
-		!	!call wave%push( sin(2.d0 * PI * f * t) )
-		!	call wave%push( 2.d0 * (2 * floor(f * t) - floor(2 * f * t)) + 1 )  ! square wave
-		!end do
-
 		t = t + len_
 
 	end do
-	!call wave%trim()
 
-	!call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 	call write_wav(filename, audio)
 
 end subroutine write_wav_licc
@@ -574,10 +568,14 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 	sample_rate = audio%sample_rate
 
 	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
+	print *, "len_ = ", len_
+	print *, "len_ + env%r = ", len_ + env%r
+	print *, "amp_tab = "
+	print "(2es16.6)", amp_tab
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
-	sampd = 3000.d0
+	sampd = 2250.d0
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
@@ -586,9 +584,10 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 	!print *, "fsus   = ", fsus
 
 	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
-	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
+	print *, "ftab = "
+	print "(2es16.6)", ftab
 
-	!wave = new_vec_f64()
+	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 
 	call random_number(rand)
 	rand = 2.d0 * rand - 1.d0
