@@ -258,7 +258,7 @@ subroutine write_waveform(filename, synth, freq, len_)
 	type(audio_t) :: audio
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
-	call play_note(audio, synth, freq, len_, t)
+	call play_note(audio, synth, freq, t, len_)
 	call write_wav(filename, audio)
 
 end subroutine write_waveform
@@ -341,7 +341,7 @@ subroutine write_wav_licc(filename)
 		f = notes(ii)
 		len_ = duras(ii)
 
-		call play_note(audio, synth, f, len_, t)
+		call play_note(audio, synth, f, t, len_)
 
 		t = t + len_
 
@@ -353,10 +353,9 @@ end subroutine write_wav_licc
 
 !===============================================================================
 
-subroutine play_note(audio, synth, freq, len_, t0)
+subroutine play_note(audio, synth, freq, t0, len_)
 
 	! TODO:
-	!   - reorder args with t0 before len_
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
@@ -367,7 +366,7 @@ subroutine play_note(audio, synth, freq, len_, t0)
 	type(audio_t), intent(inout) :: audio
 
 	type(synth_t), intent(in) :: synth
-	double precision, intent(in) :: freq, len_, t0
+	double precision, intent(in) :: freq, t0, len_
 
 	!********
 

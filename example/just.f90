@@ -86,71 +86,71 @@ program example
 	!********
 	t = 0 * wn
 	! A
-	call play_note(audio, synth, tr*A1J , wn, t)
-	call play_note(audio, synth, tr*E3J , wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*A1J , t, wn)
+	call play_note(audio, synth, tr*E3J , t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
 
-	call play_note(audio, synth, tr*B3J , qn , t)
-	call play_note(audio, synth, tr*CS4J, dhn, t+qn)
+	call play_note(audio, synth, tr*B3J , t, qn )
+	call play_note(audio, synth, tr*CS4J, t+qn, dhn)
 
 	t = 1 * wn
 	! D
-	call play_note(audio, synth, tr*D1J , wn, t)
-	call play_note(audio, synth, tr*FS3J, wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
-	call play_note(audio, synth, tr*D4J , wn, t)
+	call play_note(audio, synth, tr*D1J , t, wn)
+	call play_note(audio, synth, tr*FS3J, t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
+	call play_note(audio, synth, tr*D4J , t, wn)
 
 	t = 2 * wn
 	! F#m
-	call play_note(audio, synth, tr*FS1J, wn, t)
-	call play_note(audio, synth, tr*FS3J, wn, t)
+	call play_note(audio, synth, tr*FS1J, t, wn)
+	call play_note(audio, synth, tr*FS3J, t, wn)
 
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*A3J , t, wn)
 	!call play_note(audio, synth, tr*FS3J*5/4, wn, t)   ! major, oops
 	!call play_note(audio, synth, tr*FS3J*6/5, wn, t)   ! same thing
 	!call play_note(audio, synth, tr*FS3J*19/16, wn, t) ! other just intonations
 	!call play_note(audio, synth, tr*FS3J*32/27, wn, t)
 
-	call play_note(audio, synth, tr*CS4J, wn, t)
+	call play_note(audio, synth, tr*CS4J, t, wn)
 
 	t = 3 * wn
 	! D (different voicing now)
-	call play_note(audio, synth, tr*D1J , wn, t)
-	call play_note(audio, synth, tr*D3J , wn, t)
-	call play_note(audio, synth, tr*FS3J, wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*D1J , t, wn)
+	call play_note(audio, synth, tr*D3J , t, wn)
+	call play_note(audio, synth, tr*FS3J, t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
 
 	!********
 	t = 4 * wn
 	! A
-	call play_note(audio, synth, tr*A1J , wn, t)
-	call play_note(audio, synth, tr*E3J , wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*A1J , t, wn)
+	call play_note(audio, synth, tr*E3J , t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
 
-	call play_note(audio, synth, tr*B3J , qn , t)
-	call play_note(audio, synth, tr*CS4J, dhn, t+qn)
+	call play_note(audio, synth, tr*B3J , t, qn )
+	call play_note(audio, synth, tr*CS4J, t+qn, dhn)
 
 	t = 5 * wn
 	! E
-	call play_note(audio, synth, tr*E1J , wn, t)
-	call play_note(audio, synth, tr*B2J , wn, t)
-	call play_note(audio, synth, tr*E3J , wn, t)
-	call play_note(audio, synth, tr*GS3J, wn, t)
+	call play_note(audio, synth, tr*E1J , t, wn)
+	call play_note(audio, synth, tr*B2J , t, wn)
+	call play_note(audio, synth, tr*E3J , t, wn)
+	call play_note(audio, synth, tr*GS3J, t, wn)
 
 	t = 6 * wn
 	! F#m
-	call play_note(audio, synth, tr*FS1J, wn, t)
-	call play_note(audio, synth, tr*FS3J, wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*FS1J, t, wn)
+	call play_note(audio, synth, tr*FS3J, t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
 
-	call play_note(audio, synth, tr*CS3J, hn, t+hn)
+	call play_note(audio, synth, tr*CS3J, t+hn, hn)
 
 	t = 7 * wn
 	! D
-	call play_note(audio, synth, tr*D1J , wn, t)
-	call play_note(audio, synth, tr*D3J , wn, t)
-	call play_note(audio, synth, tr*FS3J, wn, t)
-	call play_note(audio, synth, tr*A3J , wn, t)
+	call play_note(audio, synth, tr*D1J , t, wn)
+	call play_note(audio, synth, tr*D3J , t, wn)
+	call play_note(audio, synth, tr*FS3J, t, wn)
+	call play_note(audio, synth, tr*A3J , t, wn)
 
 	!********
 
