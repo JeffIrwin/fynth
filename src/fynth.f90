@@ -268,96 +268,17 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 
 	!********
 
-	double precision, parameter :: amp = 1.d0  ! could be an arg later
-	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
-		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus
-	double precision, allocatable :: amp_tab(:,:), ftab(:,:)
-
-	integer :: it, n
-	integer(kind = 4) :: sample_rate
-
-	type(vec_f64_t) :: wave
+	type(audio_t) :: audio
+	!type(vec_f64_t) :: wave
 
 	!********
 
-	! TODO: after refactoring, setting the sample_rate should happen once while
-	! initializing audio, then most of the rest of this fn would become a
-	! play_note() fn, until the final file writing which would happen in
-	! write_waveform()
-	sample_rate = 44100
+	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
-	! TODO: use play_note()
+	!call play_note(audio, wave, tr*A1J , wn, t, env, cutoff, fenv)
+	call play_note(audio, waveform_fn, freq, len_, 0.d0, env, cutoff, fenv)
 
-	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
-
-	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
-	sampd = 0.501d0 * dble(sample_rate)
-
-	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
-	!print *, "fenv%s = ", fenv%s
-	!print *, "cutoff = ", cutoff
-	!print *, "sampd  = ", sampd
-	!print *, "fsus   = ", fsus
-
-	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
-	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
-
-	wave = new_vec_f64()
-
-	f = freq
-
-	! TODO: consider using arrays for previous signals for generalization from
-	! two-pole to four-pole filters
-	x = 0.d0
-	x0 = 0.d0
-	x00 = 0.d0
-
-	y = 0.d0
-	y0 = 0.d0
-	y00 = 0.d0
-
-	n = int((len_ + env%r) * sample_rate)
-	do it = 1, n
-		t = 1.d0 * it / sample_rate
-
-		ampi = plerp(amp_tab, t)
-		ampl = amp * ampi ** AMP_EXP
-
-		! Update
-		y00 = y0
-		y0 = y
-
-		x00 = x0
-		x0 = x
-
-		! Filter input signal is `x`
-		x = ampl * waveform_fn(f * t)
-
-		cutoffl = 2 ** plerp(ftab, t)
-		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
-		!print *, "cutoffl = ", cutoffl
-
-		! Note the negative a* terms
-		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
-
-		! Clamp because filter overshoots would otherwise squash down the volume
-		! of the rest of the track?  Probably not, because this interferes with
-		! the filter.  Maybe there should be a separate gain/clip arg
-		yout = y
-		!yout = max(-1.d0, min(1.d0, y))
-
-		! TODO: probably don't want to use `push()` here due to release.
-		! Release of one note can overlap with start of next note.  Instead of
-		! pushing, resize once per note.  Then add sample to previous value
-		! instead of (re) setting.  Fix release segment below too
-		call wave%push(yout)
-
-		!print *, "t, x, yout = ", t, x, yout
-
-	end do
-	call wave%trim()
-
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+	call write_wav(filename, audio)
 
 end subroutine write_waveform
 
@@ -558,7 +479,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus, rand
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
 
-	integer :: n, it, it0, it_end
+	integer :: n, it, itl, it0, it_end
 	integer(kind = 4) :: sample_rate! = audio%sample_rate
 
 	!type(vec_f64_t) :: wave
@@ -571,7 +492,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
-	sampd = 2250.d0
+	!sampd = 2250.d0
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
@@ -602,7 +523,10 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	n = int((len_ + env%r) * sample_rate)
 	it0 = int(t0 * sample_rate)
-	it_end = it0 + n + 1
+
+	!it_end = it0 + n + 1
+	it_end = it0 + n
+
 	!print *, "size channel = ", size(audio%channel, 1), size(audio%channel, 2)
 
 	if (it_end > size(audio%channel, 2)) then
@@ -614,6 +538,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 		allocate(audio%channel( size(tmp,1), it_end ))
 		audio%channel(:, 1: size(tmp,2)) = tmp
+		audio%channel(:, size(tmp,2) + 1:) = 0
 
 	end if
 
@@ -651,16 +576,13 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 		! pushing, resize once per note.  Then add sample to previous value
 		! instead of (re) setting.  Fix release segment below too
 
-		!audio%channel(1, it + it0) = yout
-		audio%channel(1, it + it0) = audio%channel(1, it + it0) + yout
-		!call wave%push(yout)
+		itl = it + it0
+		!audio%channel(1, itl) = yout
+		audio%channel(1, itl) = audio%channel(1, itl) + yout
 
 		!print *, "t, x, yout = ", t, x, yout
 
 	end do
-
-	!call wave%trim()
-	!call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
 
 end subroutine play_note
 
