@@ -2,9 +2,9 @@
 
 set -exu
 
-# Make a sine wave .wav file, save its FFT to .csv, and then plot using gnuplot.
-# Use a low frequency and a short length to avoid making too much data (and to
-# help make the plot readable)
+# Make a .wav file, save its FFT to .csv, and then plot using gnuplot. Use a low
+# frequency and a short length to avoid making too much data (and to help make
+# the plot readable)
 
 #********
 
