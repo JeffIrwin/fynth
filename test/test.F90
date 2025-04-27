@@ -506,9 +506,8 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 
 	double precision :: freq, len_, cutoff
 
-	procedure(fn_f64_to_f64), pointer :: waveform_fn
-
 	type(env_t) :: env, fenv
+	type(synth_t) :: synth
 
 	write(*,*) "Testing basic sounds ..."
 
@@ -529,10 +528,10 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/sin.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => sine_wave
+	synth = synth_t(cutoff, env, fenv, sine_wave)
 	freq = 310.d0
 	len_ = 0.6d0
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -542,10 +541,10 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/squ.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => square_wave
+	synth = synth_t(cutoff, env, fenv, square_wave)
 	freq = 320.d0
 	len_ = 0.7d0
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -555,10 +554,10 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/tri.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => triangle_wave
+	synth = synth_t(cutoff, env, fenv, triangle_wave)
 	freq = 330.d0
 	len_ = 0.8d0
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -568,10 +567,10 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/saw.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => sawtooth_wave
+	synth = synth_t(cutoff, env, fenv, sawtooth_wave)
 	freq = 340.d0
 	len_ = 0.9d0
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -597,9 +596,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 
 	double precision :: freq, len_, cutoff
 
-	procedure(fn_f64_to_f64), pointer :: waveform_fn
-
 	type(env_t) :: env, fenv
+	type(synth_t) :: synth
 
 	write(*,*) "Testing ADSR amplitude envelopes ..."
 
@@ -613,9 +611,9 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/sin-env.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => sine_wave
 	env = env_t(a = 0.3d0, d = 0.2d0, s = 0.5d0, r = 0.4d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, sine_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -624,9 +622,9 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/squ-env.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => square_wave
 	env = env_t(a = 0.4d0, d = 0.3d0, s = 0.6d0, r = 0.5d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, square_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -635,9 +633,9 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/tri-env.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => triangle_wave
 	env = env_t(a = 0.2d0, d = 0.3d0, s = 0.7d0, r = 0.6d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, triangle_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -646,9 +644,9 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/saw-env.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => sawtooth_wave
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.6d0, r = 0.3d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, sawtooth_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -658,10 +656,10 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	! Edge case: len_ < attack + decay
 	fwav = "test/resources/squ-env-ad.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => square_wave
 	len_ = 0.25d0
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.7d0, r = 0.5d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, square_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -671,10 +669,10 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	! Edge case: len_ < attack
 	fwav = "test/resources/squ-env-a.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => square_wave
 	len_ = 0.075
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.7d0, r = 0.5d0)
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, square_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)
@@ -686,12 +684,12 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	! premature for now with its usage of fenv and cutoff
 	fwav = "test/resources/squ-env-2.wav"
 	fmd5 = fwav // ".md5"
-	waveform_fn => square_wave
 	len_ = 3.4285714285714284d0
 	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
 	cutoff = 300.d0
-	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
+	synth = synth_t(cutoff, env, fenv, square_wave)
+	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
 	md5_expect = read_file(fmd5)

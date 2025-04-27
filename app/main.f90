@@ -14,6 +14,7 @@ program main
 	type(args_t)  :: args
 	type(audio_t) :: audio
 	type(env_t)   :: amp_env, filter_env
+	type(synth_t) :: synth
 
 	procedure(fn_f64_to_f64), pointer :: waveform_fn
 
@@ -69,16 +70,8 @@ program main
 	end if
 
 	if (args%has_waveform) then
-
-		call write_waveform &
-		( &
-			args%file1, &
-			waveform_fn, args%freq, args%len_, &
-			amp_env, &
-			cutoff, &
-			filter_env &
-		)
-
+		synth = synth_t(cutoff, amp_env, filter_env, waveform_fn)
+		call write_waveform(args%file1, synth, args%freq, args%len_)
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 

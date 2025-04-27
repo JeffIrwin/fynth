@@ -238,34 +238,24 @@ end function get_env_tab
 
 !===============================================================================
 
-subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
-		cutoff, fenv)
+subroutine write_waveform(filename, synth, freq, len_)
 
 	! TODO:
-	!   - take synth_t arg
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
 	!       is a spectrum from 0 == staccato to 1 == legato
 	!     * start time
 	!     * stereo pan
-	!   - maybe generalize to play onto an audio track instead of directly
-	!     writing to file.  that could be done separately
 
 	character(len = *), intent(in) :: filename
-	procedure(fn_f64_to_f64) :: waveform_fn
+	type(synth_t), intent(in) :: synth
 	double precision, intent(in) :: freq, len_
-	type(env_t), intent(in) :: env
-	double precision, intent(in) :: cutoff
-	type(env_t), intent(in) :: fenv
 
 	!********
 
 	double precision, parameter :: t = 0.d0
 	type(audio_t) :: audio
-	type(synth_t) :: synth
-
-	synth = synth_t(cutoff, env, fenv, waveform_fn)
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 	call play_note(audio, synth, freq, len_, t)
