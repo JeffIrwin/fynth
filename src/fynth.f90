@@ -3,7 +3,7 @@ module fynth
 
 	use fynth__audio
 	use fynth__io
-	use fynth__notes
+	!use fynth__notes
 	use fynth__utils
 
 	implicit none
@@ -67,14 +67,6 @@ module fynth
 		WAVEFORM_NOISE    = waveform_t(3), &
 		WAVEFORM_SINE     = waveform_t(2), &
 		WAVEFORM_SQUARE   = waveform_t(1)
-
-	abstract interface
-		! This is a function interface for passing callbacks
-		function fn_f64_to_f64(x) result(fx)
-			double precision, intent(in) :: x
-			double precision :: fx
-		end function
-	end interface
 
 contains
 
@@ -250,6 +242,7 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 		cutoff, fenv)
 
 	! TODO:
+	!   - take synth_t arg
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
@@ -268,100 +261,18 @@ subroutine write_waveform(filename, waveform_fn, freq, len_, env, &
 
 	!********
 
+	double precision, parameter :: t = 0.d0
 	type(audio_t) :: audio
-	!type(vec_f64_t) :: wave
+	type(synth_t) :: synth
 
-	!********
+	synth = synth_t(cutoff, env, fenv, waveform_fn)
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
-
-	!call play_note(audio, wave, tr*A1J , wn, t, env, cutoff, fenv)
-	call play_note(audio, waveform_fn, freq, len_, 0.d0, env, cutoff, fenv)
-
+	!call play_note(audio, waveform_fn, freq, len_, t, env, cutoff, fenv)
+	call play_note_s(audio, synth, freq, len_, t)
 	call write_wav(filename, audio)
 
 end subroutine write_waveform
-
-!===============================================================================
-
-double precision function square_wave(t) result(x)
-	! Unit amplitude square wave with unit period
-	double precision, intent(in) :: t
-
-	! True square wave
-	x = 4.d0 * floor(t) - 2.d0 * floor(2 * t) + 1.d0
-
-	!! A pulse wave can be created by subtracting a sawtooth wave from a
-	!! phase-shifted version of itself
-	!!
-	!! TODO: add pm arg for waveform fns (except true_saw_wave())
-	!double precision, parameter :: pm = 0.2d0
-	!x = true_saw_wave(t) - true_saw_wave(t + pm) + 2 * pm - 1.d0
-
-end function square_wave
-
-double precision function triangle_wave(t) result(x)
-	double precision, intent(in) :: t
-
-	!x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0
-
-	!double precision, parameter :: pm = 0.8d0  ! 0 for true tri wave
-
-	!!double precision :: pm1, pm2
-	!!pm2 = 2.d0 * pm - 1.d0
-	!!pm1 = 1.d0 - pm2
-
-	x = 4.d0 * abs(t - floor(t + 0.75d0) + 0.25d0) - 1.d0  ! in [-1, 1]
-
-	!x = 0.5d0 * (x + 1.d0)  ! in [0, 1]
-	!x = max(x, pm)          ! in [pm, 1]
-	!x = x - pm              ! in [0, 1-pm]
-	!x = x / (1.d0 - pm)     ! in [0, 1]
-	!x = 2.d0 * x - 1.d0     ! in [-1, 1]
-
-	!!x = max(x, pm2) * 2.d0 / pm1
-	!!!x = (x - (pm2 + 1.d0)) * 2.d0 / pm1
-	!!!x = (x - (pm2 + 1.d0))
-
-end function triangle_wave
-
-double precision function true_saw_wave(t) result(x)
-	double precision, intent(in) :: t
-	x = 2.d0 * (t - floor(t + 0.5d0))
-end function true_saw_wave
-
-double precision function sawtooth_wave(t) result(x)
-	double precision, intent(in) :: t
-
-	!double precision, parameter :: pm = 0.8d0  ! 0 for true sawtooth wave
-
-	x = 2.d0 * (t - floor(t + 0.5d0))
-
-	!x = 0.5d0 * (x + 1.d0)  ! in [0, 1]
-	!x = max(x, pm)          ! in [pm, 1]
-	!x = x - pm              ! in [0, 1-pm]
-	!x = x / (1.d0 - pm)     ! in [0, 1]
-	!x = 2.d0 * x - 1.d0     ! in [-1, 1]
-
-end function sawtooth_wave
-
-double precision function sine_wave(t) result(x)
-	double precision, intent(in) :: t
-	x = sin(2 * PI * t)
-end function sine_wave
-
-double precision function noise_wave(t) result(x)
-	double precision, intent(in) :: t
-	!! TODO:  seed rng once at beginning.  Or not depending on an arg?
-	!call random_seed(size = nrng)
-	!call random_seed(put = [(0, i = 1, nrng)])
-
-	!associate(t => t) ; end associate
-	if (.false.) print *, t  ! quiet unused dummy arg warning
-
-	call random_number(x)  ! in [0, 1)
-	x = 2.d0 * x - 1.d0
-end function noise_wave
 
 !===============================================================================
 
@@ -383,6 +294,8 @@ end function new_audio
 !===============================================================================
 
 subroutine write_wav_licc(filename)
+
+	use fynth__notes
 
 	character(len = *), intent(in) :: filename
 
@@ -450,12 +363,141 @@ end subroutine write_wav_licc
 
 !===============================================================================
 
+subroutine play_note_s(audio, synth, freq, len_, t0)
+
+	! TODO:
+	!   - delete old play_note() and rename this fn
+	!   - reorder args with t0 before len_
+	!   - add more args:
+	!     * amp :  max amplitude/volume
+	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
+	!       is a spectrum from 0 == staccato to 1 == legato
+	!     * track index?
+	!     * stereo pan, or leave until mixing?
+
+	type(audio_t), intent(inout) :: audio
+
+	type(synth_t), intent(in) :: synth
+	double precision, intent(in) :: freq, len_, t0
+
+	!********
+
+	double precision, parameter :: amp = 1.d0  ! could be an arg later
+	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
+		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus, rand
+	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
+
+	integer :: n, it, itl, it0, it_end
+	integer(kind = 4) :: sample_rate! = audio%sample_rate
+
+	!********
+
+	sample_rate = audio%sample_rate
+
+	amp_tab = get_env_tab(synth%env, len_, 0.d0, synth%env%s, 1.d0)
+
+	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
+	sampd = 0.501d0 * dble(sample_rate)
+	sampd = 2250.d0  ! TODO: fmax cutoff member var in synth_t
+
+	fsus = lerp(synth%cutoff, sampd, synth%fenv%s)  ! TODO: linear in octaves?
+	!print *, "fenv%s = ", fenv%s
+	!print *, "cutoff = ", cutoff
+	!print *, "sampd  = ", sampd
+	!print *, "fsus   = ", fsus
+
+	ftab = get_env_tab(synth%fenv, len_, synth%cutoff, fsus, sampd)
+
+	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
+
+	call random_number(rand)
+	rand = 2.d0 * rand - 1.d0
+
+	!f = freq
+	!f = freq * (1.d0 + 0.003d0 * rand)  ! slop
+	f = freq * (1.d0 + 0.d0 * rand)
+
+	! TODO: consider using arrays for previous signals for generalization from
+	! two-pole to four-pole filters
+	x = 0.d0
+	x0 = 0.d0
+	x00 = 0.d0
+
+	y = 0.d0
+	y0 = 0.d0
+	y00 = 0.d0
+
+	n = int((len_ + synth%env%r) * sample_rate)
+	it0 = int(t0 * sample_rate)
+
+	!it_end = it0 + n + 1
+	it_end = it0 + n
+
+	!print *, "size channel = ", size(audio%channel, 1), size(audio%channel, 2)
+
+	if (it_end > size(audio%channel, 2)) then
+		! Resize
+		!
+		! TODO: grow by 2*it_end to reduce amortization.  Track length somewhere
+		! and trim in caller
+		call move_alloc(audio%channel, tmp)
+
+		allocate(audio%channel( size(tmp,1), it_end ))
+		audio%channel(:, 1: size(tmp,2)) = tmp
+		audio%channel(:, size(tmp,2) + 1:) = 0
+
+	end if
+
+	do it = 1, n
+		t = 1.d0 * it / sample_rate
+
+		ampi = plerp(amp_tab, t)
+		ampl = amp * ampi ** AMP_EXP
+
+		! Update
+		y00 = y0
+		y0 = y
+
+		x00 = x0
+		x0 = x
+
+		! Filter input signal is `x`
+		x = ampl * synth%wave(f * t)
+
+		cutoffl = 2 ** plerp(ftab, t)
+		call get_filter_coefs(cutoffl, sample_rate, a1, a2, b0, b1, b2)
+		!print *, "cutoffl = ", cutoffl
+
+		! Note the negative a* terms
+		y = b0 * x + b1 * x0 + b2 * x00 - a1 * y0 - a2 * y00
+
+		! Clamp because filter overshoots would otherwise squash down the volume
+		! of the rest of the track?  Probably not, because this interferes with
+		! the filter.  Maybe there should be a separate gain/clip arg
+		yout = y
+		!yout = max(-1.d0, min(1.d0, y))
+
+		! TODO: probably don't want to use `push()` here due to release.
+		! Release of one note can overlap with start of next note.  Instead of
+		! pushing, resize once per note.  Then add sample to previous value
+		! instead of (re) setting.  Fix release segment below too
+
+		itl = it + it0
+		!audio%channel(1, itl) = yout
+		audio%channel(1, itl) = audio%channel(1, itl) + yout
+
+		!print *, "t, x, yout = ", t, x, yout
+
+	end do
+
+end subroutine play_note_s
+
+!===============================================================================
+
 subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 		cutoff, fenv)
 
 	! TODO:
-	!   - encapsulate waveform_fn, env, cutoff, fenv, etc. into new `synth_t` or
-	!     `instrument_t` type.  but not freq, len_, legato etc.
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
@@ -593,6 +635,8 @@ subroutine write_wav_licc_basic(filename)
 	! This is a more flexible example that plays some notes from an array by
 	! pushing their waveforms to a dynamic double `wave` vector
 
+	use fynth__notes
+
 	character(len = *), intent(in) :: filename
 
 	!********
@@ -650,6 +694,8 @@ subroutine write_wav_test(filename)
 
 	! This is a simple and direct example of writing a wav file, using a
 	! static-size integer wave `buffer` array which is written immediately
+
+	use fynth__notes
 
 	character(len = *), intent(in) :: filename
 

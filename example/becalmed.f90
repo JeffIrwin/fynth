@@ -1,5 +1,8 @@
 program example
+
 	use fynth
+	use fynth__notes
+
 	implicit none
 
 	character(len = :), allocatable :: filename

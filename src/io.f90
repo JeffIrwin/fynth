@@ -2,7 +2,7 @@
 module fynth__io
 
 	use fynth__audio
-	use fynth__notes
+	!use fynth__notes
 	use fynth__utils
 
 	implicit none
