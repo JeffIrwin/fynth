@@ -45,6 +45,8 @@ program example
 	! Transpose up from A to D
 	tr = D2 / A1
 
+	print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
+
 	!********
 	t = 0 * wn
 	! A
