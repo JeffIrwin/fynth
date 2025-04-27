@@ -568,10 +568,6 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 	sample_rate = audio%sample_rate
 
 	amp_tab = get_env_tab(env, len_, 0.d0, env%s, 1.d0)
-	print *, "len_ = ", len_
-	print *, "len_ + env%r = ", len_ + env%r
-	print *, "amp_tab = "
-	print "(2es16.6)", amp_tab
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
@@ -584,8 +580,6 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 	!print *, "fsus   = ", fsus
 
 	ftab = get_env_tab(fenv, len_, cutoff, fsus, sampd)
-	print *, "ftab = "
-	print "(2es16.6)", ftab
 
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 
@@ -613,6 +607,9 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	if (it_end > size(audio%channel, 2)) then
 		! Resize
+		!
+		! TODO: grow by 2*it_end to reduce amortization.  Track length somewhere
+		! and trim in caller
 		call move_alloc(audio%channel, tmp)
 
 		allocate(audio%channel( size(tmp,1), it_end ))
