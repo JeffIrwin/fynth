@@ -603,7 +603,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 	n = int((len_ + env%r) * sample_rate)
 	it0 = int(t0 * sample_rate)
 	it_end = it0 + n + 1
-	print *, "size channel = ", size(audio%channel, 1), size(audio%channel, 2)
+	!print *, "size channel = ", size(audio%channel, 1), size(audio%channel, 2)
 
 	if (it_end > size(audio%channel, 2)) then
 		! Resize

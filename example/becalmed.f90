@@ -6,8 +6,8 @@ program example
 
 	!********
 
-	double precision :: bpm, quarter_note, eigth_note, en, qn, &
-		cutoff, tb1, tb2, tb3, tb4, wn, tb5, tb6, tb7, tb8, tr
+	double precision :: bpm, quarter_note, eigth_note, en, qn, wn, hn, dhn, &
+		cutoff, t, tr
 
 	!integer :: ii!, it
 
@@ -29,86 +29,84 @@ program example
 	! Aliases
 	qn = quarter_note
 	en = eigth_note
-	wn = 4 * qn
-
-	! TODO: use time differently.  Set a baseline at the start of each bar, then
-	! set note times as the bar start plus on offset.  This should be less error
-	! prone and make it easier to cut/paste bars
-	tb1 = 0.d0
-	tb2 = 4 * quarter_note
-	tb3 = 2 * tb2
-	tb4 = 3 * tb2
-	tb5 = 4 * tb2
-	tb6 = 5 * tb2
-	tb7 = 6 * tb2
-	tb8 = 7 * tb2
+	hn  = 2 * qn
+	dhn = 3 * qn
+	wn  = 4 * qn
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
 	cutoff = 300.d0
 
-	!env  = env_t(a = 0, d = 0, s = 1, r = 0)
-	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
-	!env  = env_t(a = 0, d = 0.1, s = 0.5, r = 0.5)
+	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
+	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
 
-	!fenv = env_t(a = 0, d = 0, s = 0, r = 0)
-	!fenv = env_t(a = 0, d = 0.2, s = 0, r = 0)
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 
 	! Transpose up from A to D
 	tr = D2 / A1
 
 	!********
+	t = 0 * wn
 	! A
-	call play_note(audio, square_wave, tr*A1 , wn, tb1, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*E3 , wn, tb1, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb1, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*CS4, wn, tb1, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*E3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
 
-	! TODO: appogiaturas
+	call play_note(audio, square_wave, tr*B3 , qn , t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*CS4, dhn, t+qn, env, cutoff, fenv)
 
+	t = 1 * wn
 	! D
-	call play_note(audio, square_wave, tr*D1 , wn, tb2, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*FS3, wn, tb2, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb2, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*D4 , wn, tb2, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS3, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D4 , wn, t, env, cutoff, fenv)
 
+	t = 2 * wn
 	! F#m
-	call play_note(audio, square_wave, tr*FS1, wn, tb3, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*FS3, wn, tb3, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb3, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*CS4, wn, tb3, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS1, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS3, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*CS4, wn, t, env, cutoff, fenv)
 
+	t = 3 * wn
 	! D (different voicing now)
-	call play_note(audio, square_wave, tr*D1 , wn, tb4, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*D3 , wn, tb4, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*FS3, wn, tb4, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb4, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS3, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
 
 	!********
+	t = 4 * wn
 	! A
-	call play_note(audio, square_wave, tr*A1 , wn, tb5, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*E3 , wn, tb5, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb5, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*CS4, wn, tb5, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*E3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
 
+	call play_note(audio, square_wave, tr*B3 , qn , t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*CS4, dhn, t+qn, env, cutoff, fenv)
+
+	t = 5 * wn
 	! E
-	call play_note(audio, square_wave, tr*E1 , wn, tb6, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*B2 , wn, tb6, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*E3 , wn, tb6, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*GS3, wn, tb6, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*E1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*B2 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*E3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*GS3, wn, t, env, cutoff, fenv)
 
+	t = 6 * wn
 	! F#m
-	call play_note(audio, square_wave, tr*FS1, wn, tb7, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*CS3, wn, tb7, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*FS3, wn, tb7, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb7, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS1, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS3, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
 
+	call play_note(audio, square_wave, tr*CS3, hn, t+hn, env, cutoff, fenv)
+
+	t = 7 * wn
 	! D
-	call play_note(audio, square_wave, tr*D1 , wn, tb8, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*D3 , wn, tb8, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*FS3, wn, tb8, env, cutoff, fenv)
-	call play_note(audio, square_wave, tr*A3 , wn, tb8, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D1 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*D3 , wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*FS3, wn, t, env, cutoff, fenv)
+	call play_note(audio, square_wave, tr*A3 , wn, t, env, cutoff, fenv)
 
 	!********
 
