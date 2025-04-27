@@ -492,7 +492,7 @@ subroutine play_note(audio, waveform_fn, freq, len_, t0, env, &
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
-	!sampd = 2250.d0
+	sampd = 2250.d0  ! TODO: fmax cutoff arg
 
 	fsus = lerp(cutoff, sampd, fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s

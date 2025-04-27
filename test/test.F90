@@ -689,8 +689,7 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	waveform_fn => square_wave
 	len_ = 3.4285714285714284d0
 	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
-	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 0)
-	!fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
+	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
 	cutoff = 300.d0
 	call write_waveform(fwav, waveform_fn, freq, len_, env, cutoff, fenv)
 	md5 = md5_file(fwav)
