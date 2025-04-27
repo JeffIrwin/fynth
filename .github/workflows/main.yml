@@ -53,4 +53,5 @@ jobs:
     - name: Test fynth on ${{ matrix.os }}
       run: |
         fpm test
+        fpm run --example
 

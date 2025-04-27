@@ -34,8 +34,13 @@ RUN fpm run --profile debug -- --version
 RUN fpm run --profile debug -- --help
 RUN fpm run --profile debug
 
+# Run the main fynth app
 RUN fpm build --profile release
 RUN fpm run --profile release
+
+# Run all the examples
+RUN fpm run --example --profile debug
+RUN fpm run --example --profile release
 
 RUN fpm install --prefix /workdir/ --profile release
 ENV PATH="$PATH:/workdir/bin/"
