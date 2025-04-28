@@ -18,7 +18,7 @@ program example
 
 	!********
 
-	print *, "running example becalmed"
+	print *, "Running example becalmed"
 	filename = "build/becalmed.wav"
 
 	! Beats per minute
@@ -38,18 +38,15 @@ program example
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
 	cutoff = 300.d0
-
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
-
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
+	synth = synth_t(cutoff, env, fenv, square_wave)
 
 	! Transpose up from A to D
 	tr = D2 / A1
 
-	print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
-
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 
 	!********
 	t = 0 * wn

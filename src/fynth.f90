@@ -356,6 +356,7 @@ end subroutine write_wav_licc
 subroutine play_note(audio, synth, freq, t0, len_)
 
 	! TODO:
+	!   - add test for this fn
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * legato:  fraction of how long note is held out of `len_`.  name?  this

@@ -22,7 +22,7 @@ program example
 
 	!********
 
-	print *, "running example just"
+	print *, "Running example just"
 	filename = "build/just.wav"
 
 	! Beats per minute
@@ -43,45 +43,52 @@ program example
 
 	!wave => sawtooth_wave
 	wave => square_wave
-
 	cutoff = 300.d0
-
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
-
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
+	synth = synth_t(cutoff, env, fenv, square_wave)
 
 	! Transpose up from A to D
 	tr = D2 / A1
 
+	! Calculate just-intonation frequencies based on simple ratios.  Do this as
+	! needed for a few notes in your key, and get other octaves by multiplying
+	! powers of 2
 	A1J = A_440 / 8
 	D1J = A1J * 2 / 3
 	E1J = A1J * 3 / 4
 	CS3J = A1J * 5 / 4 * 2
-
-	!FS1J = CS3J * 2 / 3 / 2
-	FS1J = D1J * 5 / 4  ! same thing
-
+	FS1J = D1J * 5 / 4
 	B2J = E1J * 3 / 2 * 2
 	D3J = D1J * 4
 	E3J = E1J * 4
 	FS3J = FS1J * 4
 	GS3J = E1J * 5 / 4 * 4
 	A3J = A1J * 4
-	B3J = E1J * 3 / 2 * 4
+	B3J = B2J * 2
 	CS4J = CS3J * 2
 	D4J = D3J * 2
 
-	print "(*(f10.4))", [D1, E1, FS1, A1, CS3, D3, E3]
-	print "(*(f10.4))", [D1J, E1J, FS1J, A1J, CS3J, D3J, E3J]
+	print *, "---------------------------------------------"
+	print *, "Note, 12-ET freq (Hz), just-intoned freq (Hz)"
+	print *, "---------------------------------------------"
+	print "(a,*(f13.4))", " D1  ", D1       , D1J
+	print "(a,*(f13.4))", " E1  ", E1       , E1J
+	print "(a,*(f13.4))", " F#1 ", FS1      , FS1J
+	print "(a,*(f13.4))", " A1  ", A1       , A1J
+	print "(a,*(f13.4))", " B2  ", B2       , B2J
+	print "(a,*(f13.4))", " C#3 ", CS3      , CS3J
+	print "(a,*(f13.4))", " D3  ", D3       , D3J
+	print "(a,*(f13.4))", " E3  ", E3       , E3J
+	print "(a,*(f13.4))", " F#3 ", FS3      , FS3J
+	print "(a,*(f13.4))", " G#3 ", GS3      , GS3J
+	print "(a,*(f13.4))", " A3  ", A3       , A3J
+	print "(a,*(f13.4))", " B3  ", B3       , B3J
+	print "(a,*(f13.4))", " C#4 ", CS4      , CS4J
+	print "(a,*(f13.4))", " D4  ", D4       , D4J
+	print *, "---------------------------------------------"
 	print *, ""
-
-	print "(*(f10.4))", [FS3, GS3, A3, B3, CS4, D4]
-	print "(*(f10.4))", [FS3J, GS3J, A3J, B3J, CS4J, D4J]
-	print "(*(f10.4))", [FS3J*6/5]
-	print *, ""
-
-	synth = synth_t(cutoff, env, fenv, square_wave)
 
 	!********
 	t = 0 * wn
