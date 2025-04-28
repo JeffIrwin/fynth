@@ -387,7 +387,8 @@ subroutine play_note(audio, synth, freq, t0, len_)
 
 	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
 	sampd = 0.501d0 * dble(sample_rate)
-	sampd = 2250.d0  ! TODO: fmax cutoff member var in synth_t
+	!sampd = 2250.d0  ! becalmed.  TODO: fmax cutoff member var in synth_t
+	sampd = 6000.d0  ! goldberg.   TODO: fmax cutoff member var in synth_t
 
 	fsus = lerp(synth%cutoff, sampd, synth%fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
