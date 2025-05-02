@@ -1,3 +1,4 @@
+
 program example
 
 	use fynth
@@ -9,8 +10,10 @@ program example
 
 	!********
 
-	double precision :: bpm, cutoff, t, tr
+	double precision :: bpm, cutoff, t
 	double precision :: n2d, n4, n4d, n8, n8d, n16, n16d, n32, n32d, n64
+
+	integer :: irep
 
 	type(audio_t) :: audio
 	type(env_t) :: env, fenv
@@ -18,6 +21,7 @@ program example
 
 	!********
 
+	! JS Bach, BWV 988
 	print *, "Running example goldberg-var-7"
 	filename = "build/goldberg-var-7.wav"
 
@@ -51,8 +55,12 @@ program example
 
 	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 
+	t = 0
+
+	do irep = 1, 2  ! first half repeat
+	!do irep = 1, -1 ! for developing second half
 	!********
-	t = 0 * n2d
+	! Bar 1
 
 	! LH (left hand)
 	!call play_note(audio, synth, G3 , t+0  , n4 )
@@ -74,9 +82,9 @@ program example
 	call play_note(audio, synth, G4 , t+n4d+n8d, n16 )
 	call play_note(audio, synth, B4 , t+n4d+n4 , n8  )
 
+	t = t + n2d
 	!********
-	t = 1 * n2d
-	! TODO: increment time instead of hard-coding each measure start time
+	! Bar 2
 	
 	! LH
 	! (after tie from last bar)
@@ -97,8 +105,9 @@ program example
 
 	call play_note(audio, synth, D5 , t+n4d+0  , n4d )
 
+	t = t + n2d
 	!********
-	t = 2 * n2d
+	! Bar 3
 
 	! LH
 	call play_note(audio, synth, E3 , t+0 , n4)
@@ -117,8 +126,9 @@ program example
 	call play_note(audio, synth, E5 , t+n4d+n8d, n16 )
 	call play_note(audio, synth, G5 , t+n4d+n4 , n8  )
 
+	t = t + n2d
 	!********
-	t = 3 * n2d
+	! Bar 4
 
 	! LH
 	call play_note(audio, synth, D4 , t+0 , n4d+n8d)
@@ -136,8 +146,9 @@ program example
 
 	call play_note(audio, synth, D5 , t+n4d+0  , n4d+n4)
 
+	t = t + n2d
 	!********
-	t = 4 * n2d
+	! Bar 5
 
 	! LH
 	call play_note(audio, synth, B3 , t+0  , n8d )
@@ -158,8 +169,9 @@ program example
 	call play_note(audio, synth, G5 , t+n4d+n8d, n16 )
 	call play_note(audio, synth, D5 , t+n4d+n4 , n8  )
 
+	t = t + n2d
 	!********
-	t = 5 * n2d
+	! Bar 6
 
 	! LH
 	call play_note(audio, synth, C4 , t+0  , n8d )
@@ -181,8 +193,9 @@ program example
 	call play_note(audio, synth, A5 , t+n4d+n8d, n16 )
 	call play_note(audio, synth, E5 , t+n4d+n4 , n8  )
 
+	t = t + n2d
 	!********
-	t = 6 * n2d
+	! Bar 7
 
 	! LH
 	call play_note(audio, synth, D4 , t+0  , n8d )
@@ -201,8 +214,9 @@ program example
 	call play_note(audio, synth, B4 , t+n4d+n8d, n16 )
 	call play_note(audio, synth, C5 , t+n4d+n4 , n8  )
 
+	t = t + n2d
 	!********
-	t = 7 * n2d
+	! Bar 8
 
 	! LH
 	call play_note(audio, synth, G3 , t+0  , n8d )
@@ -221,8 +235,9 @@ program example
 	call play_note(audio, synth, G4 , t+n4d+n8d+n16, n16)
 	call play_note(audio, synth, FS4, t+n4d+n8d+n8 , n16)
 
+	t = t + n2d
 	!********
-	t = 8 * n2d
+	! Bar 9
 
 	! LH
 	call play_note(audio, synth, C4 , t+0   , n64 )
@@ -237,9 +252,538 @@ program example
 	call play_note(audio, synth, D4 , t+n4d+n4 , n8  )
 
 	! RH
-	call play_note(audio, synth, G4 , t+0   , n4    )
+	call play_note(audio, synth, G4 , t+0  , n4 )
+	call play_note(audio, synth, D5 , t+n4 , n8 )
+	call play_note(audio, synth, G5 , t+n4d+0  , n32)
+	call play_note(audio, synth, FS5, t+n4d+n32, n32)
+	call play_note(audio, synth, G5 , t+n4d+n16, n16+n4+n8)
 
+	t = t + n2d
 	!********
+	! Bar 10
+
+	! LH
+	call play_note(audio, synth, D4 , t+0   , n64 )
+	call play_note(audio, synth, CS4, t+n64 , n64 )
+	call play_note(audio, synth, D4 , t+n32 , n64 )
+	call play_note(audio, synth, CS4, t+n32d, n64+n8)
+	call play_note(audio, synth, B3 , t+n8d, n16 )
+	call play_note(audio, synth, A3 , t+n4 , n8  )
+
+	call play_note(audio, synth, D4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, CS4, t+n4d+n8d, n16 )
+	call play_note(audio, synth, D4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, A5 , t+n8    , n16 )
+	call play_note(audio, synth, G5 , t+n8d   , n16 )
+	call play_note(audio, synth, FS5, t+n4    , n16 )
+	call play_note(audio, synth, E5 , t+n4+n16, n16 )
+
+	call play_note(audio, synth, FS5, t+n4d+0  , n32)
+	call play_note(audio, synth, E5 , t+n4d+n32, n32)
+	call play_note(audio, synth, FS5, t+n4d+n16, n16+n4+n8d)
+
+	t = t + n2d
+	!********
+	! Bar 11
+
+	! LH
+	call play_note(audio, synth, G3 , t+0  , n8d )
+	call play_note(audio, synth, B3 , t+n8d, n16 )
+	call play_note(audio, synth, D4 , t+n4 , n8  )
+
+	call play_note(audio, synth, G4 , t+n4d+0  , n4d+n8)
+
+	! RH
+	call play_note(audio, synth, G5 , t+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4 , n8  )
+
+	call play_note(audio, synth, E5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, CS5, t+n4d+n8d, n16 )
+	call play_note(audio, synth, D5 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 12
+
+	! LH
+	call play_note(audio, synth, A4 , t+n8    , n16 )
+	call play_note(audio, synth, G4 , t+n8d   , n16 )
+	call play_note(audio, synth, FS4, t+n4    , n16 )
+	call play_note(audio, synth, E4 , t+n4+n16, n16 )
+
+	call play_note(audio, synth, FS4, t+n4d+0  , n8d )
+	call play_note(audio, synth, G4 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, A4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, D5 , t+0   , n64 )
+	call play_note(audio, synth, CS5, t+n64 , n64 )
+	call play_note(audio, synth, D5 , t+n32 , n64 )
+	call play_note(audio, synth, CS5, t+n32d, n64+n8)
+	call play_note(audio, synth, D5 , t+n8d, n16 )
+	call play_note(audio, synth, E5 , t+n4 , n8  )
+
+	call play_note(audio, synth, A4 , t+n4d+0  , n4d+n4 )
+
+	t = t + n2d
+	!********
+	! Bar 13
+
+	! LH
+	call play_note(audio, synth, D4 , t+0  , n8d )
+	call play_note(audio, synth, A3 , t+n8d, n16 )
+	call play_note(audio, synth, FS3, t+n4 , n8  )
+
+	call play_note(audio, synth, D3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, E3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, FS3, t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, B4 , t+n4+0   , n32 )
+	call play_note(audio, synth, CS5, t+n4+n32 , n32 )
+	call play_note(audio, synth, D5 , t+n4+n16 , n32 )
+	call play_note(audio, synth, E5 , t+n4+n16d, n32 )
+
+	call play_note(audio, synth, FS5, t+n4d+0  , n8d )
+	call play_note(audio, synth, D5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, A4 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 14
+
+	! LH
+	call play_note(audio, synth, G3 , t+0  , n8d )
+	call play_note(audio, synth, A3 , t+n8d, n16 )
+	call play_note(audio, synth, FS3, t+n4 , n8  )
+
+	call play_note(audio, synth, E3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, FS3, t+n4d+n8d, n16 )
+	call play_note(audio, synth, G3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, B4 , t+0      , n4  )
+	call play_note(audio, synth, CS5, t+n4+0   , n32 )
+	call play_note(audio, synth, D5 , t+n4+n32 , n32 )
+	call play_note(audio, synth, E5 , t+n4+n16 , n32 )
+	call play_note(audio, synth, FS5, t+n4+n16d, n32 )
+
+	call play_note(audio, synth, G5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, E5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, B4 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 15
+
+	! LH
+	call play_note(audio, synth, A3 , t+0  , n8d )
+	call play_note(audio, synth, G3 , t+n8d, n16 )
+	call play_note(audio, synth, FS3, t+n4 , n8  )
+
+	call play_note(audio, synth, B3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, G3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, A3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, B4 , t+0    , n32   )
+	call play_note(audio, synth, CS5, t+n32  , n32+n8)
+	call play_note(audio, synth, A4 , t+n8d  , n16   )
+	call play_note(audio, synth, A5 , t+n4   , n8    )
+
+	call play_note(audio, synth, D5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, E5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, CS5, t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 16
+
+	! LH
+	call play_note(audio, synth, D3 , t+0  , n8d )
+	call play_note(audio, synth, FS3, t+n8d, n16 )
+	call play_note(audio, synth, A3 , t+n4 , n8  )
+
+	call play_note(audio, synth, D4 , t+n4d+0  , n4d )
+
+	! RH
+	call play_note(audio, synth, CS5, t+0    , n4d)
+	call play_note(audio, synth, D5 , t+n4d  , n4d)
+
+	t = t + n2d
+	!********
+	end do  ! end first half repeat
+
+	!--------------------------------
+
+	do irep = 1, 2  ! second half repeat
+	!********
+	! Bar 17
+
+	! LH
+	call play_note(audio, synth, D4 , t+0 , n4)
+	call play_note(audio, synth, D3 , t+n4, n8)
+	call play_note(audio, synth, D4 , t+n4d+0 , n4)
+	call play_note(audio, synth, C4 , t+n4d+n4, n8)
+
+	! RH
+	call play_note(audio, synth, FS5, t+0  , n8d )
+	call play_note(audio, synth, E5 , t+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4 , n8  )
+
+	call play_note(audio, synth, A4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, D5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 18
+
+	! LH
+	call play_note(audio, synth, C4 , t+0   , n64 )
+	call play_note(audio, synth, B3 , t+n64 , n64 )
+	call play_note(audio, synth, C4 , t+n32 , n64 )
+	call play_note(audio, synth, B3 , t+n32d, n64+n8)
+	call play_note(audio, synth, A3 , t+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4 , n8  )
+
+	call play_note(audio, synth, G3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, G5 , t+0  , n8d )
+	call play_note(audio, synth, FS5, t+n8d, n16 )
+	call play_note(audio, synth, G5 , t+n4 , n8  )
+
+	call play_note(audio, synth, B5 , t+n4d+0  , n4d )
+
+	t = t + n2d
+	!********
+	! Bar 19
+
+	! LH
+	call play_note(audio, synth, C4 , t+0  , n8d )
+	call play_note(audio, synth, D4 , t+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4 , n8  )
+
+	call play_note(audio, synth, A3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, B3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, C4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, E5 , t+0      , n4  )
+	call play_note(audio, synth, FS5, t+n4+0   , n32 )
+	call play_note(audio, synth, G5 , t+n4+n32 , n32 )
+	call play_note(audio, synth, A5 , t+n4+n16 , n32 )
+	call play_note(audio, synth, B5 , t+n4+n16d, n32 )
+
+	call play_note(audio, synth, C6 , t+n4d+0     , n16 )
+	call play_note(audio, synth, B5 , t+n4d+n16   , n16 )
+	call play_note(audio, synth, A5 , t+n4d+n8    , n16 )
+	call play_note(audio, synth, G5 , t+n4d+n8d   , n16 )
+	call play_note(audio, synth, FS5, t+n4d+n4    , n16 )
+	call play_note(audio, synth, E5 , t+n4d+n4+n16, n16 )
+
+	t = t + n2d
+	!********
+	! Bar 20
+
+	! LH
+	call play_note(audio, synth, B3 , t+0  , n4)
+	call play_note(audio, synth, B2 , t+n4 , n8)
+
+	call play_note(audio, synth, B3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, E5 , t+0   , n64   )
+	call play_note(audio, synth, DS5, t+n64 , n64   )
+	call play_note(audio, synth, E5 , t+n32 , n64   )
+	call play_note(audio, synth, DS5, t+n32d, n64+n8)
+	call play_note(audio, synth, CS5, t+n8d , n16   )
+	call play_note(audio, synth, DS5, t+n4  , n8    )
+
+	call play_note(audio, synth, B4 , t+n4d+0  , n4d+n8d)
+
+	t = t + n2d
+	!********
+	! Bar 21
+
+	! LH
+	call play_note(audio, synth, G3 , t+0      , n4  )
+	call play_note(audio, synth, A3 , t+n4+0   , n32 )
+	call play_note(audio, synth, B3 , t+n4+n32 , n32 )
+	call play_note(audio, synth, CS4, t+n4+n16 , n32 )
+	call play_note(audio, synth, DS4, t+n4+n16d, n32 )
+
+	call play_note(audio, synth, E4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, B3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, G3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, B5 , t+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4 , n8  )
+
+	call play_note(audio, synth, G5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, DS5, t+n4d+n8d, n16 )
+	call play_note(audio, synth, E5 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 22
+
+	! LH
+	call play_note(audio, synth, A3 , t+0      , n4  )
+	call play_note(audio, synth, B3 , t+n4+0   , n32 )
+	call play_note(audio, synth, C4 , t+n4+n32 , n32 )
+	call play_note(audio, synth, D4 , t+n4+n16 , n32 )
+	call play_note(audio, synth, E4 , t+n4+n16d, n32 )
+
+	call play_note(audio, synth, F4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, E4 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, DS4, t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, C5 , t+0  , n8d )
+	call play_note(audio, synth, E5 , t+n8d, n16 )
+	call play_note(audio, synth, GS5, t+n4 , n8  )
+
+	call play_note(audio, synth, A5 , t+n4d, n4  )
+	call play_note(audio, synth, B5 , t+n4d+n4     , n32)
+	call play_note(audio, synth, A5 , t+n4d+n4+n32 , n32)
+	call play_note(audio, synth, G5 , t+n4d+n4+n16 , n32)
+	call play_note(audio, synth, FS5, t+n4d+n4+n16d, n32)
+
+	t = t + n2d
+	!********
+	! Bar 23
+
+	! LH
+	call play_note(audio, synth, E4 , t+0  , n4)
+	call play_note(audio, synth, G3 , t+n4 , n8)
+
+	call play_note(audio, synth, C4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, G5 , t+0  , n8d )
+	call play_note(audio, synth, A5 , t+n8d, n16 )
+	call play_note(audio, synth, B5 , t+n4 , n8  )
+
+	call play_note(audio, synth, E5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, FS5, t+n4d+n8d, n16 )
+	call play_note(audio, synth, DS5, t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 24
+
+	! LH
+	call play_note(audio, synth, E3 , t+0  , n4d+n8d)
+
+	call play_note(audio, synth, E4 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, D4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, E5 , t+0  , n8d )
+	call play_note(audio, synth, B4 , t+n8d, n16 )
+	call play_note(audio, synth, G4 , t+n4 , n8  )
+
+	call play_note(audio, synth, E4 , t+n4d+0  , n4 )
+	call play_note(audio, synth, B4 , t+n4d+n4 , n8 )
+
+	t = t + n2d
+	!********
+	! Bar 25
+
+	! LH
+	call play_note(audio, synth, D4 , t+0   , n64 )
+	call play_note(audio, synth, C4 , t+n64 , n64 )
+	call play_note(audio, synth, D4 , t+n32 , n64 )
+	call play_note(audio, synth, C4 , t+n32d, n64+n8)
+	call play_note(audio, synth, B3 , t+n8d, n16 )
+	call play_note(audio, synth, C4 , t+n4 , n8  )
+
+	call play_note(audio, synth, GS3, t+n4d+0  , n8d )
+	call play_note(audio, synth, B3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, E3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, B4 , t+0  , n8d )
+	call play_note(audio, synth, GS4, t+n8d, n16 )
+	call play_note(audio, synth, A4 , t+n4 , n8  )
+
+	call play_note(audio, synth, D5 , t+n4d+0     , n8 )
+	call play_note(audio, synth, E5 , t+n4d+n8    , n16)
+	call play_note(audio, synth, D5 , t+n4d+n8+n16, n16)
+	call play_note(audio, synth, C5 , t+n4d+n4    , n16)
+	call play_note(audio, synth, B4 , t+n4d+n4+n16, n16)
+
+	t = t + n2d
+	!********
+	! Bar 26
+
+	! LH
+	call play_note(audio, synth, A3 , t+0  , n8d )
+	call play_note(audio, synth, C4 , t+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4 , n8  )
+
+	call play_note(audio, synth, C4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, B3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, A3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, C5 , t+0  , n8d )
+	call play_note(audio, synth, E5 , t+n8d, n16 )
+	call play_note(audio, synth, D5 , t+n4 , n8  )
+
+	call play_note(audio, synth, E5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, G5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 27
+
+	! LH
+	call play_note(audio, synth, B3 , t+0  , n8d )
+	call play_note(audio, synth, E4 , t+n8d, n16 )
+	call play_note(audio, synth, D4 , t+n4 , n8  )
+
+	call play_note(audio, synth, D4 , t+n4d+0   , n64 )
+	call play_note(audio, synth, CS4, t+n4d+n64 , n64 )
+	call play_note(audio, synth, D4 , t+n4d+n32 , n64 )
+	call play_note(audio, synth, CS4, t+n4d+n32d, n64+n8)
+	call play_note(audio, synth, B3 , t+n4d+n8d , n16 )
+	call play_note(audio, synth, CS4, t+n4d+n4  , n8  )
+
+	! RH
+	call play_note(audio, synth, G5 , t+0     , n8 )
+	call play_note(audio, synth, A5 , t+n8    , n16)
+	call play_note(audio, synth, G5 , t+n8+n16, n16)
+	call play_note(audio, synth, FS5, t+n4    , n16)
+	call play_note(audio, synth, E5 , t+n4+n16, n16)
+
+	call play_note(audio, synth, A5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, B5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, G5 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 28
+
+	! LH
+	call play_note(audio, synth, D4 , t+0      , n4d+n8d)
+
+	call play_note(audio, synth, E4 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, C4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, G5 , t+0   , n64 )
+	call play_note(audio, synth, FS5, t+n64 , n64 )
+	call play_note(audio, synth, G5 , t+n32 , n64 )
+	call play_note(audio, synth, FS5, t+n32d, n64+n8)
+	call play_note(audio, synth, E5 , t+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4 , n8  )
+
+	call play_note(audio, synth, D5 , t+n4d+0, n4d+n4)
+
+	t = t + n2d
+	!********
+	! Bar 29
+
+	! LH
+	call play_note(audio, synth, B3 , t+0  , n8d )
+	call play_note(audio, synth, C4 , t+n8d, n16 )
+	call play_note(audio, synth, A3 , t+n4 , n8  )
+
+	call play_note(audio, synth, G3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, E5 , t+n4+0   , n32 )
+	call play_note(audio, synth, FS5, t+n4+n32 , n32 )
+	call play_note(audio, synth, G5 , t+n4+n16 , n32 )
+	call play_note(audio, synth, A5 , t+n4+n16d, n32 )
+
+	call play_note(audio, synth, B5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, G5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, D5 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 30
+
+	! LH
+	call play_note(audio, synth, C4 , t+0  , n8d )
+	call play_note(audio, synth, D4 , t+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4 , n8  )
+
+	call play_note(audio, synth, A3 , t+n4d+0  , n8d )
+	call play_note(audio, synth, B3 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, C4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, E5 , t+0      , n4  )
+	call play_note(audio, synth, FS5, t+n4+0   , n32 )
+	call play_note(audio, synth, G5 , t+n4+n32 , n32 )
+	call play_note(audio, synth, A5 , t+n4+n16 , n32 )
+	call play_note(audio, synth, B5 , t+n4+n16d, n32 )
+
+	call play_note(audio, synth, C6 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, E5 , t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 31
+
+	! LH
+	call play_note(audio, synth, D4 , t+0  , n8d )
+	call play_note(audio, synth, C4 , t+n8d, n16 )
+	call play_note(audio, synth, B3 , t+n4 , n8  )
+
+	call play_note(audio, synth, E4 , t+n4d+0  , n8d )
+	call play_note(audio, synth, C4 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, D4 , t+n4d+n4 , n8  )
+
+	! RH
+	call play_note(audio, synth, FS5, t+0  , n8d )
+	call play_note(audio, synth, D5 , t+n8d, n16 )
+	call play_note(audio, synth, D6 , t+n4 , n8  )
+
+	call play_note(audio, synth, G5 , t+n4d+0  , n8d )
+	call play_note(audio, synth, A5 , t+n4d+n8d, n16 )
+	call play_note(audio, synth, FS5, t+n4d+n4 , n8  )
+
+	t = t + n2d
+	!********
+	! Bar 32
+
+	! LH
+	call play_note(audio, synth, G3 , t+0  , n8d )
+	call play_note(audio, synth, D3 , t+n8d, n16 )
+	call play_note(audio, synth, B2 , t+n4 , n8  )
+
+	call play_note(audio, synth, G2 , t+n4d+0  , n4d)
+
+	! RH
+	call play_note(audio, synth, G5 , t+0  , n4d+n4d)
+
+	t = t + n2d
+	!********
+	end do  ! end second half repeat
+
+	!--------------------------------
+
+	print *, "writing wave file ..."
 	call write_wav(filename, audio)
 
 end program example
+

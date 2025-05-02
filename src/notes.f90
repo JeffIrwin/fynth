@@ -121,6 +121,27 @@ module fynth__notes
 		B5  = C5 * 2.d0 ** (11.d0 / 12.d0), &
 		BS5 = C5 * 2.d0 ** (12.d0 / 12.d0)
 
+	double precision, parameter :: &
+		CS6 = C6 * 2.d0 ** ( 1.d0 / 12.d0), &
+		DF6 = C6 * 2.d0 ** ( 1.d0 / 12.d0), &
+		D6  = C6 * 2.d0 ** ( 2.d0 / 12.d0), &
+		DS6 = C6 * 2.d0 ** ( 3.d0 / 12.d0), &
+		EF6 = C6 * 2.d0 ** ( 3.d0 / 12.d0), &
+		E6  = C6 * 2.d0 ** ( 4.d0 / 12.d0), &
+		FF6 = C6 * 2.d0 ** ( 4.d0 / 12.d0), &
+		ES6 = C6 * 2.d0 ** ( 5.d0 / 12.d0), &
+		F6  = C6 * 2.d0 ** ( 5.d0 / 12.d0), &
+		FS6 = C6 * 2.d0 ** ( 6.d0 / 12.d0), &
+		GF6 = C6 * 2.d0 ** ( 6.d0 / 12.d0), &
+		G6  = C6 * 2.d0 ** ( 7.d0 / 12.d0), &
+		GS6 = C6 * 2.d0 ** ( 8.d0 / 12.d0), &
+		AF6 = C6 * 2.d0 ** ( 8.d0 / 12.d0), &
+		A6  = C6 * 2.d0 ** ( 9.d0 / 12.d0), &
+		AS6 = C6 * 2.d0 ** (10.d0 / 12.d0), &
+		BF6 = C6 * 2.d0 ** (10.d0 / 12.d0), &
+		B6  = C6 * 2.d0 ** (11.d0 / 12.d0), &
+		BS6 = C6 * 2.d0 ** (12.d0 / 12.d0)
+
 	! TODO: other octaves.  Obviously this is WET, but I like having direct note
 	! names instead of having to index into an array of frequencies
 
