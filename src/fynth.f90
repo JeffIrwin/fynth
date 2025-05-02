@@ -276,7 +276,8 @@ function new_audio(num_chans, sample_rate)
 
 	allocate(channel(num_chans, 0))
 
-	new_audio = audio_t(channel, sample_rate)
+	!new_audio = audio_t(channel, sample_rate)
+	new_audio = audio_t(channel, sample_rate, len_ = 0, cap = 0)
 
 end function new_audio
 
@@ -376,7 +377,7 @@ subroutine play_note(audio, synth, freq, t0, len_)
 		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus, rand
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
 
-	integer :: n, it, itl, it0, it_end
+	integer :: n, it, itl, it0, it_end, num_chans, len0
 	integer(kind = 4) :: sample_rate! = audio%sample_rate
 
 	!********
@@ -423,20 +424,27 @@ subroutine play_note(audio, synth, freq, t0, len_)
 	!it_end = it0 + n + 1
 	it_end = it0 + n
 
-	!print *, "size channel = ", size(audio%channel, 1), size(audio%channel, 2)
+	!print *, "size channel 1, 2, len, cap = ", size(audio%channel, 1), size(audio%channel, 2), audio%len_, audio%cap
 
-	if (it_end > size(audio%channel, 2)) then
+	!if (it_end > size(audio%channel, 2)) then
+	if (it_end > audio%cap) then
 		! Resize
 		!
 		! TODO: grow by 2*it_end to reduce amortization.  Track length somewhere
-		! and trim in caller
+		! and trim in caller or better in write_wav()
 		call move_alloc(audio%channel, tmp)
 
-		allocate(audio%channel( size(tmp,1), it_end ))
-		audio%channel(:, 1: size(tmp,2)) = tmp
-		audio%channel(:, size(tmp,2) + 1:) = 0
+		num_chans = size(tmp, 1)
+		len0      = audio%len_ !size(tmp, 2)
+
+		audio%cap = 2 * it_end
+
+		allocate(audio%channel( num_chans, audio%cap ))
+		audio%channel(:, 1: len0) = tmp(:, 1: len0)
+		audio%channel(:, len0 + 1:) = 0
 
 	end if
+	audio%len_ = it_end
 
 	do it = 1, n
 		t = 1.d0 * it / sample_rate
@@ -538,9 +546,31 @@ subroutine write_wav_licc_basic(filename)
 	end do
 	call wave%trim()
 
-	call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+	!call write_wav(filename, audio_t(reshape(wave%v, [1, wave%len_]), sample_rate))
+	call write_wav(filename, audio_from_vec(wave%v, sample_rate))
 
 end subroutine write_wav_licc_basic
+
+!===============================================================================
+
+function audio_from_vec(vec, sample_rate) result(audio)
+	double precision, intent(in) :: vec(:)
+	integer, intent(in) :: sample_rate
+	type(audio_t) :: audio
+
+	integer :: len_, cap
+
+	len_ = size(vec)
+	cap = len_
+	audio = audio_t &
+	( &
+		reshape(vec, [1, len_]), &
+		sample_rate, &
+		len_, &
+		cap &
+	)
+
+end function audio_from_vec
 
 !===============================================================================
 

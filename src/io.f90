@@ -218,7 +218,7 @@ subroutine write_wav(filename, audio)
 	! wave track
 
 	! TODO: parameterize this magic number
-	buffer16 = int(audio%channel * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
+	buffer16 = int(audio%channel(:, :audio%len_) * (2 ** (wavh%bits_per_samp - 1) - 1) / max_wave, 2)
 
 	!print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
 

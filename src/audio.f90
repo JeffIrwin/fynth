@@ -11,6 +11,11 @@ module fynth__audio
 		double precision, allocatable :: channel(:,:)  ! rename track?
 		integer(kind = 4) :: sample_rate
 
+		integer(kind = 4) :: len_, cap  ! could also include num_chans for convenience
+		!! Could also include num_chans for convenience
+		!integer(kind = 4) :: len_ = 0
+		!integer(kind = 4) :: cap  = 0
+
 	end type audio_t
 
 	type env_t
