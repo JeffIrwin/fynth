@@ -63,8 +63,8 @@ program example
 	!********
 	! Bar 1
 
-	!lh%legato = 0.125d0
-	!rh%legato = 0.125d0
+	lh%legato = 0.25d0
+	!rh%legato = 0.25d0
 
 	call lh%play(G2 , n8  )
 	call lh%play(B3 , n16 )
@@ -188,7 +188,7 @@ program example
 	call lh%play(D4 , n16 )
 
 	!********
-	! Bar 7
+	! Bar 8
 
 	call lh%play(G4 , n16 )
 	call lh%play(FS4, n16 )
@@ -206,9 +206,109 @@ program example
 	call lh%play(D3 , n16 )
 
 	!********
-	! Bar 8
+	! Bar 9
 
 	call lh%play(G2 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(B3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(G2 , n8  )
+	call lh%play(G3 , n8  )
+
+	!********
+	! Bar 10
+
+	call lh%play(FS2, n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(A3 , n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(FS2, n8  )
+	call lh%play(FS3, n8  )
+
+	!********
+	! Bar 11
+
+	call lh%play(E2 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(E2 , n8  )
+	call lh%play(G3 , n8  )
+
+	!********
+	! Bar 12
+
+	call lh%play(A2 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(A2 , n8  )
+	call lh%play(G3 , n8  )
+
+	!********
+	! Bar 13
+
+	call lh%play(FS3, n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(D4 , n16 )
+	call lh%play(FS4, n16 )
+
+	call lh%play(A4 , n16 )
+	call lh%play(FS4, n16 )
+	call lh%play(D4 , n16 )
+	call lh%play(A3 , n16 )
+
+	call lh%play(FS3, n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(FS3, n16 )
+
+	!********
+	! Bar 14
+
+	call lh%play(G3 , n16 )
+	call lh%play(B3 , n16 )
+	call lh%play(D4 , n16 )
+	call lh%play(G4 , n16 )
+
+	call lh%play(B4 , n16 )
+	call lh%play(G4 , n16 )
+	call lh%play(D4 , n16 )
+	call lh%play(B3 , n16 )
+
+	call lh%play(G3 , n16 )
+	call lh%play(B3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(G3 , n16 )
+
+	!********
+	! Bar 15
+
+	call lh%play(A3 , n8  )
+	call lh%play(CS4, n8  )
+
+	call lh%play(D4 , n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(FS3, n16 )
+	call lh%play(D3 , n16 )
+
+	call lh%play(A3 , n8  )
+	call lh%play(A2 , n8  )
+
+	!********
+	! Bar 16
+
+	call lh%play(D2 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(G3 , n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(B3 , n16 )
+	call lh%play(CS4, n16 )
+
+	call lh%play(D4 , n4  )
 
 	!--------------------------------
 
