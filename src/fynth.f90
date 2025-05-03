@@ -351,6 +351,15 @@ subroutine write_wav_licc(filename)
 end subroutine write_wav_licc
 
 !===============================================================================
+subroutine play_voice(voice, freq, len_)
+	type(voice_t), intent(inout) :: voice
+	double precision, intent(in) :: freq, len_
+
+	call play_note(voice%audio, voice%synth, freq, voice%t, len_)
+	voice%t = voice%t + len_
+
+end subroutine play_voice
+!===============================================================================
 
 subroutine play_note(audio, synth, freq, t0, len_)
 

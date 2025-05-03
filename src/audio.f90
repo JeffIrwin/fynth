@@ -3,6 +3,7 @@ module fynth__audio
 
 	use fynth__utils
 	implicit none
+	!********
 
 	type audio_t
 
@@ -12,6 +13,7 @@ module fynth__audio
 		integer(kind = 4) :: len_, cap  ! could also include num_chans for convenience
 
 	end type audio_t
+	!********
 
 	type env_t
 		! ADSR (attack, decay, sustain, release) envelope
@@ -22,6 +24,7 @@ module fynth__audio
 		! [0.0, 1.0], or related to the cutoff frequency for filter envelopes
 		double precision :: a, d, s, r
 	end type env_t
+	!********
 
 	abstract interface
 		! This is a function interface for passing callbacks
@@ -30,6 +33,7 @@ module fynth__audio
 			double precision :: fx
 		end function
 	end interface
+	!********
 
 	type synth_t
 		! This type describes the sound of a synth instrument, like all the knob
@@ -39,6 +43,14 @@ module fynth__audio
 		type(env_t) :: fenv = env_t(a = 0, d = 0, s = 0, r = 0)
 		procedure(fn_f64_to_f64), pointer, nopass :: wave => square_wave
 	end type synth_t
+	!********
+
+	type voice_t
+		double precision :: t = 0
+		type(synth_t) :: synth
+		type(audio_t), pointer :: audio => null()
+	end type voice_t
+	!********
 
 contains
 
