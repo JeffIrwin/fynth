@@ -38,9 +38,15 @@ module fynth__audio
 	type synth_t
 		! This type describes the sound of a synth instrument, like all the knob
 		! positions on a physical synth
-		double precision :: cutoff = 0.1d0 * huge(0.d0)
+
+		! TODO: add key_amount member
+		double precision :: &
+			cutoff     = 0.1d0 * huge(0.d0), &  ! TODO: rename cutoff_min
+			cutoff_max = 0.1d0 * huge(0.d0)
+
 		type(env_t) ::  env = env_t(a = 0, d = 0, s = 1, r = 0)
 		type(env_t) :: fenv = env_t(a = 0, d = 0, s = 0, r = 0)
+
 		procedure(fn_f64_to_f64), pointer, nopass :: wave => square_wave
 	end type synth_t
 	!********

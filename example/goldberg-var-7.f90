@@ -49,9 +49,14 @@ program example
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.0, d = 0.4, s = 0.2, r = 0.3)
 	fenv = env_t(a = 0.0, d = 0.3, s = 0, r = 1.0)
-	synth = synth_t(cutoff, env, fenv, triangle_wave)
-	!synth = synth_t(cutoff, env, fenv, square_wave)
-	!synth = synth_t(cutoff, env, fenv, sawtooth_wave)
+
+	!!synth = synth_t(cutoff, env, fenv, square_wave)
+	!!synth = synth_t(cutoff, env, fenv, sawtooth_wave)
+	!synth = synth_t(cutoff, env, fenv, triangle_wave)
+	synth%cutoff = cutoff
+	synth%env = env
+	synth%fenv = fenv
+	synth%wave => triangle_wave
 
 	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 

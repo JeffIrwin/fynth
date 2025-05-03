@@ -368,7 +368,11 @@ subroutine write_wav_licc(filename)
 	!fenv = env_t(a = 0, d = 0.2, s = 0, r = 0)
 	fenv = env_t(a = 0.2, d = 0.3, s = 0, r = 0)
 
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	!synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%cutoff = cutoff
+	synth%env = env
+	synth%fenv = fenv
+	synth%wave => square_wave
 
 	!wave = new_vec_f64()
 	t = 0.d0
@@ -428,7 +432,7 @@ subroutine play_note(audio, synth, freq, t0, len_)
 
 	double precision, parameter :: amp = 1.d0  ! could be an arg later
 	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
-		y, y0, y00, yout, x0, x00, cutoffl, sampd, fsus, rand
+		y, y0, y00, yout, x0, x00, cutoffl, fsus, rand
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
 
 	integer :: n, it, itl, it0, it_end, num_chans, len0
@@ -440,18 +444,18 @@ subroutine play_note(audio, synth, freq, t0, len_)
 
 	amp_tab = get_env_tab(synth%env, len_, 0.d0, synth%env%s, 1.d0)
 
-	! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
-	sampd = 0.501d0 * dble(sample_rate)
-	sampd = 2250.d0  ! becalmed.  TODO: fmax cutoff member var in synth_t
-	!sampd = 6000.d0  ! goldberg.   TODO: fmax cutoff member var in synth_t
+	!! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
+	!sampd = 0.501d0 * dble(sample_rate)
+	!sampd = 2250.d0  ! becalmed
+	!!sampd = 6000.d0  ! goldberg
 
-	fsus = lerp(synth%cutoff, sampd, synth%fenv%s)  ! TODO: linear in octaves?
+	fsus = lerp(synth%cutoff, synth%cutoff_max, synth%fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
 	!print *, "cutoff = ", cutoff
 	!print *, "sampd  = ", sampd
 	!print *, "fsus   = ", fsus
 
-	ftab = get_env_tab(synth%fenv, len_, synth%cutoff, fsus, sampd)
+	ftab = get_env_tab(synth%fenv, len_, synth%cutoff, fsus, synth%cutoff_max)
 
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 

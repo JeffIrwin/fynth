@@ -70,7 +70,13 @@ program main
 	end if
 
 	if (args%has_waveform) then
-		synth = synth_t(cutoff, amp_env, filter_env, waveform_fn)
+
+		!synth = synth_t(cutoff, amp_env, filter_env, waveform_fn)
+		synth%cutoff = cutoff
+		synth%env = amp_env
+		synth%fenv = filter_env
+		synth%wave => waveform_fn
+
 		call write_waveform(args%file1, synth, args%freq, args%len_)
 		call fynth_exit(EXIT_SUCCESS)
 	end if

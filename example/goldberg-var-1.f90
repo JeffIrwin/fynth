@@ -49,7 +49,13 @@ program example
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.0, d = 0.4, s = 0.2, r = 0.3)
 	fenv = env_t(a = 0.0, d = 0.3, s = 0, r = 1.0)
-	synth = synth_t(cutoff, env, fenv, triangle_wave)
+
+	!synth = synth_t(cutoff, env, fenv, triangle_wave)
+	synth%cutoff = cutoff
+	synth%cutoff_max = 6000.d0
+	synth%env = env
+	synth%fenv = fenv
+	synth%wave => triangle_wave
 
 	lh = new_voice(audio, synth)  ! left hand voice
 	rh = new_voice(audio, synth)  ! right hand voice

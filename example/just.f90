@@ -47,7 +47,13 @@ program example
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
-	synth = synth_t(cutoff, env, fenv, square_wave)
+
+	!synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%cutoff = cutoff
+	synth%cutoff_max = 2250.d0
+	synth%env = env
+	synth%fenv = fenv
+	synth%wave => square_wave
 
 	! Transpose up from A to D
 	tr = D2 / A1

@@ -525,10 +525,14 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	fenv = env_t(a = 0, d = 0, s = 0, r = 0)
 	cutoff = 0.1d0 * huge(cutoff)
 
+	synth%cutoff = cutoff
+	synth%env = env
+	synth%fenv = fenv
+
 	!********
 	fwav = "test/resources/sin.wav"
 	fmd5 = fwav // ".md5"
-	synth = synth_t(cutoff, env, fenv, sine_wave)
+	synth%wave => sine_wave
 	freq = 310.d0
 	len_ = 0.6d0
 	call write_waveform(fwav, synth, freq, len_)
@@ -541,7 +545,7 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/squ.wav"
 	fmd5 = fwav // ".md5"
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%wave => square_wave
 	freq = 320.d0
 	len_ = 0.7d0
 	call write_waveform(fwav, synth, freq, len_)
@@ -554,7 +558,7 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/tri.wav"
 	fmd5 = fwav // ".md5"
-	synth = synth_t(cutoff, env, fenv, triangle_wave)
+	synth%wave => triangle_wave
 	freq = 330.d0
 	len_ = 0.8d0
 	call write_waveform(fwav, synth, freq, len_)
@@ -567,7 +571,7 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	!********
 	fwav = "test/resources/saw.wav"
 	fmd5 = fwav // ".md5"
-	synth = synth_t(cutoff, env, fenv, sawtooth_wave)
+	synth%wave => sawtooth_wave
 	freq = 340.d0
 	len_ = 0.9d0
 	call write_waveform(fwav, synth, freq, len_)
@@ -608,11 +612,15 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	freq = 300.d0
 	len_ = 1.0d0
 
+	synth%cutoff = cutoff
+	synth%fenv = fenv
+
 	!********
 	fwav = "test/resources/sin-env.wav"
 	fmd5 = fwav // ".md5"
 	env = env_t(a = 0.3d0, d = 0.2d0, s = 0.5d0, r = 0.4d0)
-	synth = synth_t(cutoff, env, fenv, sine_wave)
+	synth%env = env
+	synth%wave => sine_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -623,7 +631,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	fwav = "test/resources/squ-env.wav"
 	fmd5 = fwav // ".md5"
 	env = env_t(a = 0.4d0, d = 0.3d0, s = 0.6d0, r = 0.5d0)
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%env = env
+	synth%wave => square_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -634,7 +643,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	fwav = "test/resources/tri-env.wav"
 	fmd5 = fwav // ".md5"
 	env = env_t(a = 0.2d0, d = 0.3d0, s = 0.7d0, r = 0.6d0)
-	synth = synth_t(cutoff, env, fenv, triangle_wave)
+	synth%env = env
+	synth%wave => triangle_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -645,7 +655,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	fwav = "test/resources/saw-env.wav"
 	fmd5 = fwav // ".md5"
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.6d0, r = 0.3d0)
-	synth = synth_t(cutoff, env, fenv, sawtooth_wave)
+	synth%env = env
+	synth%wave => sawtooth_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -658,7 +669,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	fmd5 = fwav // ".md5"
 	len_ = 0.25d0
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.7d0, r = 0.5d0)
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%env = env
+	synth%wave => square_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -671,7 +683,8 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	fmd5 = fwav // ".md5"
 	len_ = 0.075
 	env = env_t(a = 0.1d0, d = 0.2d0, s = 0.7d0, r = 0.5d0)
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%env = env
+	synth%wave => square_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
@@ -680,15 +693,16 @@ subroutine test_envelopes(ntot, nfail, rebase)
 
 	!********
 	!********
-	! TODO: if we keep this test, move it to a filter subroutine.  It's probably
-	! premature for now with its usage of fenv and cutoff
+	! TODO: move this test to a filter subroutine
 	fwav = "test/resources/squ-env-2.wav"
 	fmd5 = fwav // ".md5"
 	len_ = 3.4285714285714284d0
 	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
-	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
-	cutoff = 300.d0
-	synth = synth_t(cutoff, env, fenv, square_wave)
+	synth%fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
+	synth%cutoff = 300.d0
+	synth%cutoff_max = 2250.d0
+	synth%env = env
+	synth%wave => square_wave
 	call write_waveform(fwav, synth, freq, len_)
 	md5 = md5_file(fwav)
 	if (rebase) call write_file(fmd5, md5)
