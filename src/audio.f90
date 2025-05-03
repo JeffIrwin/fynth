@@ -45,20 +45,6 @@ module fynth__audio
 	end type synth_t
 	!********
 
-	type voice_t
-		! A voice has memory for things like what time it is, so that you can
-		! play a note by only specifying the duration, instead of both the
-		! duration and start time
-		!
-		! TODO: add amplitude, legato, etc. here, which a voice would also
-		! remember.  So you could set a volume and then play several notes at
-		! that dynamic before changing it
-		double precision :: t = 0
-		type(synth_t) :: synth
-		type(audio_t), pointer :: audio => null()
-	end type voice_t
-	!********
-
 contains
 
 !===============================================================================

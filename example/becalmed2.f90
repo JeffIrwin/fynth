@@ -67,66 +67,63 @@ program example
 	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 
 	! A
-	call play_voice(bv, tr*A1, wn)
-	call play_voice(tv, tr*E3, wn)
-	call play_voice(av, tr*A3, wn)
+	call bv%play(tr*A1, wn)
+	call tv%play(tr*E3, wn)
+	call av%play(tr*A3, wn)
 
-	call play_voice(sv, tr*B3 , qn)
-	call play_voice(sv, tr*CS4, dhn)
+	call sv%play(tr*B3 , qn)
+	call sv%play(tr*CS4, dhn)
 
 	! D
-	call play_voice(bv, tr*D1 , wn)
-	call play_voice(tv, tr*FS3, wn)
-	call play_voice(av, tr*A3 , wn)
-	call play_voice(sv, tr*D4 , wn)
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*FS3, wn)
+	call av%play(tr*A3 , wn)
+	call sv%play(tr*D4 , wn)
 
-	!t = 2 * wn
-	!! F#m
-	!call play_note(audio, synth, tr*FS1, t, wn)
-	!call play_note(audio, synth, tr*FS3, t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
-	!call play_note(audio, synth, tr*CS4, t, wn)
+	! F#m
+	call bv%play(tr*FS1, wn)
+	call tv%play(tr*FS3, wn)
+	call av%play(tr*A3 , wn)
+	call sv%play(tr*CS4, wn)
 
-	!t = 3 * wn
-	!! D (different voicing now)
-	!call play_note(audio, synth, tr*D1 , t, wn)
-	!call play_note(audio, synth, tr*D3 , t, wn)
-	!call play_note(audio, synth, tr*FS3, t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
+	! D (different voicing now)
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*D3 , wn)
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
 
-	!!********
-	!t = 4 * wn
-	!! A
-	!call play_note(audio, synth, tr*A1 , t, wn)
-	!call play_note(audio, synth, tr*E3 , t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
+	!********
+	! A
+	call bv%play(tr*A1, wn)
+	call tv%play(tr*E3, wn)
+	call av%play(tr*A3, wn)
 
-	!call play_note(audio, synth, tr*B3 , t, qn )
-	!call play_note(audio, synth, tr*CS4, t+qn, dhn)
+	call sv%play(tr*B3 , qn)
+	call sv%play(tr*CS4, dhn)
 
-	!t = 5 * wn
-	!! E
-	!call play_note(audio, synth, tr*E1 , t, wn)
-	!call play_note(audio, synth, tr*B2 , t, wn)
-	!call play_note(audio, synth, tr*E3 , t, wn)
-	!call play_note(audio, synth, tr*GS3, t, wn)
+	! E
+	call bv%play(tr*E1 , wn)
+	call tv%play(tr*B2 , wn)
+	call av%play(tr*E3 , wn)
+	call sv%play(tr*GS3, wn)
 
-	!t = 6 * wn
-	!! F#m
-	!call play_note(audio, synth, tr*FS1, t, wn)
-	!call play_note(audio, synth, tr*FS3, t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
+	! F#m
+	call bv%play(tr*FS1, wn)
 
-	!call play_note(audio, synth, tr*CS3, t+hn, hn)
+	! TODO: make a rest method.  I guess playing 0 frequency also works
+	call tv%play(0.d0  , hn)
+	call tv%play(tr*CS3, hn)
 
-	!t = 7 * wn
-	!! D
-	!call play_note(audio, synth, tr*D1 , t, wn)
-	!call play_note(audio, synth, tr*D3 , t, wn)
-	!call play_note(audio, synth, tr*FS3, t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
 
-	!!********
+	! D
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*D3 , wn)
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
+
+	!********
 
 	call write_wav(filename, audio)
 

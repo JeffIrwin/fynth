@@ -68,6 +68,26 @@ module fynth
 		WAVEFORM_SINE     = waveform_t(2), &
 		WAVEFORM_SQUARE   = waveform_t(1)
 
+	type voice_t
+		! TODO: consider moving back into audio.f90.  Then play_voice def (or at
+		! least interface) will also need to be moved, then maybe play_note()
+		! too.  Maybe reconsider the entire source layout
+
+		! A voice has memory for things like what time it is, so that you can
+		! play a note by only specifying the duration, instead of both the
+		! duration and start time
+		!
+		! TODO: add amplitude, legato, etc. here, which a voice would also
+		! remember.  So you could set a volume and then play several notes at
+		! that dynamic before changing it
+		double precision :: t = 0
+		type(synth_t) :: synth
+		type(audio_t), pointer :: audio => null()
+		contains
+			procedure :: play => play_voice
+	end type voice_t
+	!********
+
 contains
 
 !===============================================================================
@@ -352,7 +372,7 @@ end subroutine write_wav_licc
 
 !===============================================================================
 subroutine play_voice(voice, freq, len_)
-	type(voice_t), intent(inout) :: voice
+	class(voice_t), intent(inout) :: voice
 	double precision, intent(in) :: freq, len_
 
 	call play_note(voice%audio, voice%synth, freq, voice%t, len_)
