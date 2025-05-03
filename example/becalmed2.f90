@@ -44,9 +44,18 @@ program example
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 	synth = synth_t(cutoff, env, fenv, square_wave)
 
-	! Soprano voice
+	! Soprano voice.  TODO: add new_voice() constructor?  Could be less error
+	! prone than multi-line initialization like here
 	sv%synth = synth
 	sv%audio => audio
+
+	! Alto
+	av%synth = synth
+	av%audio => audio
+
+	! Tenor
+	tv%synth = synth
+	tv%audio => audio
 
 	! Bass
 	bv%synth = synth
@@ -57,27 +66,19 @@ program example
 
 	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 
+	! A
 	call play_voice(bv, tr*A1, wn)
+	call play_voice(tv, tr*E3, wn)
+	call play_voice(av, tr*A3, wn)
 
 	call play_voice(sv, tr*B3 , qn)
 	call play_voice(sv, tr*CS4, dhn)
 
-	!!********
-	!t = 0 * wn
-	!! A
-	!call play_note(audio, synth, tr*A1 , t, wn)
-	!call play_note(audio, synth, tr*E3 , t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
-
-	!call play_note(audio, synth, tr*B3 , t, qn )
-	!call play_note(audio, synth, tr*CS4, t+qn, dhn)
-
-	!t = 1 * wn
-	!! D
-	!call play_note(audio, synth, tr*D1 , t, wn)
-	!call play_note(audio, synth, tr*FS3, t, wn)
-	!call play_note(audio, synth, tr*A3 , t, wn)
-	!call play_note(audio, synth, tr*D4 , t, wn)
+	! D
+	call play_voice(bv, tr*D1 , wn)
+	call play_voice(tv, tr*FS3, wn)
+	call play_voice(av, tr*A3 , wn)
+	call play_voice(sv, tr*D4 , wn)
 
 	!t = 2 * wn
 	!! F#m
