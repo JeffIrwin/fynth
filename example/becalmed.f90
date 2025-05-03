@@ -10,11 +10,12 @@ program example
 	!********
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, wn, hn, dhn, &
-		cutoff, t, tr
+		cutoff, tr
 
-	type(audio_t) :: audio
+	type(audio_t), target :: audio
 	type(env_t) :: env, fenv
 	type(synth_t) :: synth
+	type(voice_t) :: sv, av, tv, bv
 
 	!********
 
@@ -43,73 +44,74 @@ program example
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 	synth = synth_t(cutoff, env, fenv, square_wave)
 
+	sv = new_voice(audio, synth)  ! soprano voice
+	av = new_voice(audio, synth)  ! alto
+	tv = new_voice(audio, synth)  ! tenor
+	bv = new_voice(audio, synth)  ! bass
+
 	! Transpose up from A to D
 	tr = D2 / A1
 
 	!print "(f10.4)", [D1, A1, E1, FS1, CS3, D3, E3, FS3, GS3, A3, B3, CS4, D4]
 
-	!********
-	t = 0 * wn
 	! A
-	call play_note(audio, synth, tr*A1 , t, wn)
-	call play_note(audio, synth, tr*E3 , t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
+	call bv%play(tr*A1, wn)
+	call tv%play(tr*E3, wn)
+	call av%play(tr*A3, wn)
 
-	call play_note(audio, synth, tr*B3 , t, qn )
-	call play_note(audio, synth, tr*CS4, t+qn, dhn)
+	call sv%play(tr*B3 , qn)
+	call sv%play(tr*CS4, dhn)
 
-	t = 1 * wn
 	! D
-	call play_note(audio, synth, tr*D1 , t, wn)
-	call play_note(audio, synth, tr*FS3, t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
-	call play_note(audio, synth, tr*D4 , t, wn)
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*FS3, wn)
+	call av%play(tr*A3 , wn)
+	call sv%play(tr*D4 , wn)
 
-	t = 2 * wn
 	! F#m
-	call play_note(audio, synth, tr*FS1, t, wn)
-	call play_note(audio, synth, tr*FS3, t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
-	call play_note(audio, synth, tr*CS4, t, wn)
+	call bv%play(tr*FS1, wn)
+	call tv%play(tr*FS3, wn)
+	call av%play(tr*A3 , wn)
+	call sv%play(tr*CS4, wn)
 
-	t = 3 * wn
 	! D (different voicing now)
-	call play_note(audio, synth, tr*D1 , t, wn)
-	call play_note(audio, synth, tr*D3 , t, wn)
-	call play_note(audio, synth, tr*FS3, t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*D3 , wn)
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
 
 	!********
-	t = 4 * wn
 	! A
-	call play_note(audio, synth, tr*A1 , t, wn)
-	call play_note(audio, synth, tr*E3 , t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
+	call bv%play(tr*A1, wn)
+	call tv%play(tr*E3, wn)
+	call av%play(tr*A3, wn)
 
-	call play_note(audio, synth, tr*B3 , t, qn )
-	call play_note(audio, synth, tr*CS4, t+qn, dhn)
+	call sv%play(tr*B3 , qn)
+	call sv%play(tr*CS4, dhn)
 
-	t = 5 * wn
 	! E
-	call play_note(audio, synth, tr*E1 , t, wn)
-	call play_note(audio, synth, tr*B2 , t, wn)
-	call play_note(audio, synth, tr*E3 , t, wn)
-	call play_note(audio, synth, tr*GS3, t, wn)
+	call bv%play(tr*E1 , wn)
+	call tv%play(tr*B2 , wn)
+	call av%play(tr*E3 , wn)
+	call sv%play(tr*GS3, wn)
 
-	t = 6 * wn
 	! F#m
-	call play_note(audio, synth, tr*FS1, t, wn)
-	call play_note(audio, synth, tr*FS3, t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
+	call bv%play(tr*FS1, wn)
 
-	call play_note(audio, synth, tr*CS3, t+hn, hn)
+	call tv%rest(hn)
+	call tv%play(tr*CS3, hn)
 
-	t = 7 * wn
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
+
+	! TODO: remove obsolete becalmed version.  Maybe port goldberg var 7 as
+	! well, although I'm not sure if I want to touch those 800 lines
+
 	! D
-	call play_note(audio, synth, tr*D1 , t, wn)
-	call play_note(audio, synth, tr*D3 , t, wn)
-	call play_note(audio, synth, tr*FS3, t, wn)
-	call play_note(audio, synth, tr*A3 , t, wn)
+	call bv%play(tr*D1 , wn)
+	call tv%play(tr*D3 , wn)
+	call av%play(tr*FS3, wn)
+	call sv%play(tr*A3 , wn)
 
 	!********
 
