@@ -77,19 +77,33 @@ module fynth
 		! play a note by only specifying the duration, instead of both the
 		! duration and start time
 		!
-		! TODO: add amplitude, legato, etc. here, which a voice would also
+		! TODO: add amplitude, pan, legato, etc. here, which a voice would also
 		! remember.  So you could set a volume and then play several notes at
 		! that dynamic before changing it
 		double precision :: t = 0
 		type(synth_t) :: synth
 		type(audio_t), pointer :: audio => null()
 		contains
-			procedure :: play => play_voice
+			procedure :: &
+				play => play_voice, &
+				rest => rest_voice
 	end type voice_t
 	!********
 
 contains
 
+!===============================================================================
+function new_voice(audio, synth)
+	! TODO: add tests that use new_voice and play_voice
+	type(audio_t), intent(in), pointer :: audio
+	type(synth_t), intent(in) :: synth
+
+	type(voice_t) :: new_voice
+
+	new_voice%audio => audio
+	new_voice%synth = synth
+
+end function new_voice
 !===============================================================================
 
 subroutine get_filter_coefs(cutoff, sample_rate, a1, a2, b0, b1, b2)
@@ -379,6 +393,15 @@ subroutine play_voice(voice, freq, len_)
 	voice%t = voice%t + len_
 
 end subroutine play_voice
+
+!===============================================================================
+subroutine rest_voice(voice, len_)
+	class(voice_t), intent(inout) :: voice
+	double precision, intent(in) :: len_
+
+	voice%t = voice%t + len_
+
+end subroutine rest_voice
 !===============================================================================
 
 subroutine play_note(audio, synth, freq, t0, len_)

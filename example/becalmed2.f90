@@ -10,7 +10,7 @@ program example
 	!********
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, wn, hn, dhn, &
-		cutoff, t, tr
+		cutoff, tr
 
 	type(audio_t), target :: audio
 	type(env_t) :: env, fenv
@@ -44,22 +44,10 @@ program example
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 	synth = synth_t(cutoff, env, fenv, square_wave)
 
-	! Soprano voice.  TODO: add new_voice() constructor?  Could be less error
-	! prone than multi-line initialization like here
-	sv%synth = synth
-	sv%audio => audio
-
-	! Alto
-	av%synth = synth
-	av%audio => audio
-
-	! Tenor
-	tv%synth = synth
-	tv%audio => audio
-
-	! Bass
-	bv%synth = synth
-	bv%audio => audio
+	sv = new_voice(audio, synth)  ! soprano voice
+	av = new_voice(audio, synth)  ! alto
+	tv = new_voice(audio, synth)  ! tenor
+	bv = new_voice(audio, synth)  ! bass
 
 	! Transpose up from A to D
 	tr = D2 / A1
@@ -110,12 +98,14 @@ program example
 	! F#m
 	call bv%play(tr*FS1, wn)
 
-	! TODO: make a rest method.  I guess playing 0 frequency also works
-	call tv%play(0.d0  , hn)
+	call tv%rest(hn)
 	call tv%play(tr*CS3, hn)
 
 	call av%play(tr*FS3, wn)
 	call sv%play(tr*A3 , wn)
+
+	! TODO: remove obsolete becalmed version.  Maybe port goldberg var 7 as
+	! well, although I'm not sure if I want to touch those 800 lines
 
 	! D
 	call bv%play(tr*D1 , wn)
