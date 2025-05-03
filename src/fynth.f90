@@ -3,7 +3,6 @@ module fynth
 
 	use fynth__audio
 	use fynth__io
-	!use fynth__notes
 	use fynth__utils
 
 	implicit none
@@ -80,9 +79,16 @@ module fynth
 		! TODO: add amplitude, pan, legato, etc. here, which a voice would also
 		! remember.  So you could set a volume and then play several notes at
 		! that dynamic before changing it
-		double precision :: t = 0
+
+		double precision :: t = 0.d0
+
+		! Legato is a fraction of how long note is held out of `len_`.  This is
+		! a spectrum from 0 == staccato to 1 == legato
+		double precision :: legato = 1.d0
+
 		type(synth_t) :: synth
 		type(audio_t), pointer :: audio => null()
+
 		contains
 			procedure :: &
 				play => play_voice, &
@@ -277,8 +283,6 @@ subroutine write_waveform(filename, synth, freq, len_)
 	! TODO:
 	!   - add more args:
 	!     * amp :  max amplitude/volume
-	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
-	!       is a spectrum from 0 == staccato to 1 == legato
 	!     * start time
 	!     * stereo pan
 
@@ -389,7 +393,9 @@ subroutine play_voice(voice, freq, len_)
 	class(voice_t), intent(inout) :: voice
 	double precision, intent(in) :: freq, len_
 
-	call play_note(voice%audio, voice%synth, freq, voice%t, len_)
+	call play_note(voice%audio, voice%synth, freq, voice%t, &
+		len_ * voice%legato )
+
 	voice%t = voice%t + len_
 
 end subroutine play_voice
@@ -410,8 +416,6 @@ subroutine play_note(audio, synth, freq, t0, len_)
 	!   - add test for this fn
 	!   - add more args:
 	!     * amp :  max amplitude/volume
-	!     * legato:  fraction of how long note is held out of `len_`.  name?  this
-	!       is a spectrum from 0 == staccato to 1 == legato
 	!     * track index?
 	!     * stereo pan, or leave until mixing?
 
@@ -488,7 +492,11 @@ subroutine play_note(audio, synth, freq, t0, len_)
 		audio%channel(:, len0 + 1:) = 0
 
 	end if
-	audio%len_ = it_end
+
+	! Otherwise, playing one voice could trim another voice that played later if
+	! called in the opposite order
+	audio%len_ = max(audio%len_, it_end)
+	!audio%len_ = it_end
 
 	do it = 1, n
 		t = 1.d0 * it / sample_rate
@@ -519,13 +527,7 @@ subroutine play_note(audio, synth, freq, t0, len_)
 		yout = y
 		!yout = max(-1.d0, min(1.d0, y))
 
-		! TODO: probably don't want to use `push()` here due to release.
-		! Release of one note can overlap with start of next note.  Instead of
-		! pushing, resize once per note.  Then add sample to previous value
-		! instead of (re) setting.  Fix release segment below too
-
 		itl = it + it0
-		!audio%channel(1, itl) = yout
 		audio%channel(1, itl) = audio%channel(1, itl) + yout
 
 		!print *, "t, x, yout = ", t, x, yout
@@ -557,7 +559,7 @@ subroutine write_wav_licc_basic(filename)
 
 	!********
 
-	! TODO: should default much higher (44.1 kHz or twice that?)
+	! Usually the sample rate should be much higher (44.1 kHz or twice that)
 	sample_rate = 8000
 	!sample_rate = 44100
 
