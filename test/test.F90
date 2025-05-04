@@ -22,48 +22,6 @@ contains
 
 !===============================================================================
 
-subroutine get_next_arg(i, argv)
-	! TODO: why is this not a fn that returns argv?
-
-	integer, intent(inout) :: i
-	character(len = :), allocatable, intent(out) :: argv
-	!********
-	character(len = :), allocatable, save :: argv0
-	character(len = 1024) :: buffer
-	integer, parameter :: STAT_TRUNC = -1
-	integer :: io, argc
-	logical, save :: first = .true.
-
-	if (first) then
-		first = .false.
-		call get_command_argument(0, buffer)
-		argv0 = trim(buffer)
-	end if
-
-	i = i + 1
-	argc = command_argument_count()
-	if (i > argc) then
-		call panic("missing required argument after """//argv0//"""")
-	end if
-
-	call get_command_argument(i, buffer, status = io)
-	if (io == STAT_TRUNC) then
-		! Could make buffer allocatable and automatically try resizing
-		call panic("command argument too long after """//argv0//"""")
-
-	else if (io /= EXIT_SUCCESS) then
-		call panic("cannot get command argument after """//argv0//"""")
-
-	end if
-	argv = trim(buffer)
-	!print *, "argv = ", argv
-
-	argv0 = argv
-
-end subroutine get_next_arg
-
-!===============================================================================
-
 function read_args() result(args)
 
 	! This argument parser is based on http://docopt.org/
@@ -89,7 +47,7 @@ function read_args() result(args)
 	i = 0
 	ipos = 0
 	do while (i < argc)
-		call get_next_arg(i, argv)
+		argv = get_next_arg(i)
 
 		select case (argv)
 

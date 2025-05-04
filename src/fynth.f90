@@ -9,6 +9,7 @@ module fynth
 
 	! TODO:
 	!
+	! - mention examples in readme and add a readme in its own folder
 	! - more tests
 	!   * round trip read/write
 	! - add some of the generated gnuplot pngs to readme and discuss
