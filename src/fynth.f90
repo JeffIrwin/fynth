@@ -86,6 +86,9 @@ module fynth
 		! a spectrum from 0 == staccato to 1 == legato
 		double precision :: legato = 1.d0
 
+		! 0 == silent, 1 == full volume
+		double precision :: velocity = 1.d0
+
 		type(synth_t) :: synth
 		type(audio_t), pointer :: audio => null()
 
@@ -388,7 +391,7 @@ subroutine play_voice(voice, freq, len_)
 	double precision, intent(in) :: freq, len_
 
 	call play_note(voice%audio, voice%synth, freq, voice%t, &
-		len_ * voice%legato )
+		len_ * voice%legato, voice%velocity)
 
 	voice%t = voice%t + len_
 
@@ -404,7 +407,7 @@ subroutine rest_voice(voice, len_)
 end subroutine rest_voice
 !===============================================================================
 
-subroutine play_note(audio, synth, freq, t0, len_)
+subroutine play_note(audio, synth, freq, t0, len_, velocity)
 
 	! TODO:
 	!   - add more args:
@@ -416,10 +419,11 @@ subroutine play_note(audio, synth, freq, t0, len_)
 
 	type(synth_t), intent(in) :: synth
 	double precision, intent(in) :: freq, t0, len_
+	double precision, intent(in), optional :: velocity
 
 	!********
 
-	double precision, parameter :: amp = 1.d0  ! could be an arg later
+	double precision :: amp
 	double precision :: f, t, ampi, ampl, b0, b1, b2, a1, a2, x, &
 		y, y0, y00, yout, x0, x00, cutoffl, fsus, rand
 	double precision, allocatable :: amp_tab(:,:), ftab(:,:), tmp(:,:)
@@ -485,6 +489,9 @@ subroutine play_note(audio, synth, freq, t0, len_)
 	! called in the opposite order
 	audio%len_ = max(audio%len_, it_end)
 	!audio%len_ = it_end
+
+	amp = 1.d0
+	if (present(velocity)) amp = velocity
 
 	do it = 1, n
 		t = 1.d0 * it / sample_rate
