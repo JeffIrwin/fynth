@@ -713,6 +713,7 @@ subroutine low_pass_filter(audio, freq)
 		//to_str(freq)//" Hz"
 
 	nt = size(audio%channel, 2)
+	!print *, "size channel = ", size(audio%channel)
 
 	do ic = 1, size(audio%channel, 1)
 

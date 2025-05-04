@@ -90,7 +90,7 @@ function read_wav(filename) result(audio)
 	!********
 
 	integer :: io, fid
-	integer :: buffer_size
+	integer :: buffer_size, len_
 	integer(kind = 2), allocatable :: buffer16(:,:)
 
 	type(wav_header_t) :: wavh
@@ -167,7 +167,8 @@ function read_wav(filename) result(audio)
 
 	print *, "buffer_size = ", buffer_size
 
-	allocate(buffer16(wavh%num_chans, buffer_size / wavh%num_chans))
+	len_ = buffer_size / wavh%num_chans
+	allocate(buffer16(wavh%num_chans, len_))
 
 	!print *, "size(buffer16) = ", size(buffer16, 1), size(buffer16, 2)
 
@@ -176,6 +177,8 @@ function read_wav(filename) result(audio)
 	!print *, "buffer16 = ", buffer16(1: 10)
 
 	audio%channel = buffer16 / (2.d0 ** (wavh%bits_per_samp - 1) - 1.d0)
+	audio%len_ = len_
+	audio%cap  = len_
 	!print *, "audio%channel = ", audio%channel(1: 10)
 
 	close(fid)

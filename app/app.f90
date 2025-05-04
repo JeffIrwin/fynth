@@ -57,7 +57,7 @@ double precision function get_next_double_arg(i, dash_arg, description, error) r
 	character(len = :), allocatable :: str
 	integer :: io
 
-	call get_next_arg(i, str)
+	str = get_next_arg(i)
 	read(str, *, iostat = io) arg
 	if (io /= 0) then
 		write(*,*) ERROR_STR//dash_arg//" "//description//" """ &
@@ -69,11 +69,13 @@ end function get_next_double_arg
 
 !===============================================================================
 
-subroutine get_next_arg(i, argv)
-	! TODO: why is this not a fn that returns argv?
+function get_next_arg(i) result(argv)
+
+	! TODO: this used to be a subroutine, but it is now a more sensible fn.
+	! Update test.F90's arg parser too
 
 	integer, intent(inout) :: i
-	character(len = :), allocatable, intent(out) :: argv
+	character(len = :), allocatable :: argv
 	!********
 	character(len = :), allocatable, save :: argv0
 	character(len = 1024) :: buffer
@@ -107,7 +109,7 @@ subroutine get_next_arg(i, argv)
 
 	argv0 = argv
 
-end subroutine get_next_arg
+end function get_next_arg
 
 !===============================================================================
 
@@ -121,9 +123,9 @@ function read_args() result(args)
 
 	!********
 
-	character(len = :), allocatable :: argv, str, url, version
+	character(len = :), allocatable :: argv, url, version
 
-	integer :: i, io, argc, ipos
+	integer :: i, argc, ipos
 
 	logical :: error = .false.
 
@@ -136,7 +138,7 @@ function read_args() result(args)
 	i = 0
 	ipos = 0
 	do while (i < argc)
-		call get_next_arg(i, argv)
+		argv = get_next_arg(i)
 
 		select case (argv)
 
