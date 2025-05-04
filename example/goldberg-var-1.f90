@@ -12,6 +12,8 @@ program example
 	double precision :: bpm
 	double precision :: n2d, n4, n4d, n8, n8d, n16, n16d, n32, n32d, n64
 
+	integer :: irep
+
 	type(audio_t), target :: audio
 	type(synth_t) :: synth
 	type(voice_t) :: lh, rh
@@ -55,11 +57,12 @@ program example
 	lh = new_voice(audio, synth)  ! left hand voice
 	rh = new_voice(audio, synth)  ! right hand voice
 
-	!********
-	! Bar 1
-
 	lh%legato = 0.25d0
 	!rh%legato = 0.25d0
+
+	!********
+	do irep = 1, -1
+	! Bar 1
 
 	call lh%play(G2 , n8  )
 	call lh%play(B3 , n16 )
@@ -472,8 +475,212 @@ program example
 
 	call rh%play(D4 , n4  )
 
+	end do
 	!--------------------------------
+	! Second half
 
+	!********
+	! Bar 17
+
+	call lh%play(D2 , n8  )
+	call lh%play(FS3, n16 )
+	call lh%play(E3 , n16 )
+
+	call lh%play(FS3, n8  )
+	call lh%play(D3 , n8  )
+	call lh%play(D2 , n8  )
+	call lh%play(FS3, n8  )
+
+	!********
+	! Bar 18
+
+	call lh%play(G2 , n8  )
+	call lh%play(B3 , n16 )
+	call lh%play(A3 , n16 )
+
+	call lh%play(B3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(G2 , n8  )
+	call lh%play(B3 , n8  )
+
+	!********
+	! Bar 19
+
+	call lh%play(C3 , n8  )
+	call lh%play(C4 , n16 )
+	call lh%play(B3 , n16 )
+
+	call lh%play(C4 , n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(A3 , n8  )
+	call lh%play(C4 , n8  )
+
+	!********
+	! Bar 20
+
+	call lh%play(A3 , n8  )
+	call lh%play(FS3, n8  )
+
+	call lh%play(DS3, n16 )
+	call lh%play(B2 , n16 )
+	call lh%play(DS3, n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(B3 , n16 )
+	call lh%play(DS4, n16 )
+	call lh%play(FS4, n16 )
+	call lh%play(A4 , n16 )
+
+	!********
+	! Bar 21
+
+	call lh%play(G4 , n8d )
+	call lh%play(FS4, n16 )
+
+	call lh%play(G4 , n8d )
+	call lh%play(FS3, n16 )
+
+	call lh%play(G3 , n8d )
+	call lh%play(B2 , n16 )
+
+	!********
+	! Bar 22
+
+	call lh%play(C3 , n8d )
+	call lh%play(B4 , n16 )
+
+	call lh%play(C5 , n8d )
+	call lh%play(B3 , n16 )
+
+	call lh%play(C4 , n8d )
+	call lh%play(E3 , n16 )
+
+	!********
+	! Bar 23
+
+	call lh%play(DS3, n8  )
+	call lh%play(A3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(AS2, n8  )
+	call lh%play(B2 , n8  )
+	call lh%play(FS3, n8  )
+
+	!********
+	! Bar 24
+
+	call lh%play(E3 , n8  )
+	call lh%play(G3 , n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(G3 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(E2 , n8  )
+
+	call lh%rest(n16)
+	call lh%play(D3 , n16 )
+
+	!********
+	! Bar 25
+
+	call lh%play(C3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(C4 , n16 )
+
+	call lh%play(E4 , n16 )
+	call lh%play(C4 , n16 )
+	call lh%play(A3 , n16 )
+	call lh%play(E3 , n16 )
+
+	call lh%play(C3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(C3 , n16 )
+
+	!********
+	! Bar 26
+
+	call lh%play(B2 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(G3 , n16 )
+	call lh%play(B3 , n16 )
+
+	call lh%play(D4 , n16 )
+	call lh%play(B3 , n16 )
+	call lh%play(G3 , n16 )
+	call lh%play(D3 , n16 )
+
+	call lh%play(B2 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(C3 , n16 )
+	call lh%play(B2 , n16 )
+
+	!********
+	! Bar 27
+
+	call lh%play(A2 , n8  )
+	call lh%play(C3 , n8  )
+	call lh%play(E3 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(E3 , n8  )
+
+	!********
+	! Bar 28
+
+	call lh%play(D3 , n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(A3 , n8  )
+	call lh%play(C4 , n8  )
+	call lh%play(B3 , n8  )
+	call lh%play(A3 , n8  )
+
+	!********
+	! Bar 29
+
+	call lh%play(G3 , n8  )
+	call lh%play(B3 , n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(F4 , n8  )
+	call lh%play(E4 , n8  )
+	call lh%play(D4 , n8  )
+
+	!********
+	! Bar 30
+
+	call lh%play(C4 , n8  )
+	call lh%play(E4 , n8  )
+	call lh%play(FS4, n8  )
+	call lh%play(GS4, n8  )
+	call lh%play(A4 , n8  )
+	call lh%play(G4 , n8  )
+
+	!********
+	! Bar 31
+
+	call lh%play(FS4, n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(G4 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(D3 , n8  )
+
+	!********
+	! Bar 32
+
+	call lh%play(G3 , n16 )
+	call lh%play(G2 , n16 )
+	call lh%play(A2 , n16 )
+	call lh%play(B2 , n16 )
+
+	call lh%play(C3 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(G3 , n4  )
+
+	!--------------------------------
 	print *, "writing wave file ..."
 	call write_wav(filename, audio)
 

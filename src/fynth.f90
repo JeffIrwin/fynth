@@ -279,12 +279,6 @@ end function get_env_tab
 
 subroutine write_waveform(filename, synth, freq, len_)
 
-	! TODO:
-	!   - add more args:
-	!     * amp :  max amplitude/volume
-	!     * start time
-	!     * stereo pan
-
 	character(len = *), intent(in) :: filename
 	type(synth_t), intent(in) :: synth
 	double precision, intent(in) :: freq, len_
