@@ -7,13 +7,10 @@ program main
 
 	implicit none
 
-	double precision :: cutoff
-
 	character(len = :), allocatable :: ext
 
 	type(args_t)  :: args
 	type(audio_t) :: audio
-	type(env_t)   :: amp_env, filter_env
 	type(synth_t) :: synth
 
 	procedure(fn_f64_to_f64), pointer :: waveform_fn
@@ -25,6 +22,7 @@ program main
 		call fynth_exit(EXIT_SUCCESS)
 	end if
 
+	! Waveform selector could be moved to read_args()
 	if (args%has_waveform) then
 		select case (args%waveform%i)
 		case (WAVEFORM_SQUARE%i)
@@ -47,35 +45,12 @@ program main
 		end select
 	end if
 
-	! TODO: set defaults in read_args()
-	if (args%has_env) then
-		amp_env = args%env
-	else
-		! Set default null ADSR envelope.  Sustain is 1 for amplitude
-		amp_env = env_t(a = 0, d = 0, s = 1, r = 0)
-	end if
-
-	if (args%two_pole) then
-		cutoff = args%two_pole_cutoff
-	else
-		! Defaut null low pass cutoff
-		cutoff = 0.1d0 * huge(cutoff)
-	end if
-
-	if (args%has_fenv) then
-		filter_env = args%fenv
-	else
-		! Default sustain is 0 for filter
-		filter_env = env_t(a = 0, d = 0, s = 0, r = 0)
-	end if
-
 	if (args%has_waveform) then
 
-		!synth = synth_t(cutoff, amp_env, filter_env, waveform_fn)
-		synth%cutoff = cutoff
-		synth%env = amp_env
-		synth%fenv = filter_env
-		synth%wave => waveform_fn
+		synth%cutoff =  args%two_pole_cutoff
+		synth%env    =  args%env
+		synth%fenv   =  args%fenv
+		synth%wave   => waveform_fn
 
 		call write_waveform(args%file1, synth, args%freq, args%len_)
 		call fynth_exit(EXIT_SUCCESS)

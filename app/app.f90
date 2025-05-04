@@ -17,7 +17,6 @@ module fynth__app
 
 		double precision :: low_pass_freq
 		double precision :: two_pole_cutoff !, two_pole_resonance
-		! TODO: add help for filter params
 
 		logical :: &
 			has_file1    = .false., &
@@ -63,8 +62,10 @@ function read_args() result(args)
 
 	logical :: error = .false.
 
-	!! Defaults
-	!args%maxerr = maxerr_def
+	! Defaults
+	args%env  = env_t(a = 0, d = 0, s = 1, r = 0)
+	args%fenv = env_t(a = 0, d = 0, s = 0, r = 0)
+	args%two_pole_cutoff = 0.1d0 * huge(0.d0)
 
 	argc = command_argument_count()
 	!print *, "argc = ", argc
@@ -277,6 +278,8 @@ function read_args() result(args)
 
 		write(*,*) "    fynth <out.wav> (--square|--triangle|--sawtooth|--sine|--noise) <frequency> <length>"
 		write(*,*) "        [--adsr <attack> <decay> <sustain> <release>]"
+		write(*,*) "        [(--filter-adsr|--fadsr) <attack> <decay> <sustain> <release>]"
+		write(*,*) "        [(--two-pole|--2pole) <cutoff-frequency>]"
 		!write(*,*) "    fynth <out.wav> --noise <length>"
 		write(*,*) "    fynth <out.wav> --licc"
 		write(*,*)
