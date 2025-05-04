@@ -589,6 +589,31 @@ end subroutine test_basic_sounds
 
 !===============================================================================
 
+subroutine test_gold_var_1(ntot, nfail, rebase)
+
+	use fynth__goldberg_var_1
+
+	integer, intent(inout) :: ntot, nfail
+	logical, intent(in) :: rebase
+
+	!********
+
+	character(len = :), allocatable :: fwav, fmd5, md5, md5_expect
+
+	write(*,*) "Testing Goldberg Variation 1 ..."
+
+	fwav = "test/resources/gold-var-1.wav"
+	fmd5 = fwav // ".md5"
+	call goldberg_var_1(fwav)
+	md5 = md5_file(fwav)
+	if (rebase) call write_file(fmd5, md5)
+	md5_expect = read_file(fmd5)
+	nfail = nfail + TEST_EQ(md5, md5_expect, ntot)
+
+end subroutine test_gold_var_1
+
+!===============================================================================
+
 subroutine test_envelopes(ntot, nfail, rebase)
 
 	integer, intent(inout) :: ntot, nfail
@@ -738,6 +763,7 @@ program main
 	call test_md5(ntot, nfail)
 	call test_basic_sounds(ntot, nfail, args%rebase)
 	call test_envelopes   (ntot, nfail, args%rebase)
+	call test_gold_var_1  (ntot, nfail, args%rebase)
 
 	! TODO: more tests:
 	!   - envelopes

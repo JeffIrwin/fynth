@@ -1,11 +1,20 @@
-program example
+module fynth__goldberg_var_1
+
+	implicit none
+
+contains
+
+subroutine goldberg_var_1(filename)
+	! JS Bach, BWV 988
+	!
+	! First half only (let's say for test performance)
 
 	use fynth
 	use fynth__notes
 
 	implicit none
 
-	character(len = :), allocatable :: filename
+	character(len = *), intent(in) :: filename
 
 	!********
 
@@ -18,9 +27,8 @@ program example
 
 	!********
 
-	! JS Bach, BWV 988
-	print *, "Running example goldberg-var-1"
-	filename = "build/goldberg-var-1.wav"
+	!print *, "Running example goldberg-var-1"
+	!filename = "build/goldberg-var-1.wav"
 
 	! Beats per minute
 	bpm = 55.d0
@@ -474,7 +482,9 @@ program example
 
 	!--------------------------------
 
-	print *, "writing wave file ..."
+	!print *, "writing wave file ..."
 	call write_wav(filename, audio)
 
-end program example
+end subroutine goldberg_var_1
+
+end module fynth__goldberg_var_1
