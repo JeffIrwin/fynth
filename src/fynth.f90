@@ -76,7 +76,7 @@ module fynth
 		! play a note by only specifying the duration, instead of both the
 		! duration and start time
 		!
-		! TODO: add amplitude, pan, legato, etc. here, which a voice would also
+		! TODO: add amplitude, pan, etc. here, which a voice would also
 		! remember.  So you could set a volume and then play several notes at
 		! that dynamic before changing it
 
@@ -100,7 +100,6 @@ contains
 
 !===============================================================================
 function new_voice(audio, synth)
-	! TODO: add tests that use new_voice and play_voice
 	type(audio_t), intent(in), pointer :: audio
 	type(synth_t), intent(in) :: synth
 
@@ -417,7 +416,6 @@ end subroutine rest_voice
 subroutine play_note(audio, synth, freq, t0, len_)
 
 	! TODO:
-	!   - add test for this fn
 	!   - add more args:
 	!     * amp :  max amplitude/volume
 	!     * track index?
@@ -443,11 +441,6 @@ subroutine play_note(audio, synth, freq, t0, len_)
 	sample_rate = audio%sample_rate
 
 	amp_tab = get_env_tab(synth%env, len_, 0.d0, synth%env%s, 1.d0)
-
-	!! In get_filter_coefs(), filter doesn't kick in until half the sample_rate
-	!sampd = 0.501d0 * dble(sample_rate)
-	!sampd = 2250.d0  ! becalmed
-	!!sampd = 6000.d0  ! goldberg
 
 	fsus = lerp(synth%cutoff, synth%cutoff_max, synth%fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s

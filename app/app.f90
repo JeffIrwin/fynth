@@ -156,41 +156,15 @@ function read_args() result(args)
 			args%sine = .true.
 			args%has_waveform = .true.
 
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%freq
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" frequency """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
-
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%len_
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" length """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
+			args%freq = get_next_double_arg(i, argv, "frequency", error)
+			args%len_ = get_next_double_arg(i, argv, "length", error)
 
 		case ("--squ", "--square")
 			args%square = .true.
 			args%has_waveform = .true.
 
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%freq
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" frequency """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
-
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%len_
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" length """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
+			args%freq = get_next_double_arg(i, argv, "frequency", error)
+			args%len_ = get_next_double_arg(i, argv, "length", error)
 
 		case ("--tri", "--triangle")
 			args%triangle = .true.
@@ -216,18 +190,11 @@ function read_args() result(args)
 		case ("--low", "--low-pass")
 			args%low_pass = .true.
 
-			call get_next_arg(i, str)
-			read(str, *, iostat = io) args%low_pass_freq
-			if (io /= 0) then
-				write(*,*) ERROR_STR//argv//" low pass frequency """ &
-					//str//""" is not a valid number"
-				error = .true.
-			end if
+			args%low_pass_freq = get_next_double_arg(i, argv, "low pass frequency", error)
 
 		case ("--adsr")
 			args%has_env = .true.
 
-			! TODO: use get_next_double_arg() for other args
 			args%env%a = get_next_double_arg(i, argv, "attack" , error)
 			args%env%d = get_next_double_arg(i, argv, "decay"  , error)
 			args%env%s = get_next_double_arg(i, argv, "sustain", error)
@@ -237,7 +204,6 @@ function read_args() result(args)
 		case ("--fadsr", "--filter-adsr")
 			args%has_fenv = .true.
 
-			! TODO: use get_next_double_arg() for other args
 			args%fenv%a = get_next_double_arg(i, argv, "attack" , error)
 			args%fenv%d = get_next_double_arg(i, argv, "decay"  , error)
 			args%fenv%s = get_next_double_arg(i, argv, "sustain", error)

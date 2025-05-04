@@ -610,6 +610,8 @@ subroutine test_gold_var_1(ntot, nfail, rebase)
 	md5_expect = read_file(fmd5)
 	nfail = nfail + TEST_EQ(md5, md5_expect, ntot)
 
+	! TODO: copy becalmed (12-ET or just) as another test
+
 end subroutine test_gold_var_1
 
 !===============================================================================
