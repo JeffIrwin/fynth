@@ -10,7 +10,7 @@ program example
 	!********
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, wn, hn, dhn, &
-		cutoff, tr
+		cutoff_min, tr
 
 	type(audio_t), target :: audio
 	type(env_t) :: env, fenv
@@ -38,13 +38,12 @@ program example
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
-	cutoff = 300.d0
+	cutoff_min = 300.d0
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 
-	!synth = synth_t(cutoff, env, fenv, square_wave)
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff_min
 	synth%cutoff_max = 2250.d0
 	synth%env = env
 	synth%fenv = fenv
@@ -110,8 +109,8 @@ program example
 	call av%play(tr*FS3, wn)
 	call sv%play(tr*A3 , wn)
 
-	! TODO: remove obsolete becalmed version.  Maybe port goldberg var 7 as
-	! well, although I'm not sure if I want to touch those 800 lines
+	! TODO:  Maybe port goldberg var 7 as well from play_note() to voice%play(),
+	! although I'm not sure if I want to touch those 800 lines
 
 	! D
 	call bv%play(tr*D1 , wn)

@@ -10,7 +10,7 @@ program example
 	!********
 
 	double precision :: bpm, quarter_note, eigth_note, en, qn, wn, hn, dhn, &
-		cutoff, t, tr
+		cutoff_min, t, tr
 	double precision :: D1J, A1J, E1J, FS1J, B2J, CS3J, D3J, E3J, FS3J, GS3J, &
 		A3J, B3J, CS4J, D4J
 
@@ -43,13 +43,12 @@ program example
 
 	!wave => sawtooth_wave
 	wave => square_wave
-	cutoff = 300.d0
+	cutoff_min = 300.d0
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.3, d = 2.4, s = 0.8, r = 0.7)
 	fenv = env_t(a = 2.3, d = 1.3, s = 0, r = 100)
 
-	!synth = synth_t(cutoff, env, fenv, square_wave)
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff_min
 	synth%cutoff_max = 2250.d0
 	synth%env = env
 	synth%fenv = fenv

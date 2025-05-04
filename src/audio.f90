@@ -41,7 +41,7 @@ module fynth__audio
 
 		! TODO: add key_amount member
 		double precision :: &
-			cutoff     = 0.1d0 * huge(0.d0), &  ! TODO: rename cutoff_min
+			cutoff_min = 0.1d0 * huge(0.d0), &
 			cutoff_max = 0.1d0 * huge(0.d0)
 
 		type(env_t) ::  env = env_t(a = 0, d = 0, s = 1, r = 0)

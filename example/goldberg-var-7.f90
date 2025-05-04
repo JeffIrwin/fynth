@@ -10,7 +10,7 @@ program example
 
 	!********
 
-	double precision :: bpm, cutoff, t
+	double precision :: bpm, cutoff_min, t
 	double precision :: n2d, n4, n4d, n8, n8d, n16, n16d, n32, n32d, n64
 
 	integer :: irep
@@ -43,17 +43,15 @@ program example
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
-	cutoff = 300.d0
-	cutoff = 1200.d0
+	cutoff_min = 300.d0
+	cutoff_min = 1200.d0
 
 	!env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	env  = env_t(a = 0.0, d = 0.4, s = 0.2, r = 0.3)
 	fenv = env_t(a = 0.0, d = 0.3, s = 0, r = 1.0)
 
-	!!synth = synth_t(cutoff, env, fenv, square_wave)
-	!!synth = synth_t(cutoff, env, fenv, sawtooth_wave)
-	!synth = synth_t(cutoff, env, fenv, triangle_wave)
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff_min
+	synth%cutoff_max = 6000.d0
 	synth%env = env
 	synth%fenv = fenv
 	synth%wave => triangle_wave

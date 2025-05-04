@@ -462,7 +462,7 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 
 	character(len = :), allocatable :: fwav, fmd5, md5, md5_expect
 
-	double precision :: freq, len_, cutoff
+	double precision :: freq, len_, cutoff_min
 
 	type(env_t) :: env, fenv
 	type(synth_t) :: synth
@@ -481,9 +481,9 @@ subroutine test_basic_sounds(ntot, nfail, rebase)
 	! Set default null ADSR envelope and high cutoff
 	env  = env_t(a = 0, d = 0, s = 1, r = 0)
 	fenv = env_t(a = 0, d = 0, s = 0, r = 0)
-	cutoff = 0.1d0 * huge(cutoff)
+	cutoff_min = 0.1d0 * huge(cutoff_min)
 
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff_min
 	synth%env = env
 	synth%fenv = fenv
 
@@ -583,7 +583,7 @@ subroutine test_envelopes(ntot, nfail, rebase)
 
 	character(len = :), allocatable :: fwav, fmd5, md5, md5_expect
 
-	double precision :: freq, len_, cutoff
+	double precision :: freq, len_, cutoff_min
 
 	type(env_t) :: env, fenv
 	type(synth_t) :: synth
@@ -591,13 +591,13 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	write(*,*) "Testing ADSR amplitude envelopes ..."
 
 	! Set default null high cutoff
-	cutoff = 0.1d0 * huge(cutoff)
+	cutoff_min = 0.1d0 * huge(cutoff_min)
 	fenv = env_t(a = 0, d = 0, s = 0, r = 0)
 
 	freq = 300.d0
 	len_ = 1.0d0
 
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff_min
 	synth%fenv = fenv
 
 	!********
@@ -684,7 +684,7 @@ subroutine test_envelopes(ntot, nfail, rebase)
 	len_ = 3.4285714285714284d0
 	env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	synth%fenv = env_t(a = 2.3, d = 1.3, s = 0, r = env%r)
-	synth%cutoff = 300.d0
+	synth%cutoff_min = 300.d0
 	synth%cutoff_max = 2250.d0
 	synth%env = env
 	synth%wave => square_wave

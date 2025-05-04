@@ -47,10 +47,10 @@ program main
 
 	if (args%has_waveform) then
 
-		synth%cutoff =  args%two_pole_cutoff
-		synth%env    =  args%env
-		synth%fenv   =  args%fenv
-		synth%wave   => waveform_fn
+		synth%cutoff_min =  args%two_pole_cutoff
+		synth%env        =  args%env
+		synth%fenv       =  args%fenv
+		synth%wave       => waveform_fn
 
 		call write_waveform(args%file1, synth, args%freq, args%len_)
 		call fynth_exit(EXIT_SUCCESS)

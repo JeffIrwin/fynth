@@ -18,7 +18,6 @@ module fynth
 	!   * do i really want args for everything or is it time for input files?
 	!   * more filtering options:
 	!     + delay
-	!     + max cutoff frequency
 	!     + key amount (changing cutoff based on note freq)
 	!   * concat wavs, crop start/end time, amplify, mix wavs
 	! - extend for stereo, 8-bit, float formats
@@ -356,8 +355,6 @@ subroutine write_wav_licc(filename)
 	!audio = audio_t([0.d0], 44100)
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
-	!cutoff = 0.1d0 * huge(cutoff)
-	!cutoff = 1500.d0
 	cutoff = 300.d0
 
 	!env  = env_t(a = 0, d = 0, s = 1, r = 0)
@@ -368,8 +365,7 @@ subroutine write_wav_licc(filename)
 	!fenv = env_t(a = 0, d = 0.2, s = 0, r = 0)
 	fenv = env_t(a = 0.2, d = 0.3, s = 0, r = 0)
 
-	!synth = synth_t(cutoff, env, fenv, square_wave)
-	synth%cutoff = cutoff
+	synth%cutoff_min = cutoff
 	synth%env = env
 	synth%fenv = fenv
 	synth%wave => square_wave
@@ -443,13 +439,13 @@ subroutine play_note(audio, synth, freq, t0, len_)
 
 	amp_tab = get_env_tab(synth%env, len_, 0.d0, synth%env%s, 1.d0)
 
-	fsus = lerp(synth%cutoff, synth%cutoff_max, synth%fenv%s)  ! TODO: linear in octaves?
+	fsus = lerp(synth%cutoff_min, synth%cutoff_max, synth%fenv%s)  ! TODO: linear in octaves?
 	!print *, "fenv%s = ", fenv%s
-	!print *, "cutoff = ", cutoff
+	!print *, "cutoff_min = ", cutoff_min
 	!print *, "sampd  = ", sampd
 	!print *, "fsus   = ", fsus
 
-	ftab = get_env_tab(synth%fenv, len_, synth%cutoff, fsus, synth%cutoff_max)
+	ftab = get_env_tab(synth%fenv, len_, synth%cutoff_min, fsus, synth%cutoff_max)
 
 	ftab(2,:) = log(ftab(2,:)) / log(2.d0)
 

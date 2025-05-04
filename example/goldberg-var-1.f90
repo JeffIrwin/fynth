@@ -42,8 +42,8 @@ program example
 
 	audio = new_audio(num_chans = 1, sample_rate = 44100)
 
-	!synth%cutoff = 300.d0
-	synth%cutoff = 1200.d0
+	!synth%cutoff_min = 300.d0
+	synth%cutoff_min = 1200.d0
 
 	!synth%env  = env_t(a = 1.2, d = 2.4, s = 0.8, r = 0.7)
 	synth%env = env_t(a = 0.0, d = 0.4, s = 0.2, r = 0.3)
