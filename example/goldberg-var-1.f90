@@ -545,22 +545,6 @@ program example
 	call lh%play(A3 , n8  )
 	call lh%play(C4 , n8  )
 
-	!********
-	! Bar 20
-
-	call lh%play(A3 , n8  )
-	call lh%play(FS3, n8  )
-
-	call lh%play(DS3, n16 )
-	call lh%play(B2 , n16 )
-	call lh%play(DS3, n16 )
-	call lh%play(FS3, n16 )
-
-	call lh%play(B3 , n16 )
-	call lh%play(DS4, n16 )
-	call lh%play(FS4, n16 )
-	call lh%play(A4 , n16 )
-
 	call rh%play(E4 , n16 )
 	call rh%play(GS4, n16 )
 	call rh%play(A4 , n16 )
@@ -577,6 +561,29 @@ program example
 	call rh%play(E5 , n16 )
 
 	!********
+	! Bar 20
+
+	call lh%play(A3 , n8  )
+	call lh%play(FS3, n8  )
+
+	call lh%play(DS3, n16 )
+	call lh%play(B2 , n16 )
+	call lh%play(DS3, n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(B3 , n16 )
+	call lh%play(DS4, n16 )
+	call lh%play(FS4, n16 )
+	call lh%play(A4 , n16 )
+
+	call rh%play(FS5, n16 )
+	call rh%play(E5 , n16 )
+	call rh%play(DS5, n16 )
+	call rh%play(CS5, n16 )
+
+	call rh%play(B4 , n2+n16)  ! tie into next bar
+
+	!********
 	! Bar 21
 
 	call lh%play(G4 , n8d )
@@ -588,12 +595,14 @@ program example
 	call lh%play(G3 , n8d )
 	call lh%play(B2 , n16 )
 
-	call rh%play(FS5, n16 )
-	call rh%play(E5 , n16 )
 	call rh%play(DS5, n16 )
-	call rh%play(CS5, n16 )
+	call rh%play(E5 , n8d )
 
-	call rh%play(B4 , n2+n16)  ! tie into next bar
+	call rh%play(DS4, n16 )
+	call rh%play(E4 , n8d )
+
+	call rh%play(DS3, n16 )
+	call rh%play(E3 , n8  )
 
 	!********
 	! Bar 22
@@ -607,14 +616,15 @@ program example
 	call lh%play(C4 , n8d )
 	call lh%play(E3 , n16 )
 
-	call rh%play(DS5, n16 )
-	call rh%play(E5 , n8d )
+	call rh%rest(n16)
+	call rh%play(GS5, n16 )
+	call rh%play(A5 , n8d )
 
-	call rh%play(DS4, n16 )
-	call rh%play(E4 , n8d )
+	call rh%play(GS4, n16 )
+	call rh%play(A4 , n8d )
 
-	call rh%play(DS3, n16 )
-	call rh%play(E3 , n8  )
+	call rh%play(GS3, n16 )
+	call rh%play(A3 , n8d )
 
 	!********
 	! Bar 23
@@ -626,15 +636,19 @@ program example
 	call lh%play(B2 , n8  )
 	call lh%play(FS3, n8  )
 
-	call rh%rest(n16)
-	call rh%play(GS5, n16 )
-	call rh%play(A5 , n8d )
+	call rh%play(B3 , n16 )
+	call rh%play(C4 , n16 )
+	call rh%play(FS4, n16 )
 
-	call rh%play(GS4, n16 )
-	call rh%play(A4 , n8d )
+	call rh%play(B3 , n16 )
+	call rh%play(DS4, n16 )
+	call rh%play(E4 , n16 )
+	call rh%play(G4 , n16 )
 
-	call rh%play(GS3, n16 )
-	call rh%play(A3 , n8d )
+	call rh%play(FS4, n16 )
+	call rh%play(E4 , n16 )
+	call rh%play(DS4, n16 )
+	call rh%play(A4 , n16 )
 
 	!********
 	! Bar 24
@@ -650,19 +664,19 @@ program example
 	call lh%rest(n16)
 	call lh%play(D3 , n16 )
 
-	call rh%play(B3 , n16 )
-	call rh%play(C4 , n16 )
+	call rh%play(G4 , n16 )
 	call rh%play(FS4, n16 )
-
-	call rh%play(B3 , n16 )
+	call rh%play(E4 , n16 )
 	call rh%play(DS4, n16 )
+
 	call rh%play(E4 , n16 )
 	call rh%play(G4 , n16 )
+	call rh%play(B3 , n16 )
+	call rh%play(A3 , n16 )
 
-	call rh%play(FS4, n16 )
-	call rh%play(E4 , n16 )
-	call rh%play(DS4, n16 )
-	call rh%play(A4 , n16 )
+	call rh%play(G3 , n16 )
+	call rh%play(B3 , n16 )
+	call rh%play(E3 , n8  )
 
 	!********
 	! Bar 25
@@ -682,19 +696,12 @@ program example
 	call lh%play(D3 , n16 )
 	call lh%play(C3 , n16 )
 
-	call rh%play(G4 , n16 )
-	call rh%play(FS4, n16 )
-	call rh%play(E4 , n16 )
-	call rh%play(DS4, n16 )
-
-	call rh%play(E4 , n16 )
-	call rh%play(G4 , n16 )
-	call rh%play(B3 , n16 )
-	call rh%play(A3 , n16 )
-
-	call rh%play(G3 , n16 )
-	call rh%play(B3 , n16 )
-	call rh%play(E3 , n8  )
+	call rh%rest(n8)
+	call rh%play(E5 , n8  )
+	call rh%play(C5 , n8  )
+	call rh%play(E5 , n8  )
+	call rh%play(A5 , n8  )
+	call rh%play(A4 , n8  )
 
 	!********
 	! Bar 26
@@ -715,11 +722,11 @@ program example
 	call lh%play(B2 , n16 )
 
 	call rh%rest(n8)
-	call rh%play(E5 , n8  )
-	call rh%play(C5 , n8  )
-	call rh%play(E5 , n8  )
-	call rh%play(A5 , n8  )
-	call rh%play(A4 , n8  )
+	call rh%play(D5 , n8  )
+	call rh%play(B4 , n8  )
+	call rh%play(D5 , n8  )
+	call rh%play(G5 , n8  )
+	call rh%play(G4 , n8  )
 
 	!********
 	! Bar 27
@@ -730,23 +737,6 @@ program example
 	call lh%play(G3 , n8  )
 	call lh%play(FS3, n8  )
 	call lh%play(E3 , n8  )
-
-	call rh%rest(n8)
-	call rh%play(D5 , n8  )
-	call rh%play(B4 , n8  )
-	call rh%play(D5 , n8  )
-	call rh%play(G5 , n8  )
-	call rh%play(G4 , n8  )
-
-	!********
-	! Bar 28
-
-	call lh%play(D3 , n8  )
-	call lh%play(FS3, n8  )
-	call lh%play(A3 , n8  )
-	call lh%play(C4 , n8  )
-	call lh%play(B3 , n8  )
-	call lh%play(A3 , n8  )
 
 	call rh%play(C5 , n16 )
 	call rh%play(A4 , n16 )
@@ -764,14 +754,14 @@ program example
 	call rh%play(E5 , n16 )
 
 	!********
-	! Bar 29
+	! Bar 28
 
-	call lh%play(G3 , n8  )
+	call lh%play(D3 , n8  )
+	call lh%play(FS3, n8  )
+	call lh%play(A3 , n8  )
+	call lh%play(C4 , n8  )
 	call lh%play(B3 , n8  )
-	call lh%play(D4 , n8  )
-	call lh%play(F4 , n8  )
-	call lh%play(E4 , n8  )
-	call lh%play(D4 , n8  )
+	call lh%play(A3 , n8  )
 
 	call rh%play(FS5, n16 )
 	call rh%play(C5 , n16 )
@@ -789,14 +779,14 @@ program example
 	call rh%play(A5 , n16 )
 
 	!********
-	! Bar 30
+	! Bar 29
 
-	call lh%play(C4 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(B3 , n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(F4 , n8  )
 	call lh%play(E4 , n8  )
-	call lh%play(FS4, n8  )
-	call lh%play(GS4, n8  )
-	call lh%play(A4 , n8  )
-	call lh%play(G4 , n8  )
+	call lh%play(D4 , n8  )
 
 	call rh%play(B5 , n16 )
 	call rh%play(G5 , n16 )
@@ -814,14 +804,14 @@ program example
 	call rh%play(D6 , n16 )
 
 	!********
-	! Bar 31
+	! Bar 30
 
+	call lh%play(C4 , n8  )
+	call lh%play(E4 , n8  )
 	call lh%play(FS4, n8  )
-	call lh%play(D4 , n8  )
+	call lh%play(GS4, n8  )
+	call lh%play(A4 , n8  )
 	call lh%play(G4 , n8  )
-	call lh%play(G3 , n8  )
-	call lh%play(D4 , n8  )
-	call lh%play(D3 , n8  )
 
 	call rh%play(E5 , n16 )
 	call rh%play(D6 , n16 )
@@ -839,19 +829,14 @@ program example
 	call rh%play(G5 , n16 )
 
 	!********
-	! Bar 32
+	! Bar 31
 
-	call lh%play(G3 , n16 )
-	call lh%play(G2 , n16 )
-	call lh%play(A2 , n16 )
-	call lh%play(B2 , n16 )
-
-	call lh%play(C3 , n16 )
-	call lh%play(D3 , n16 )
-	call lh%play(E3 , n16 )
-	call lh%play(FS3, n16 )
-
-	call lh%play(G3 , n4  )
+	call lh%play(FS4, n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(G4 , n8  )
+	call lh%play(G3 , n8  )
+	call lh%play(D4 , n8  )
+	call lh%play(D3 , n8  )
 
 	call rh%play(A5 , n16 )
 	call rh%play(C5 , n16 )
@@ -869,6 +854,19 @@ program example
 	call rh%play(FS4, n16 )
 
 	!********
+	! Bar 32
+
+	call lh%play(G3 , n16 )
+	call lh%play(G2 , n16 )
+	call lh%play(A2 , n16 )
+	call lh%play(B2 , n16 )
+
+	call lh%play(C3 , n16 )
+	call lh%play(D3 , n16 )
+	call lh%play(E3 , n16 )
+	call lh%play(FS3, n16 )
+
+	call lh%play(G3 , n4  )
 
 	call rh%play(B4 , n16 )
 	call rh%play(G4 , n16 )
@@ -881,6 +879,8 @@ program example
 	call rh%play(A3 , n16 )
 
 	call rh%play(G3 , n4  )
+
+	!********
 
 	!--------------------------------
 	print *, "writing wave file ..."
